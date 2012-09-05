@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- 
+ !  Copyright (c) 2009 International Health Terminology Standards Development Organisation
+ !
+ !  Licensed under the Apache License, Version 2.0 (the "License");
+ !  you may not use this file except in compliance with the License.
+ !  You may obtain a copy of the License at
+ ! 
+ !      http://www.apache.org/licenses/LICENSE-2.0
+ !
+ !  Unless required by applicable law or agreed to in writing, software
+ !  distributed under the License is distributed on an "AS IS" BASIS,
+ !  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ !  See the License for the specific language governing permissions and
+ !  limitations under the License.
+ -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+<head>
+<!--
+&copy; Copyright 2007-2008 CSIRO Australian e-Health Research Centre. All rights reserved.
+-->
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="date" content="2007-10-03T12:12:26+1000" />
+  <style type="text/css">
+	body {
+		font-family: helvetica;
+		width: 40em;
+	}
+	p { text-align: justify; }
+  </style>
+  <title>Snorocket ${project.version}</title>
+
+</head>
+<body>
+<h1><a name="snorocket_${project.version}" id="snorocket_${project.version}">Snorocket ${project.version}</a></h1>
+
+<p>
+ A fast Java implementation of the Dresden algorithm for classifying SNOMED CT.
+</p>
+
+<h2><a name="features" id="features">Features:</a></h2>
+
+<ul>
+<li>Input File Formats
+<ul>
+<li>SNOMED CT Distribution format for Concepts and Relationships</li>
+<li>KRSS (restricted to the description logic EL+bottom)<br />
+    This means <em>for all</em>, <em>disjunction</em>, <em>negation</em>, and <em>instances</em> are <strong>not</strong> supported.
+</li>
+<li>native textual syntax</li>
+</ul>
+</li>
+<li>Output File Formats
+<ul>
+<li>SNOMED CT Distribution format for Relationships</li>
+<li>state-snapshot file to support incremental classification</li>
+</ul>
+</li>
+<li>Interface
+<ul>
+<li>command line</li>
+</ul>
+</li>
+</ul>
+
+<h2><a name="requirements" id="requirements">Requirements:</a></h2>
+
+<ul>
+<li>Java 1.5 or later</li>
+<li>Windows XP Pro</li>
+<li>2GB RAM</li>
+<li>100Mb free disk space</li>
+</ul>
+
+<h2><a name="installation" id="installation">Installation:</a></h2>
+
+<p>
+ Unzip the supplied zip file wherever you want it installed.  The batch file can be used to invoke the classifier.
+</p>
+
+<h2><a name="usage" id="usage">Usage:</a></h2>
+
+<p>
+ <pre>
+snorocket
+  (--conceptsFile <i>filename</i> --relationshipsFile <i>filename</i>|--krssFile <i>filename</i>|--snorocketFile <i>filename</i>)
+  [--outputFile <i>filename</i>]
+  [--inputState <i>filename</i>] [--outputState <i>filename</i>]
+  [--noHeader] [--hideEquivalents] [--X]
+</pre>
+</p>
+
+<p>
+Brackets and the vertical bar indicate mutually exclusive alternative arguments. Arguments inside square brackets are optional.
+</p>
+
+<p>
+
+<ul>
+  <li> <tt>--conceptsFile <i>filename</i> --relationshipsFile <i>filename</i></tt>
+    <p>
+    Specifies the input files in SNOMED CT Distribution format for Concepts and Relationships.
+    </p>
+  </li>
+   <li> <tt>--krssFile <i>filename</i></tt>
+    <p>
+    Specifies the input file in KRSS syntax.
+    </p>
+  </li>
+  <li> <tt>--snorocketFile <i>filename</i></tt>
+    <p>
+    Specifies the input file in the <a href="#native_textual_syntax">native syntax</a>.
+    </p>
+  </li>
+  <li> <tt>--outputFile <i>filename</i></tt>
+    <p>
+    <tt><i>filename</i></tt> should be the path to a text file to write the classification results conforming to SNOMED CT Distribution format for Relationships.
+    </p>
+    <p>
+    If <tt><i>filename</i></tt> is a single dash (<tt>-</tt>) then the output is written to the console.
+    </p>
+  </li>
+  <li> <tt>--inputState <i>filename</i></tt>
+    <p>
+    To perform incremental classification, the initial base state needs to be established.
+    <i>filename</i> should be the path to a file containing this base state.
+    </p>
+  </li>
+  <li> <tt>--outputState <i>filename</i></tt>
+    <p>
+    To perform a subsequent incremental classification, the initial base state needs to have been stored.
+    <tt><i>filename</i></tt> should be the path to a file in which to store the base state.
+    </p>
+  </li>
+  <li> <tt>--noHeader</tt>
+    <p>
+    The first line of the SNOMED CT Distribution format normally consists of text labels for each column and thus the input parser skips the first line.
+    If, however, this header line is missing then this flag should be used to tell the parser not to skip the first line.
+    </p>
+  </li>
+  <li> <tt>--hideEquivalents</tt>
+    <p>
+    Normally SNOMED CT-based ontologies should not contain equivalent concepts.
+    Thus, if equivalent concepts are discovered during classification, then they are printed out to the console.
+    Specifying this flag will suppress this output.
+    </p>
+  </li>
+  <li> <tt>--X</tt>
+    <p>
+    Displays a list of non-standard options that are subject to change without notice.
+    </p>
+  </li>
+</ul>
+
+</p>
+
+<h2><a name="example" id="example">Example:</a></h2>
+
+<pre>snorocket --conceptsFile ontologies\almrf_concepts_stated.txt --relationshipsFile ontologies\almrf_relationships_stated.txt --outputFile -</pre>
+
+<h2><a name="native_textual_syntax" id="native_textual_syntax">Native textual syntax:</a></h2>
+
+<p>
+ The syntax is specified formally below in <a href="http://en.wikipedia.org/wiki/Backus-Naur_form" title="http://en.wikipedia.org/wiki/Backus-Naur_form"  rel="nofollow">Backus-Naur</a> format.
+</p>
+
+<p>
+Informally,
+</p>
+<ul>
+<li>the syntax ignores blank lines and comment lines (those that start with a <tt>#</tt>)</li>
+<li>general concept inclusions (GCIs) use
+<ul>
+<li><tt>[</tt> and <tt>]</tt> for subsumption and <tt>][</tt> for equivalence,</li>
+<li><tt>+</tt> for conjunction,</li>
+<li>and <tt>.</tt> is used to connect a role with a concept for existential restriction, while</li>
+</ul>
+</li>
+<li>role inclusions (RIs) use <tt>&lt;</tt> for subsumption.</li>
+</ul>
+
+<p>
+ 
+<table>
+<tr><th colspan="3">Examples</th></tr>
+<tr><td>A &#8851; B &#8849; C</td><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td><tt>A + B [ C</tt></td></tr>
+<tr><td>A &#8851; B &#8801; C</td><td></td><td><tt>A + B ][ C</tt></td></tr>
+<tr><td>&#8707;r.A &#8851; B</td><td></td><td><tt>r.A [ B</tt></td></tr>
+<tr><td>r &#8849; s</td><td></td><td><tt>r < s</tt></td></tr>
+<tr><td>r &#8728; s &#8849; t</td><td></td><td><tt>r s < t</tt></td></tr>
+</table>
+
+</p>
+
+<h3><a name="bnf" id="bnf">BNF</a></h3>
+
+<pre>&lt;ontology&gt; ::= { &lt;statement&gt; }
+&lt;statement&gt; ::= &lt;comment&gt; | &lt;gci&gt; | &lt;ri&gt;
+&lt;comment&gt; ::= "#" &lt;text&gt; &lt;EOL&gt;
+&lt;gci&gt; ::= &lt;expression&gt; &lt;inclusion&gt; &lt;expression&gt;
+&lt;ri&gt; ::= &lt;role&gt; {&lt;role&gt;} "&lt;" &lt;role&gt;
+&lt;expression&gt; ::=
+               ( "(" &lt;expression&gt; ")"
+               | role "." ( &lt;concept&gt; | "(" &lt;expression&gt; ")" )
+               | &lt;concept&gt;
+               ) &lt;opt-conjunction&gt;
+&lt;opt-conjunction&gt; ::= "+" &lt;expression&gt; | ""
+&lt;inclusion&gt; ::= "[" | "][" | "]"
+&lt;concept&gt; ::= "top" | "138875005" | "bottom" | &lt;identifier&gt;
+&lt;role&gt; ::= &lt;identifier&gt;
+&nbsp;</pre>
+
+<hr/>
+
+<small>
+&copy; Copyright 2007-2008 CSIRO <a href="http://aehrc.com" title="http://aehrc.com">Australian e-Health Research Centre</a>. All rights reserved.
+</small>
+		
+</body>
+</html>
