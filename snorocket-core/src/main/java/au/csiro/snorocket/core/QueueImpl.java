@@ -21,26 +21,25 @@
 
 package au.csiro.snorocket.core;
 
-//import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
+
+import au.csiro.snorocket.core.util.MonotonicCollection;
 
 
 /**
  * A LIFO queue.  Used to be a LIFO set to avoid duplicate entries but,
  * <ol>
  * <li>this has huge space overheads, and</li>
- * <li>empirical evidence indicates they don't happen and thus this is redundant effort</li>
+ * <li>empirical evidence indicates they don't happen and thus this is redundant
+ * effort</li>
  * </ol>
  * 
- * @author law223
+ * @author Michael Lawley
  *
  * @param <QueueEntry>
  */
-@SuppressWarnings("serial")
-final class QueueImpl<QueueEntry>
-implements IQueue<QueueEntry>
-{
+final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
     private static final int DEFAULT_ALLOC_SIZE = 4;
     private static final Object[] EMPTY = {};
 
@@ -77,9 +76,6 @@ implements IQueue<QueueEntry>
         checkSize(1);
         items[counter++] = entry;
     }
-
-//  public void addAll(Iterable<? extends QueueEntry> queue) {
-//  }
 
     public void addAll(MonotonicCollection<? extends QueueEntry> queue) {
         try {

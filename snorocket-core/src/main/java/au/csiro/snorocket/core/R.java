@@ -24,6 +24,13 @@ package au.csiro.snorocket.core;
 import java.util.Arrays;
 import java.util.BitSet;
 
+import au.csiro.snorocket.core.util.DenseConceptMap;
+import au.csiro.snorocket.core.util.IConceptMap;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.ReadonlyConceptSet;
+import au.csiro.snorocket.core.util.SparseConceptHashSet;
+import au.csiro.snorocket.core.util.SparseConceptSet;
+
 public class R extends R1 {
     R(int concepts, int roles) {
         super(concepts, roles);

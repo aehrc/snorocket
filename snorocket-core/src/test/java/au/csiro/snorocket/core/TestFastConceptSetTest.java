@@ -22,8 +22,8 @@
 package au.csiro.snorocket.core;
 
 import au.csiro.snorocket.core.TestIConceptSet;
-import au.csiro.snorocket.core.FastConceptHashSet;
-import au.csiro.snorocket.core.IConceptSet;
+import au.csiro.snorocket.core.util.FastConceptHashSet;
+import au.csiro.snorocket.core.util.IConceptSet;
 
 public class TestFastConceptSetTest extends TestIConceptSet {
 

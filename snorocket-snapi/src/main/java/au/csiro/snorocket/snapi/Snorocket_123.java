@@ -36,25 +36,26 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import au.csiro.snorocket.core.AbstractConcept;
-import au.csiro.snorocket.core.Concept;
-import au.csiro.snorocket.core.Conjunction;
-import au.csiro.snorocket.core.Existential;
 //import au.csiro.snorocket.core.Factory; :!!!:zzz:
 import au.csiro.snorocket.core.Factory_123;
-import au.csiro.snorocket.core.GCI_123;
-import au.csiro.snorocket.core.IConceptMap;
-import au.csiro.snorocket.core.IConceptSet;
 import au.csiro.snorocket.core.IFactory_123;
-import au.csiro.snorocket.core.Inclusion_123;
-import au.csiro.snorocket.core.IntIterator;
 import au.csiro.snorocket.core.NormalisedOntology_123;
 import au.csiro.snorocket.core.ParseException;
+import au.csiro.snorocket.core.PostProcessedData_123;
 import au.csiro.snorocket.core.R;
-import au.csiro.snorocket.core.RI_123;
-import au.csiro.snorocket.core.RoleSet;
-import au.csiro.snorocket.core.SparseConceptSet;
 import au.csiro.snorocket.core.NormalisedOntology_123.Classification;
+import au.csiro.snorocket.core.axioms.GCI_123;
+import au.csiro.snorocket.core.axioms.Inclusion_123;
+import au.csiro.snorocket.core.axioms.RI_123;
+import au.csiro.snorocket.core.model.AbstractConcept;
+import au.csiro.snorocket.core.model.Concept;
+import au.csiro.snorocket.core.model.Conjunction;
+import au.csiro.snorocket.core.model.Existential;
+import au.csiro.snorocket.core.util.IConceptMap;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.IntIterator;
+import au.csiro.snorocket.core.util.RoleSet;
+import au.csiro.snorocket.core.util.SparseConceptSet;
 
 public class Snorocket_123 implements I_Snorocket_123 {
 
@@ -1232,7 +1233,6 @@ public class Snorocket_123 implements I_Snorocket_123 {
         return au.csiro.snorocket.core.Snorocket.DEBUG_DUMP;
     }
     
-    @Override
     public void getInternalDataCon(I_InternalDataConCallback callback) {
         int[] ca = factory.getConceptArray();
         
@@ -1252,13 +1252,11 @@ public class Snorocket_123 implements I_Snorocket_123 {
             callback.processConData(ca[i]);
     }
 
-    @Override
     public void getInternalDataRel(I_InternalDataRelCallback callback) {
         for (Row r : rowList)
             callback.processRelData(r.concept1, r.role, r.concept2, r.group);
     }
 
-    @Override
     public void getInternalDataRole(I_InternalDataRoleCallback callback) {
         int[] ra = factory.getRoleArray();
         

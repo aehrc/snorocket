@@ -159,12 +159,10 @@ final public class DuoFactory_123 implements IFactory_123 {
         return " DuoFactory base=" + base + " overlay=" + overlay;
     }
 
-    @Override
     public int[] getConceptArray() {
         throw new UnsupportedOperationException();
     }
 
-    @Override
     public int[] getRoleArray() {
         throw new UnsupportedOperationException();
     }

@@ -27,17 +27,17 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.Set;
 
-import au.csiro.snorocket.core.AbstractConcept;
-import au.csiro.snorocket.core.Concept;
-import au.csiro.snorocket.core.Conjunction;
-import au.csiro.snorocket.core.Existential;
 import au.csiro.snorocket.core.Factory;
-import au.csiro.snorocket.core.GCI;
-import au.csiro.snorocket.core.IConceptSet;
-import au.csiro.snorocket.core.Inclusion;
-import au.csiro.snorocket.core.RI;
 import au.csiro.snorocket.core.Snorocket;
-import au.csiro.snorocket.core.SparseConceptSet;
+import au.csiro.snorocket.core.axioms.GCI;
+import au.csiro.snorocket.core.axioms.Inclusion;
+import au.csiro.snorocket.core.axioms.RI;
+import au.csiro.snorocket.core.model.AbstractConcept;
+import au.csiro.snorocket.core.model.Concept;
+import au.csiro.snorocket.core.model.Conjunction;
+import au.csiro.snorocket.core.model.Existential;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.SparseConceptSet;
 import au.csiro.snorocket.parser.KRSSParser;
 
 public class GenerateStatedForm {

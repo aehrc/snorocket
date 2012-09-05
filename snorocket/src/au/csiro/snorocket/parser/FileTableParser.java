@@ -25,9 +25,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 
-import au.csiro.snorocket.core.LineReader;
 import au.csiro.snorocket.core.ParseException;
 import au.csiro.snorocket.core.Snorocket;
+import au.csiro.snorocket.core.util.LineReader;
 import au.csiro.snorocket.snapi.I_Snorocket;
 
 import java.util.Set;

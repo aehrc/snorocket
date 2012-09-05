@@ -30,13 +30,16 @@ final public class DuoFactory implements IFactory {
 
     final private int conceptThreshold;
     final private int roleThreshold;
+    final private int featureThreshold;
 
     public DuoFactory(final IFactory base) {
         this.base = base;
         this.conceptThreshold = base.getTotalConcepts();
         this.roleThreshold = base.getTotalRoles();
+        this.featureThreshold = base.getTotalFeatures();
 
-        this.overlay = new Factory(conceptThreshold, roleThreshold);
+        this.overlay = new Factory(conceptThreshold, roleThreshold, 
+        		featureThreshold);
     }
 
     public boolean conceptExists(String key) {
@@ -116,5 +119,25 @@ final public class DuoFactory implements IFactory {
             overlay.setVirtualRole(id, isVirtual);
         }
     }
+
+	public boolean featureExists(String key) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public int getFeature(String key) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public int getTotalFeatures() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public String lookupFeatureId(int id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

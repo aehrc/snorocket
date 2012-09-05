@@ -41,10 +41,10 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import au.csiro.snorocket.core.IFactory;
-import au.csiro.snorocket.core.Inclusion;
 import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.ParseException;
 import au.csiro.snorocket.core.NormalisedOntology.Classification;
+import au.csiro.snorocket.core.axioms.Inclusion;
 import au.csiro.snorocket.parser.FileTableParser;
 import au.csiro.snorocket.parser.KRSSParser;
 import au.csiro.snorocket.parser.KRSSParserMeng;

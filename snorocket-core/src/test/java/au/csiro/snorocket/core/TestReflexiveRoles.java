@@ -22,6 +22,15 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import au.csiro.snorocket.core.NormalisedOntology.Classification;
+import au.csiro.snorocket.core.axioms.NF1a;
+import au.csiro.snorocket.core.axioms.NF2;
+import au.csiro.snorocket.core.axioms.NF3;
+import au.csiro.snorocket.core.axioms.NF4;
+import au.csiro.snorocket.core.axioms.NF5;
+import au.csiro.snorocket.core.axioms.NF6;
+import au.csiro.snorocket.core.util.IConceptMap;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.IntIterator;
 
 
 public class TestReflexiveRoles {

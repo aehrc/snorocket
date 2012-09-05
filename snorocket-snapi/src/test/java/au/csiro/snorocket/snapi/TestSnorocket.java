@@ -50,12 +50,12 @@ import org.junit.Test;
 
 import au.csiro.snorocket.core.Factory;
 import au.csiro.snorocket.core.IFactory;
-import au.csiro.snorocket.core.Inclusion;
-import au.csiro.snorocket.core.LineReader;
 import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.ParseException;
 import au.csiro.snorocket.core.Snorocket;
 import au.csiro.snorocket.core.NormalisedOntology.Classification;
+import au.csiro.snorocket.core.axioms.Inclusion;
+import au.csiro.snorocket.core.util.LineReader;
 import au.csiro.snorocket.snapi.I_Snorocket.I_Callback;
 
 public class TestSnorocket {

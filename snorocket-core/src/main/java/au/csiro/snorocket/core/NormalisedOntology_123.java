@@ -31,6 +31,32 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import au.csiro.snorocket.core.axioms.IConjunctionQueueEntry;
+import au.csiro.snorocket.core.axioms.Inclusion_123;
+import au.csiro.snorocket.core.axioms.NF1a;
+import au.csiro.snorocket.core.axioms.NF1b;
+import au.csiro.snorocket.core.axioms.NF2;
+import au.csiro.snorocket.core.axioms.NF3;
+import au.csiro.snorocket.core.axioms.NF4;
+import au.csiro.snorocket.core.axioms.NF5;
+import au.csiro.snorocket.core.axioms.NF6;
+import au.csiro.snorocket.core.axioms.NormalFormGCI;
+import au.csiro.snorocket.core.axioms.IRoleQueueEntry;
+import au.csiro.snorocket.core.util.DenseConceptMap;
+import au.csiro.snorocket.core.util.DuoConceptMap;
+import au.csiro.snorocket.core.util.DuoMonotonicCollection;
+import au.csiro.snorocket.core.util.FastConceptHashSet;
+import au.csiro.snorocket.core.util.IConceptMap;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.IMonotonicCollection;
+import au.csiro.snorocket.core.util.IntIterator;
+import au.csiro.snorocket.core.util.LineReader;
+import au.csiro.snorocket.core.util.MonotonicCollection;
+import au.csiro.snorocket.core.util.RoleMap;
+import au.csiro.snorocket.core.util.RoleSet;
+import au.csiro.snorocket.core.util.SparseConceptMap;
+import au.csiro.snorocket.core.util.SparseConceptSet;
+
 /**
  * A normalised EL Ontology
  * 
@@ -665,7 +691,7 @@ public class NormalisedOntology_123 {
          * Maps a concept to a queue (List) of RoleQueueEntries indicating work to be done
          * <ul><li>map is dense</li><li>queues grow and shrink</li></ul>
          */
-        protected final IConceptMap<IQueue<RoleQueueEntry>> roleQueues;
+        protected final IConceptMap<IQueue<IRoleQueueEntry>> roleQueues;
 
         /**
          * Stores the (incrementally computed) transitive closure of NF4
@@ -704,7 +730,7 @@ public class NormalisedOntology_123 {
 
             if (allocateQueues) {
                 // Dense (complete) Maps
-                roleQueues = new SparseConceptMap<IQueue<RoleQueueEntry>>(totalConcepts);
+                roleQueues = new SparseConceptMap<IQueue<IRoleQueueEntry>>(totalConcepts);
                 conceptQueues = new SparseConceptMap<IQueue<IConjunctionQueueEntry>>(totalConcepts);
 
                 roleClosureCache = new RoleMap<RoleSet>(totalRoles);
@@ -940,7 +966,7 @@ public class NormalisedOntology_123 {
             }
             for (IntIterator itr = roleQueues.keyIterator(); itr.hasNext(); ) {
                 final int a = itr.next();
-                final IQueue<RoleQueueEntry> queueA = roleQueues.get(a);
+                final IQueue<IRoleQueueEntry> queueA = roleQueues.get(a);
         
                 if (!queueA.isEmpty()) {
                     System.err.println("Role queue for " + factory.lookupConceptId(a) + " is not empty");
@@ -954,7 +980,7 @@ public class NormalisedOntology_123 {
         }
         
         // :!!!:@@@:???: lookupConceptID use case
-        private String formatEntry(RoleQueueEntry entry) {
+        private String formatEntry(IRoleQueueEntry entry) {
             return factory.lookupRoleId(entry.getR()) + "." + factory.lookupConceptId(entry.getB());
         }
         
@@ -998,12 +1024,12 @@ public class NormalisedOntology_123 {
 
                 for (IntIterator itr = roleQueues.keyIterator(); itr.hasNext(); ) {
                     final int a = itr.next();
-                    final IQueue<RoleQueueEntry> queue = roleQueues.get(a);
+                    final IQueue<IRoleQueueEntry> queue = roleQueues.get(a);
 
                     if (!queue.isEmpty()) {
                         done = false;
                         counter++;
-                        final RoleQueueEntry entry = queue.remove();
+                        final IRoleQueueEntry entry = queue.remove();
 
                         if (TRACE_LOOP) { System.err.println("  A = " + factory.lookupConceptId(a) + ", X = " + formatEntry(entry)); }   // TRACE
 
@@ -1067,8 +1093,8 @@ public class NormalisedOntology_123 {
             return queue;
         }
 
-        protected IQueue<RoleQueueEntry> getRoleQueueEntry(final int a) {
-            final IQueue<RoleQueueEntry> queue;
+        protected IQueue<IRoleQueueEntry> getRoleQueueEntry(final int a) {
+            final IQueue<IRoleQueueEntry> queue;
             if (!roleQueues.containsKey(a)) {
                 queue = newRoleQueue();
                 roleQueues.put(a, queue);
@@ -1237,8 +1263,8 @@ public class NormalisedOntology_123 {
             return new QueueImpl<IConjunctionQueueEntry>(IConjunctionQueueEntry.class);
         }
 
-        protected QueueImpl<RoleQueueEntry> newRoleQueue() {
-            return new QueueImpl<RoleQueueEntry>(RoleQueueEntry.class);
+        protected QueueImpl<IRoleQueueEntry> newRoleQueue() {
+            return new QueueImpl<IRoleQueueEntry>(IRoleQueueEntry.class);
         }
 
     }
@@ -1346,7 +1372,7 @@ class ExtensionOntology_Nid extends NormalisedOntology_123 {
                 for (final IntIterator aItr = subsumptions.keyIterator(); aItr.hasNext(); ) {
                     final int a = aItr.next();
         
-                    final IQueue<RoleQueueEntry> queueA = getRoleQueueEntry(a);
+                    final IQueue<IRoleQueueEntry> queueA = getRoleQueueEntry(a);
                     final IConceptSet setR = Rr.lookupB(a, nf5.getR());
                     final IConceptSet setT = Rr.lookupB(a, t);
         
@@ -1359,7 +1385,7 @@ class ExtensionOntology_Nid extends NormalisedOntology_123 {
                             final int c = cItr.next();
         
                             if (!setT.contains(c)) {
-                                final RoleQueueEntry entry = new RoleQueueEntry(){
+                                final IRoleQueueEntry entry = new IRoleQueueEntry(){
                                     public int getB() {
                                         return c;
                                     }
@@ -1385,13 +1411,13 @@ class ExtensionOntology_Nid extends NormalisedOntology_123 {
                 for (final IntIterator aItr = subsumptions.keyIterator(); aItr.hasNext(); ) {
                     final int a = aItr.next();
         
-                    final IQueue<RoleQueueEntry> queueA = getRoleQueueEntry(a);
+                    final IQueue<IRoleQueueEntry> queueA = getRoleQueueEntry(a);
                     final IConceptSet Bs = Rr.lookupB(a, nf4.getR());
         
                     for (final IntIterator bItr = Bs.iterator(); bItr.hasNext(); ) {
                         final int b = bItr.next();
         
-                        final RoleQueueEntry entry = new RoleQueueEntry() {
+                        final IRoleQueueEntry entry = new IRoleQueueEntry() {
                             public int getB() {
                                 return b;
                             }

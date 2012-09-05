@@ -16,11 +16,6 @@
  -->
 
 	<modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.ihtsdo</groupId>
-    <artifactId>ihtsdo-wb-parent</artifactId>
-    <version>1</version>
-  </parent>
 	<groupId>au.csiro</groupId>
 	<artifactId>snorocket-parent</artifactId>
 	<packaging>pom</packaging>

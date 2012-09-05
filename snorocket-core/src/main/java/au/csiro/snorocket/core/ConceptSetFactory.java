@@ -21,6 +21,8 @@
 
 package au.csiro.snorocket.core;
 
+import au.csiro.snorocket.core.util.IConceptSet;
+
 public interface ConceptSetFactory {
     /**
      * With no size specified, may assume a sparse ConceptSet implementation is suitable.
