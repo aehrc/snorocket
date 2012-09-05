@@ -184,7 +184,7 @@ final public class Factory implements IFactory {
 	}
 
 	public String lookupFeatureId(int id) {
-		assert id >= featureBase && id < featureIdCounter + featureBase;
+		assert id >= featureBase && id <= featureIdCounter + featureBase;
         return features[id - featureBase];
 	}
     
@@ -200,7 +200,7 @@ final public class Factory implements IFactory {
      * @see au.csiro.snorocket.IFactory#lookupConceptId(int)
      */
     public String lookupConceptId(final int id) {
-        assert id >= conceptBase && id < conceptIdCounter + conceptBase;
+        assert id >= conceptBase && id <= conceptIdCounter + conceptBase;
         return concepts[id - conceptBase];
     }
     
@@ -208,7 +208,7 @@ final public class Factory implements IFactory {
      * @see au.csiro.snorocket.IFactory#lookupRoleId(int)
      */
     public String lookupRoleId(final int id) {
-        assert id >= roleBase && id < roleIdCounter + roleBase;
+        assert id >= roleBase && id <= roleIdCounter + roleBase;
         return roles[id - roleBase];
     }
 

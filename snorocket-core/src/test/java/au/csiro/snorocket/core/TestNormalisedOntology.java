@@ -33,7 +33,7 @@ public class TestNormalisedOntology {
 	/**
 	 * Tests the simple example found in the paper "Efficient Reasoning in EL+".
 	 */
-	//@Test
+	@Test
 	public void testEndocarditis() {
 		IFactory factory = new Factory();
         
@@ -219,7 +219,7 @@ public class TestNormalisedOntology {
 	 *     -Panadol_500mg
 	 *   -Paracetamol
 	 */
-	//@Test
+	@Test
 	public void testConcreteDomainsEquality() {
 		IFactory factory = new Factory();
 		
