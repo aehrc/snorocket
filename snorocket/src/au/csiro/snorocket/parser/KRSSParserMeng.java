@@ -23,11 +23,11 @@ package au.csiro.snorocket.parser;
 
 import java.util.Set;
 
-import au.csiro.snorocket.core.AbstractConcept;
-import au.csiro.snorocket.core.GCI;
-import au.csiro.snorocket.core.Inclusion;
 import au.csiro.snorocket.core.ParseException;
-import au.csiro.snorocket.core.RI;
+import au.csiro.snorocket.core.axioms.GCI;
+import au.csiro.snorocket.core.axioms.Inclusion;
+import au.csiro.snorocket.core.axioms.RI;
+import au.csiro.snorocket.core.model.AbstractConcept;
 
 /**
  * Handle Meng's KRSS Syntax 

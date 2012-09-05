@@ -21,12 +21,12 @@
 
 package au.csiro.snorocket.core;
 
-interface IQueue<QueueEntry>
-{
+import au.csiro.snorocket.core.util.MonotonicCollection;
+
+interface IQueue<QueueEntry> {
     void add(QueueEntry o);
     QueueEntry remove();
     int size();
     boolean isEmpty();
-//    void addAll(Iterable<? extends QueueEntry> queue);
     void addAll(MonotonicCollection<? extends QueueEntry> queue);
 }

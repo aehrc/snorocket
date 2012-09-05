@@ -23,8 +23,8 @@ package au.csiro.snorocket.core;
 
 import org.junit.Before;
 
-import au.csiro.snorocket.core.IConceptSet;
-import au.csiro.snorocket.core.SparseConceptHashSet;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.SparseConceptHashSet;
 
 public class TestSparseConceptHashSet extends TestIConceptSet {
 

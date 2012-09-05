@@ -21,9 +21,16 @@
 
 package au.csiro.snorocket.core;
 
+import au.csiro.snorocket.core.util.LineReader;
+
 public class ParseException extends Exception {
 
-    public ParseException(final String message, LineReader reader) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public ParseException(final String message, LineReader reader) {
         this(message, reader, null);
     }
 

@@ -27,6 +27,7 @@ public interface IFactory {
 
     public static final String TOP = "_top_";
     public static final String BOTTOM = "_bottom_";
+    // FIXME: this shouldn't be here... is specific to SNOMED
     public static final String ROLE_GROUP = "_role_group_";
 
     public static final int TOP_CONCEPT = 0;
@@ -35,18 +36,26 @@ public interface IFactory {
     boolean conceptExists(final String key);
 
     boolean roleExists(final String key);
+    
+    boolean featureExists(final String key);
 
     int getConcept(final String key);
 
     int getRole(final String key);
+    
+    int getFeature(final String key);
 
     int getTotalConcepts();
 
     int getTotalRoles();
+    
+    int getTotalFeatures();
 
     String lookupConceptId(final int id);
 
     String lookupRoleId(final int id);
+    
+    String lookupFeatureId(final int id);
 
     boolean isBaseConcept(int id);
 

@@ -27,6 +27,11 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.LineReader;
+import au.csiro.snorocket.core.util.RoleSet;
+import au.csiro.snorocket.core.util.SparseConceptSet;
+
 
 final public class Factory implements IFactory {
     
@@ -39,6 +44,7 @@ final public class Factory implements IFactory {
 
     final private int conceptBase;
     final private int roleBase;
+    final private int featureBase;
     
     private String[] concepts = new String[SIZE_ESTIMATE];
     final private Map<String, Integer> conceptNameMap = new HashMap<String, Integer>();
@@ -47,19 +53,28 @@ final public class Factory implements IFactory {
     private String[] roles = new String[128];    // Sufficient for FULL-GALEN
     final private Map<String, Integer> roleNameMap = new HashMap<String, Integer>();
     final private RoleSet virtualRoles = new RoleSet();
+    
+    private String[] features = new String[128];
+    final private Map<String, Integer> featureNameMap = new HashMap<String, Integer>();
+    
 
     /**
-     * index of the next available Concept
+     * Index of the next available Concept.
      */
     private int conceptIdCounter = 0;
     
     /**
-     * index of the next available Role
+     * Index of the next available Role.
      */
     private int roleIdCounter = 0;
     
+    /**
+     * Index of the next available Feature.
+     */
+    private int featureIdCounter = 0;
+    
     public Factory() {
-        this(0, 0);
+        this(0, 0, 0);
         
         final int top = getConcept(TOP);
         final int bottom = getConcept(BOTTOM);
@@ -68,9 +83,10 @@ final public class Factory implements IFactory {
         assert BOTTOM_CONCEPT == bottom;
     }
     
-    Factory(final int conceptBase, final int roleBase) {
+    Factory(final int conceptBase, final int roleBase, final int featureBase) {
         this.conceptBase = conceptBase;
         this.roleBase = roleBase;
+        this.featureBase = featureBase;
     }
     
     /* (non-Javadoc)
@@ -120,7 +136,10 @@ final public class Factory implements IFactory {
                 final String[] newRoles = new String[roleIdCounter * 2];
                 System.arraycopy(roles, 0, newRoles, 0, roleIdCounter);
                 roles = newRoles;
-                if (Snorocket.DEBUGGING) Snorocket.getLogger().info("role resize to: " + roles.length);
+                if (Snorocket.DEBUGGING) {
+                	Snorocket.getLogger().info(
+                			"role resize to: " + roles.length);
+                }
             }
             roles[roleIdCounter] = key;
             result = roleIdCounter++;
@@ -129,19 +148,45 @@ final public class Factory implements IFactory {
         return result + roleBase;
     }
     
-    /* (non-Javadoc)
-     * @see au.csiro.snorocket.IFactory#getTotalConcepts()
-     */
     public int getTotalConcepts() {
         return conceptIdCounter;
     }
     
-    /* (non-Javadoc)
-     * @see au.csiro.snorocket.IFactory#getTotalRoles()
-     */
     public int getTotalRoles() {
         return roleIdCounter;
     }
+    
+	public boolean featureExists(String key) {
+		return featureNameMap.containsKey(key);
+	}
+	
+	public int getFeature(String key) {
+		Integer result = featureNameMap.get(key);
+        if (null == result) {
+            if (featureIdCounter == features.length) {
+                final String[] newFeatures = new String[featureIdCounter * 2];
+                System.arraycopy(features, 0, newFeatures, 0, featureIdCounter);
+                features = newFeatures;
+                if (Snorocket.DEBUGGING)  {
+                	Snorocket.getLogger().info(
+                			"feature resize to: " + features.length);
+                }
+            }
+            features[featureIdCounter] = key;
+            result = featureIdCounter++;
+            featureNameMap.put(key, result);
+        }
+        return result + featureBase;
+	}
+
+	public int getTotalFeatures() {
+		return featureIdCounter;
+	}
+
+	public String lookupFeatureId(int id) {
+		assert id >= featureBase && id < featureIdCounter + featureBase;
+        return features[id - featureBase];
+	}
     
     public boolean isBaseConcept(int id) {
         return false;
@@ -192,7 +237,8 @@ final public class Factory implements IFactory {
         if (isVirtual) {
             virtualRoles.add(id - roleBase);
         } else if (virtualRoles.contains(id - roleBase)) {
-            throw new IllegalStateException("Cannot convert virtual role into a non-virtual role.");
+            throw new IllegalStateException("Cannot convert virtual role " +
+            		"into a non-virtual role.");
         }
     }
 
@@ -230,8 +276,9 @@ final public class Factory implements IFactory {
         // Read in offsets
         final int conceptBase = Integer.parseInt(reader.readLine());
         final int roleBase = Integer.parseInt(reader.readLine());
-
-        final Factory factory = new Factory(conceptBase, roleBase);
+        
+        // TODO: update this to read featureBase...
+        final Factory factory = new Factory(conceptBase, roleBase, 0);
 
         // LOAD CONCEPTS...
         final int numConcepts = Integer.parseInt(reader.readLine());

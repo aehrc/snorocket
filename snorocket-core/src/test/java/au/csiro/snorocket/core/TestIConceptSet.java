@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import au.csiro.snorocket.core.IConceptSet;
+import au.csiro.snorocket.core.util.IConceptSet;
 
 public abstract class TestIConceptSet {
     
@@ -44,8 +44,6 @@ public abstract class TestIConceptSet {
         final IConceptSet set = createSet(capacity);
         final int val1 = 1;
         final int val2 = val1 + capacity;       // ensure a re-probe when val2 is inserted after val1
-        
-        assertTrue((val1 % capacity) == (val2 % capacity));
         
         set.add(val1);
         assertTrue(set.contains(val1));

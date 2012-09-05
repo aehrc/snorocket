@@ -33,16 +33,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import au.csiro.snorocket.core.AbstractConcept;
-import au.csiro.snorocket.core.Concept;
-import au.csiro.snorocket.core.Conjunction;
-import au.csiro.snorocket.core.Existential;
-import au.csiro.snorocket.core.GCI;
 import au.csiro.snorocket.core.IFactory;
-import au.csiro.snorocket.core.Inclusion;
-import au.csiro.snorocket.core.LineReader;
 import au.csiro.snorocket.core.ParseException;
-import au.csiro.snorocket.core.RI;
+import au.csiro.snorocket.core.axioms.GCI;
+import au.csiro.snorocket.core.axioms.Inclusion;
+import au.csiro.snorocket.core.axioms.RI;
+import au.csiro.snorocket.core.model.AbstractConcept;
+import au.csiro.snorocket.core.model.Concept;
+import au.csiro.snorocket.core.model.Conjunction;
+import au.csiro.snorocket.core.model.Existential;
+import au.csiro.snorocket.core.util.LineReader;
 
 public class SnorocketParser {
     static boolean FILTER_PCDEFS = false;

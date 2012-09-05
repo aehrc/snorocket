@@ -22,15 +22,16 @@
 package au.csiro.snorocket.core;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
+
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.LineReader;
+import au.csiro.snorocket.core.util.RoleSet;
+import au.csiro.snorocket.core.util.SparseConceptSet;
 
 /**
  * Map&lt;String,Integer&gt;<br>
@@ -42,8 +43,10 @@ import java.util.Map;
 
 final public class Factory_123 implements IFactory_123 {
 
-    private static final int CSIZE_ESTIMATE = 1000000; // :OLD: 3000
-    private static final int RSIZE_ESTIMATE = 128; // :OLD: 128
+    @SuppressWarnings("unused")
+	private static final int CSIZE_ESTIMATE = 1000000; // :OLD: 3000
+    @SuppressWarnings("unused")
+	private static final int RSIZE_ESTIMATE = 128; // :OLD: 128
 
     // Increment 3rd place for upwards/backwards compatible change
     // Increment 2nd place for upwards compatible change
@@ -514,12 +517,10 @@ final public class Factory_123 implements IFactory_123 {
         return " ++concepts=" + conceptMoreNames.size() + " ++roles=" + roleMoreNames.size();
     }
 
-    @Override
     public int[] getConceptArray() {
         return conceptNidArray;
     }
 
-    @Override
     public int[] getRoleArray() {
         return roleNidArray;
     }

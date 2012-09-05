@@ -29,18 +29,18 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import au.csiro.snorocket.core.Concept;
-import au.csiro.snorocket.core.Existential;
 import au.csiro.snorocket.core.Factory;
-import au.csiro.snorocket.core.GCI;
-import au.csiro.snorocket.core.IConceptMap;
-import au.csiro.snorocket.core.IConceptSet;
 import au.csiro.snorocket.core.IFactory;
-import au.csiro.snorocket.core.Inclusion;
-import au.csiro.snorocket.core.IntIterator;
 import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.R;
 import au.csiro.snorocket.core.NormalisedOntology.Classification;
+import au.csiro.snorocket.core.axioms.GCI;
+import au.csiro.snorocket.core.axioms.Inclusion;
+import au.csiro.snorocket.core.model.Concept;
+import au.csiro.snorocket.core.model.Existential;
+import au.csiro.snorocket.core.util.IConceptMap;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.IntIterator;
 
 public class Incremental {
 

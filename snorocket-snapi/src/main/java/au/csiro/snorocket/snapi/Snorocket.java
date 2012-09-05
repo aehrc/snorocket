@@ -42,24 +42,25 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-import au.csiro.snorocket.core.AbstractConcept;
-import au.csiro.snorocket.core.Concept;
-import au.csiro.snorocket.core.Conjunction;
-import au.csiro.snorocket.core.Existential;
 import au.csiro.snorocket.core.Factory;
-import au.csiro.snorocket.core.GCI;
-import au.csiro.snorocket.core.IConceptMap;
-import au.csiro.snorocket.core.IConceptSet;
 import au.csiro.snorocket.core.IFactory;
-import au.csiro.snorocket.core.Inclusion;
-import au.csiro.snorocket.core.IntIterator;
 import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.ParseException;
+import au.csiro.snorocket.core.PostProcessedData;
 import au.csiro.snorocket.core.R;
-import au.csiro.snorocket.core.RI;
-import au.csiro.snorocket.core.RoleSet;
-import au.csiro.snorocket.core.SparseConceptSet;
 import au.csiro.snorocket.core.NormalisedOntology.Classification;
+import au.csiro.snorocket.core.axioms.GCI;
+import au.csiro.snorocket.core.axioms.Inclusion;
+import au.csiro.snorocket.core.axioms.RI;
+import au.csiro.snorocket.core.model.AbstractConcept;
+import au.csiro.snorocket.core.model.Concept;
+import au.csiro.snorocket.core.model.Conjunction;
+import au.csiro.snorocket.core.model.Existential;
+import au.csiro.snorocket.core.util.IConceptMap;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.IntIterator;
+import au.csiro.snorocket.core.util.RoleSet;
+import au.csiro.snorocket.core.util.SparseConceptSet;
 import au.csiro.snorocket.snapi.SnomedExpressionParser.IAttribute;
 import au.csiro.snorocket.snapi.SnomedExpressionParser.IAttributeGroup;
 import au.csiro.snorocket.snapi.SnomedExpressionParser.IAttributeName;
@@ -83,7 +84,7 @@ public class Snorocket implements I_Snorocket {
 	private String isaId;
 
 	private Classification classification = null;
-	private PostProcessedData postProcessedData = null;
+	private PostProcessedData postProcessedData = new PostProcessedData();
 
 	final private List<Row> rowList = new ArrayList<Row>();
 
@@ -807,20 +808,21 @@ public class Snorocket implements I_Snorocket {
 	 * @see {@link I_Snorocket#getEquivalents(au.csiro.snorocket.snapi.I_Snorocket.I_EquivalentCallback)}
 	 */
 	public void getEquivalents(I_EquivalentCallback callback) {
-		final IConceptMap<IConceptSet> equivalents = getPostProcessedData()
-				.getEquivalents();
-		for (final IntIterator keyItr = equivalents.keyIterator(); keyItr
-				.hasNext();) {
+		PostProcessedData ppd = getPostProcessedData();
+		for (final IntIterator keyItr = ppd.getConceptIterator(); 
+				keyItr.hasNext();) {
 			final int key = keyItr.next();
 
 			if (skip(key)) {
 				continue;
 			}
-
-			final IConceptSet equivalentsConceptSet = equivalents.get(key);
+			
+			final IConceptSet equivalentsConceptSet = 
+					ppd.getEquivalents(key).getEquivalentConcepts();
 
 			if (equivalentsConceptSet.size() > 0) {
-				final Collection<String> equivalentConcepts = new ArrayList<String>();
+				final Collection<String> equivalentConcepts = 
+						new ArrayList<String>();
 				equivalentConcepts.add(factory.lookupConceptId(key));
 
 				for (final IntIterator valItr = equivalentsConceptSet
@@ -860,7 +862,7 @@ public class Snorocket implements I_Snorocket {
 				.getSubsumptions();
 		final R rels = classification.getRelationships();
 		final IConceptMap<IConceptSet> filteredSubsumptions = filterRedundant ? getPostProcessedData()
-				.getParents()
+				.getParents(factory)
 				: subsumptions;
 
 		final int limit = factory.getTotalConcepts();
@@ -901,11 +903,15 @@ public class Snorocket implements I_Snorocket {
 		final IConceptMap<IConceptSet> subsumptions = classification
 				.getSubsumptions();
 
-		if (null == postProcessedData) {
-			postProcessedData = null == baseClassification ? new PostProcessedData(
-					factory, subsumptions)
-					: new PostProcessedData(factory, baseClassification
-							.getSubsumptions(), subsumptions);
+		if (!postProcessedData.hasData()) {
+			if(null == baseClassification) {
+				postProcessedData.computeDag(factory, subsumptions, null);
+			} else {
+				postProcessedData.computeDeltaDag(factory, 
+						baseClassification.getSubsumptions(), 
+						subsumptions, 
+						null);
+			}
 		}
 
 		return postProcessedData;

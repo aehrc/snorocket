@@ -31,15 +31,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import au.csiro.snorocket.core.AbstractConcept;
-import au.csiro.snorocket.core.Concept;
-import au.csiro.snorocket.core.Conjunction;
-import au.csiro.snorocket.core.Existential;
 import au.csiro.snorocket.core.IFactory;
-import au.csiro.snorocket.core.Inclusion;
-import au.csiro.snorocket.core.LineReader;
 import au.csiro.snorocket.core.ParseException;
 import au.csiro.snorocket.core.Snorocket;
+import au.csiro.snorocket.core.axioms.Inclusion;
+import au.csiro.snorocket.core.model.AbstractConcept;
+import au.csiro.snorocket.core.model.Concept;
+import au.csiro.snorocket.core.model.Conjunction;
+import au.csiro.snorocket.core.model.Existential;
+import au.csiro.snorocket.core.util.LineReader;
 
 abstract class AbstractKRSSParser {
 

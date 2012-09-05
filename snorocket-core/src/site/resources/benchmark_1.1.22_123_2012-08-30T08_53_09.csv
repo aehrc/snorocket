@@ -1,0 +1,6 @@
+Date,VM Parameters,Concepts File,Relationships File,Snorocket Version,Axiom Transformation Time (ms),Axiom Loading Time (ms),Classification Time(ms),Taxonomy Construction Time(ms), Total Time(ms)
+2012-08-30T08_53_50,-Xmx4g -Xms4g -Dfile.encoding=UTF-8 ,src/main/resources/sct1_Concepts_Core_INT_20110731.txt,src/main/resources/res1_StatedRelationships_Core_INT_20110731.txt,1.1.22_123,3597,11436,22860,3334,41227
+2012-08-30T08_54_31,-Xmx4g -Xms4g -Dfile.encoding=UTF-8 ,src/main/resources/sct1_Concepts_Core_INT_20110731.txt,src/main/resources/res1_StatedRelationships_Core_INT_20110731.txt,1.1.22_123,4113,10734,22828,2949,40624
+2012-08-30T08_55_10,-Xmx4g -Xms4g -Dfile.encoding=UTF-8 ,src/main/resources/sct1_Concepts_Core_INT_20110731.txt,src/main/resources/res1_StatedRelationships_Core_INT_20110731.txt,1.1.22_123,2651,10699,22404,3048,38802
+2012-08-30T08_55_49,-Xmx4g -Xms4g -Dfile.encoding=UTF-8 ,src/main/resources/sct1_Concepts_Core_INT_20110731.txt,src/main/resources/res1_StatedRelationships_Core_INT_20110731.txt,1.1.22_123,2682,10754,22297,2998,38731
+2012-08-30T08_56_27,-Xmx4g -Xms4g -Dfile.encoding=UTF-8 ,src/main/resources/sct1_Concepts_Core_INT_20110731.txt,src/main/resources/res1_StatedRelationships_Core_INT_20110731.txt,1.1.22_123,2528,10725,22056,3000,38309

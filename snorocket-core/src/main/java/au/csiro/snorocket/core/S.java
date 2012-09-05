@@ -21,6 +21,13 @@
 
 package au.csiro.snorocket.core;
 
+import au.csiro.snorocket.core.util.DenseConceptMap;
+import au.csiro.snorocket.core.util.FastConceptHashSet;
+import au.csiro.snorocket.core.util.IConceptMap;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.IntIterator;
+import au.csiro.snorocket.core.util.SparseConceptSet;
+
 /**
  * 
  * @author law223

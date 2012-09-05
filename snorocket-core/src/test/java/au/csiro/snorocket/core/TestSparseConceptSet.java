@@ -26,6 +26,9 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.SparseConceptSet;
+
 public class TestSparseConceptSet extends TestIConceptSet {
 
     @Before

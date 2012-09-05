@@ -34,6 +34,11 @@
       <artifactId>snorocket-core</artifactId>
       <version>1.1.22-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>net.sourceforge.owlapi</groupId>
+      <artifactId>owlapi-api</artifactId>
+      <version>3.3</version>
+    </dependency>
   </dependencies>
   
   <build>
