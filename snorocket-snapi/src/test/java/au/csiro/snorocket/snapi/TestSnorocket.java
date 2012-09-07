@@ -613,7 +613,8 @@ class Main implements Runnable {
         if (null == classification) {
             normalisedOntology = new NormalisedOntology(factory, ontology);
         } else {
-            normalisedOntology = classification.getExtensionOntology(factory, ontology);
+            //normalisedOntology = classification.getExtensionOntology(factory, ontology);
+        	normalisedOntology = null;
         }
 
         LOGGER.info("Load + normalise time: " + (System.currentTimeMillis()-start)/1000.0 + "s");

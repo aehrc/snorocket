@@ -22,7 +22,6 @@
 package au.csiro.snorocket.core;
 
 import au.csiro.snorocket.core.util.DenseConceptMap;
-import au.csiro.snorocket.core.util.FastConceptHashSet;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
@@ -34,51 +33,21 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  */
 final class S {
 
-    final private IConceptMap<IConceptSet> base;
     private IConceptMap<IConceptSet> set;
     private int size = 0;
-    private boolean stripped = false;
     
     S(final int capacity) {
-        this(capacity, null);
-    }
-    
-    // make copy of pre-computed subsumption state
-    // TODO check the time-cost of this -- ~3 seconds (too long)
-    // 
-    S(final int capacity, final IConceptMap<IConceptSet> subsumptions) {
-        base = subsumptions;
-        set = new DenseConceptMap<IConceptSet>(capacity);
-
-//        final long start = System.currentTimeMillis();
-        
-        for (int i = 0; i < capacity; i++) {
-            // pre-initialise our state such that each concept subsumes itself and TOP
-            if (null == base || !base.containsKey(i)) {
-                final SparseConceptSet subsumes = new SparseConceptSet();
-                subsumes.add(i);
-                subsumes.add(IFactory.TOP_CONCEPT);
-                set.put(i, subsumes);
-            }
-        }
-//        System.err.println("Init of S[" + capacity + "] took (ms) " + (System.currentTimeMillis()-start));        // TODO delete
-        size = capacity;
+    	set = new DenseConceptMap<IConceptSet>(capacity);
+      for (int i = 0; i < capacity; i++) {
+    	  final SparseConceptSet subsumes = new SparseConceptSet();
+          subsumes.add(i);
+          subsumes.add(IFactory.TOP_CONCEPT);
+          set.put(i, subsumes);
+      }
+      size = capacity;
     }
     
     IConceptMap<IConceptSet> getSet() {
-        if (!stripped && null != base) {
-            for (final IntIterator itr = set.keyIterator(); itr.hasNext(); ) {
-                final int key = itr.next();
-                final IConceptSet old = base.get(key);
-                if (null != old) {
-                    final IConceptSet delta = new FastConceptHashSet();
-                    delta.addAll(set.get(key));
-                    delta.removeAll(old);
-                    set.put(key, delta);
-                }
-            }
-            stripped = true;
-        }
         return set;
     }
     
@@ -89,17 +58,12 @@ final class S {
         IConceptSet subsumes = set.get(concept);
         
         if (null == subsumes) {
-            if (null != base && base.containsKey(concept)) {
-                subsumes = base.get(concept);
-            } else {
-                // A Concept always subsumes itself and TOP
-                //
-                subsumes = new SparseConceptSet();
-                subsumes.add(concept);
-                subsumes.add(IFactory.TOP_CONCEPT);
-                set.put(concept, subsumes);
-                size++;
-            }
+        	// A Concept always subsumes itself and TOP
+            subsumes = new SparseConceptSet();
+            subsumes.add(concept);
+            subsumes.add(IFactory.TOP_CONCEPT);
+            set.put(concept, subsumes);
+            size++;
         }
         
         return subsumes;
@@ -109,7 +73,7 @@ final class S {
      * @see au.csiro.snorocket.Subsumptions#containsKey(int)
      */
     boolean containsKey(int concept) {
-        return set.containsKey(concept) || (null != base && base.containsKey(concept));
+        return set.containsKey(concept);
     }
     
     /**
@@ -119,24 +83,19 @@ final class S {
      * @return an iterator over the keys of this map.
      */
     IntIterator keyIterator() {
-        if (null == base) {
-            return set.keyIterator();
-        } else {
-            return new IntIterator() {
+    	return new IntIterator() {
 
-                final IntIterator baseItr = base.keyIterator();
-                final IntIterator setitr = set.keyIterator();
+            final IntIterator setitr = set.keyIterator();
 
-                public boolean hasNext() {
-                    return baseItr.hasNext() || setitr.hasNext();
-                }
+            public boolean hasNext() {
+                return setitr.hasNext();
+            }
 
-                public int next() {
-                    return baseItr.hasNext() ? baseItr.next() : setitr.next();
-                }
+            public int next() {
+                return setitr.next();
+            }
 
-            };
-        }
+        };
     }
     
     int keyCount() {
@@ -144,21 +103,15 @@ final class S {
     }
 
     void put(int child, int parent) {
-//        System.err.println(child + " [ " + parent);
         IConceptSet subsumes = set.get(child);
         
         if (null == subsumes) {
             subsumes = new SparseConceptSet();
             set.put(child, subsumes);
             size++;
-            if (null != base && base.containsKey(child)) {
-                subsumes.addAll(base.get(child));
-            } else {
-                // A Concept always subsumes itself and TOP
-                //
-                subsumes.add(child);
-                subsumes.add(IFactory.TOP_CONCEPT);
-            }
+            // A Concept always subsumes itself and TOP
+            subsumes.add(child);
+            subsumes.add(IFactory.TOP_CONCEPT);
         }
 
         subsumes.add(parent);

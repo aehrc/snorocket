@@ -1,0 +1,7 @@
+Date,VM Parameters,Concepts File,Relationships File,Snorocket Version,Axiom Transformation Time (ms),Axiom Loading Time (ms),Classification Time(ms),Taxonomy Construction Time(ms), Total Time(ms)
+2012-09-06T10_30_21,#NAME?,src/main/resources/sct1_Concepts_Core_INT_20110731.txt,src/main/resources/res1_StatedRelationships_Core_INT_20110731.txt,1.1.22,3899,17472,22230,2610,46211
+2012-09-06T10_31_07,#NAME?,src/main/resources/sct1_Concepts_Core_INT_20110731.txt,src/main/resources/res1_StatedRelationships_Core_INT_20110731.txt,1.1.22,3921,17112,21875,3315,46223
+2012-09-06T10_31_51,#NAME?,src/main/resources/sct1_Concepts_Core_INT_20110731.txt,src/main/resources/res1_StatedRelationships_Core_INT_20110731.txt,1.1.22,2910,17136,21589,2373,44008
+2012-09-06T10_32_35,#NAME?,src/main/resources/sct1_Concepts_Core_INT_20110731.txt,src/main/resources/res1_StatedRelationships_Core_INT_20110731.txt,1.1.22,3196,17094,21435,2382,44107
+2012-09-06T10_33_19,#NAME?,src/main/resources/sct1_Concepts_Core_INT_20110731.txt,src/main/resources/res1_StatedRelationships_Core_INT_20110731.txt,1.1.22,2453,17072,22061,2380,43966
+,,,,,3275.8,17177.2,21838,2612,44903
