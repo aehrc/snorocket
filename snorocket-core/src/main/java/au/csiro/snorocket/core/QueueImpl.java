@@ -21,9 +21,6 @@
 
 package au.csiro.snorocket.core;
 
-import java.util.Arrays;
-import java.util.Comparator;
-
 import au.csiro.snorocket.core.util.MonotonicCollection;
 
 
@@ -43,14 +40,6 @@ final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
     private static final int DEFAULT_ALLOC_SIZE = 4;
     private static final Object[] EMPTY = {};
 
-    private static final Comparator COMPARATOR = new Comparator() {
-        public int compare(Object o1, Object o2) {
-            return o1.hashCode() - o2.hashCode();
-        }
-    };
-
-    final private Class<QueueEntry> typeToken;
-
     /**
      * Index of next free slot in items array.
      */
@@ -66,7 +55,6 @@ final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
      */
     @SuppressWarnings("unchecked")
     QueueImpl(Class<QueueEntry> typeToken) {
-        this.typeToken = typeToken;
         items = (QueueEntry[]) EMPTY;
 
         number++;
@@ -83,9 +71,6 @@ final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
             checkSize(numberOfNewElements);
             System.arraycopy(queue.data, 0, items, counter, numberOfNewElements);
             counter += numberOfNewElements;
-//          for (QueueEntry entry: queue) {
-//          items[counter++] = entry;
-//          }
         } catch (OutOfMemoryError e) {
             System.err.println(number);
             throw e;
@@ -100,44 +85,18 @@ final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
     private void checkSize(final int numberOfNewElements) {
         final int size = counter + numberOfNewElements;
         final int len = items.length;
-        if (false &&    // faster to not remove dups!
-                len > 1000 && (size >= len || size < (len >> 1))) {
-            removeDups();
-        }
+
         if (size >= len) {
             final int newsize = size > 0 ? (int) size + 4 : DEFAULT_ALLOC_SIZE;
-//          if (newsize > 10000) System.err.println(hashCode() + "\tQueueImpl resize to " + newsize);
-//            final QueueEntry[] newItems = (QueueEntry[]) Array.newInstance(typeToken , newsize);
             final QueueEntry[] newItems = (QueueEntry[]) new Object[newsize];
             System.arraycopy(items, 0, newItems, 0, counter);
             items = newItems;
         } else if (len > 2048 && size < (len >> 2)) {
             final int newsize = len >> 1;
-//          System.err.println("QueueImpl shrink to " + newsize);
-//            final QueueEntry[] newItems = (QueueEntry[]) Array.newInstance(typeToken , newsize);
             final QueueEntry[] newItems = (QueueEntry[]) new Object[newsize];
             System.arraycopy(items, 0, newItems, 0, counter);
             items = newItems;
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void removeDups() {
-        Arrays.sort(items, 0, counter, COMPARATOR);
-        int idx = 0;
-        QueueEntry current = null;
-        for (int i = 0; i < counter; i++) {
-            if (current != items[i]) {
-                current = items[i];
-                items[idx] = current;
-                idx++;
-            }
-        }
-        final int dups = counter - idx;
-        if (Snorocket.DEBUGGING && dups > 100) {
-            System.err.println("dups: " + dups);
-        }
-        counter = idx;
     }
 
     public QueueEntry remove() {

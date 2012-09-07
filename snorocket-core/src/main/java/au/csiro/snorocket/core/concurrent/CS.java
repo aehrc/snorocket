@@ -19,14 +19,37 @@
  * All rights reserved. Use is subject to license terms and conditions.
  */
 
-package au.csiro.snorocket.core;
+package au.csiro.snorocket.core.concurrent;
 
-import au.csiro.snorocket.core.util.MonotonicCollection;
+import au.csiro.snorocket.core.IFactory;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.SparseConceptSet;
 
-public interface IQueue<QueueEntry> {
-    void add(QueueEntry o);
-    QueueEntry remove();
-    int size();
-    boolean isEmpty();
-    void addAll(MonotonicCollection<? extends QueueEntry> queue);
+/**
+ * Concurrent version of S.
+ * 
+ * @author Alejandro Metke
+ */
+final class CS {
+
+    private IConceptSet set;
+    
+    CS(final int cid) {
+    	set = new SparseConceptSet();
+    	set.add(cid);
+    	set.add(IFactory.TOP_CONCEPT);
+    }
+    
+    IConceptSet getSet() {
+        return set;
+    }
+
+    void put(int parent) {
+        set.add(parent);
+    }
+    
+    public String toString() {
+        return set.toString();
+    }
+
 }

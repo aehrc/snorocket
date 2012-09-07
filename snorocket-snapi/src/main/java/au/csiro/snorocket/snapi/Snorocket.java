@@ -576,7 +576,8 @@ public class Snorocket implements I_Snorocket {
 //        LOGGER.info("::: Set<Inclusion> ontology = getInclusions(); --> SIZE= " + ontology.size());
 		
 		if (null != baseClassification) {
-			return baseClassification.getExtensionOntology(factory, ontology);
+			//return baseClassification.getExtensionOntology(factory, ontology);
+			return new NormalisedOntology(factory, ontology);
 		} else {
 			return new NormalisedOntology(factory, ontology);
 		}

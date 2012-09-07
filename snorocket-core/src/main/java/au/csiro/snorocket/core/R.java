@@ -24,8 +24,6 @@ package au.csiro.snorocket.core;
 import java.util.Arrays;
 import java.util.BitSet;
 
-import au.csiro.snorocket.core.util.DenseConceptMap;
-import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.ReadonlyConceptSet;
 import au.csiro.snorocket.core.util.SparseConceptHashSet;
@@ -48,7 +46,6 @@ public class R extends R1 {
      * @param B
      */
     void store(int A, int r, int B) {
-//        System.err.println("Store " + Concept.lookupId(A) + " " + Role.lookupId(r) + " " + Concept.lookupId(B));
         getB(A, r).add(B);
         getA(B, r).add(A);
     }
@@ -66,9 +63,10 @@ abstract class AR {
 }
 
 /**
- * Implements R, which is of the form RoleMap&lt;ConceptMap&lt;ConceptSet>> where the
- * two maps are complete/total (ie there is an entry for every key), thus it's faster
- * and more space-efficient to just use an array (flattened from 2D to 1D).
+ * Implements R, which is of the form RoleMap&lt;ConceptMap&lt;ConceptSet>> 
+ * where the two maps are complete/total (ie there is an entry for every key), 
+ * thus it's faster and more space-efficient to just use an array (flattened 
+ * from 2D to 1D).
  * 
  * @author law223
  *
@@ -121,7 +119,7 @@ abstract class R1 extends AR {
             if (null == base[i]) {
                 continue;
             }
-            final IConceptSet set = data[i] = new SparseConceptHashSet();       // SparseConceptSet doesn't do remove!
+            final IConceptSet set = data[i] = new SparseConceptHashSet();
             
             set.addAll(base[i]);
             if (null != relationships.data[i]) {
@@ -254,7 +252,6 @@ abstract class R1 extends AR {
     }
 
     private void resizeConcepts(int maxConcept) {
-//        System.err.println(getClass().getSimpleName() + " resize Concepts from " + CONCEPTS + " to " + (maxConcept+1));
         final IConceptSet[] oldData = data;
         
         CONCEPTS = maxConcept + 1;
@@ -263,7 +260,6 @@ abstract class R1 extends AR {
     }
 
     private void resizeRoles(int maxRole) {
-//        System.err.println(getClass().getSimpleName() + " resize Roles from " + ROLES + " to " + (maxRole+1));
         final int OLD_ROLES = ROLES;
         final IConceptSet[] oldData = data;
 
@@ -307,54 +303,6 @@ abstract class R1 extends AR {
     	}
     	
     	return sb.toString();
-    }
-}
-
-abstract        // Ensure this isn't used anywhere
-class R2 extends AR {
-    
-    final private IConceptMap<IConceptSet>[] data;
-    
-    R2(final int concepts, final int roles) {
-        super(concepts, roles);
-        
-        data = new IConceptMap[ROLES << 1];
-    }
-    
-    /**
-     * Returns {B | A [ r.B} or {B | (A,B) in R(r)}
-     * 
-     * @param A
-     * @param r
-     * @return
-     */
-    final IConceptSet getB(int A, int r) {
-        final int index = r << 1;
-        if (null == data[index]) {
-            data[index] = new DenseConceptMap<IConceptSet>(CONCEPTS);
-        }
-        if (!data[index].containsKey(A)) {
-            data[index].put(A, new SparseConceptSet());
-        }
-        return data[index].get(A);
-    }
-    
-    /**
-     * Returns {A | A [ r.B} or {A | (A,B) in R(r)}
-     * 
-     * @param B
-     * @param r
-     * @return
-     */
-    final IConceptSet getA(int B, int r) {
-        final int index = (r << 1) + 1;
-        if (null == data[index]) {
-            data[index] = new DenseConceptMap<IConceptSet>(CONCEPTS);
-        }
-        if (!data[index].containsKey(B)) {
-            data[index].put(B, new SparseConceptSet());
-        }
-        return data[index].get(B);
     }
 
 }

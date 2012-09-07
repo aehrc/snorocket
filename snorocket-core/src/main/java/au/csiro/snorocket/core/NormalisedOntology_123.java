@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import au.csiro.snorocket.core.axioms.IConjunctionQueueEntry;
+import au.csiro.snorocket.core.axioms.IRoleQueueEntry;
 import au.csiro.snorocket.core.axioms.Inclusion_123;
 import au.csiro.snorocket.core.axioms.NF1a;
 import au.csiro.snorocket.core.axioms.NF1b;
@@ -41,11 +42,7 @@ import au.csiro.snorocket.core.axioms.NF4;
 import au.csiro.snorocket.core.axioms.NF5;
 import au.csiro.snorocket.core.axioms.NF6;
 import au.csiro.snorocket.core.axioms.NormalFormGCI;
-import au.csiro.snorocket.core.axioms.IRoleQueueEntry;
 import au.csiro.snorocket.core.util.DenseConceptMap;
-import au.csiro.snorocket.core.util.DuoConceptMap;
-import au.csiro.snorocket.core.util.DuoMonotonicCollection;
-import au.csiro.snorocket.core.util.FastConceptHashSet;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IMonotonicCollection;
@@ -698,8 +695,6 @@ public class NormalisedOntology_123 {
          * <ul><li>map is dense</li><li>set is sparse (wrt SNOMED 20061230)</li></ul>
          */
         final private RoleMap<RoleSet> roleClosureCache;
-        
-        private int counter;
 
         Classification() {
             this(
@@ -751,7 +746,6 @@ public class NormalisedOntology_123 {
             
             primeQueue();
         
-            counter = 0;
             processOntology();
         
             if (Snorocket.DEBUGGING) {
@@ -772,16 +766,6 @@ public class NormalisedOntology_123 {
 
         public IFactory_123 getExtensionFactory() {
             return new DuoFactory_123(getFactory());
-        }
-        
-        /**
-         * 
-         * @param factory should be the factory returned by {@link #getExtensionFactory()}
-         * @param inclusions
-         * @return
-         */
-        public ExtensionOntology_Nid getExtensionOntology(final IFactory_123 factory, final Set<Inclusion_123> inclusions) {
-            return new ExtensionOntology_Nid(factory, this, NormalisedOntology_123.this, inclusions);
         }
         
         public IConceptMap<IConceptSet> getSubsumptions() {
@@ -997,7 +981,6 @@ public class NormalisedOntology_123 {
                     if (!queueA.isEmpty()) {
                         do {
                             done = false;
-                            counter++;
                             final IConjunctionQueueEntry entry = queueA.remove();
                             final int b = entry.getB();
 
@@ -1028,7 +1011,6 @@ public class NormalisedOntology_123 {
 
                     if (!queue.isEmpty()) {
                         done = false;
-                        counter++;
                         final IRoleQueueEntry entry = queue.remove();
 
                         if (TRACE_LOOP) { System.err.println("  A = " + factory.lookupConceptId(a) + ", X = " + formatEntry(entry)); }   // TRACE
@@ -1269,369 +1251,4 @@ public class NormalisedOntology_123 {
 
     }
     
-}
-
-class ExtensionOntology_Nid extends NormalisedOntology_123 {
-    
-    final private static boolean TRACE_REPRIME = Snorocket.DEBUGGING & false;
-    
-    public class IncrementalClassification extends Classification {
-        
-        IncrementalClassification() {
-            super(
-                    new S(getFactory().getTotalConcepts(), baseClassification.getSubsumptions()),
-                    new R(getFactory().getTotalConcepts(), getFactory().getTotalRoles(), baseClassification.getRelationships()),
-                    true
-            );
-
-            if (Snorocket.DEBUGGING) System.err.println("Incremental classification mode");
-            
-            classify();
-            
-            // Compute diff state
-            if (false) {
-                subtract(getSubsumptions(), baseClassification.getSubsumptions());
-                getRelationships().subtract(baseClassification.getRelationships());
-            }
-        }
-        
-        private void subtract(final IConceptMap<IConceptSet> layer, final IConceptMap<IConceptSet> base) {
-            for (final IntIterator itr = layer.keyIterator(); itr.hasNext(); ) {
-                final int key = itr.next();
-                
-                final IConceptSet layerSet = layer.get(key);
-                final IConceptSet diff = new FastConceptHashSet();
-
-                diff.addAll(layerSet);
-                final IConceptSet baseSet = base.get(key);
-                if (null != baseSet) {
-                    diff.removeAll(baseSet);
-                }
-                layer.put(key, diff);
-            }
-        }
-        
-        /*
-         * S = subsumptions(classify(O))
-         * D = dag(S)                           [ == S - (S*S) ]
-         * O' = O + deltaO
-         * S' = subsumptions(classify(O'))
-         * deltaS' = S' - S
-         * D' = dag(S')                         [ == S' - (S'*S') ]
-         * want deltaD' = D' - D
-         *   (note, in general, D' is not a superset of D i.e., D - D' != 0 and thus D + deltaD' >= D')
-         *   == (D u deltaS' - [...]) - D
-         */
-//        @Override
-//        public PostProcessedData getPostProcessedData() {
-//            return new PostProcessedData(factory, baseClassification.getSubsumptions(), getSubsumptions());
-//        }
-
-
-        /**
-         * Need to know delta-Ontology (ie things in ontologyNF1QueueEntries and ontologyNF2 since last (re)run)
-         *
-         * For all B in S(A), add dOntHat(B) to queue(A)
-         * 
-         */
-        @Override
-        protected void primeQueue() {
-            if (TRACE_REPRIME) System.err.println("RE-PRIMING");  // TRACE
-        
-            long s = System.currentTimeMillis();
-            rePrimeNF1();
-            if (Snorocket.DEBUGGING) System.err.println("#" + "\t" + "Time (ms)");
-            if (Snorocket.DEBUGGING) System.err.println(deltaOntologyNF1QueueEntries.size() + "\t" + (System.currentTimeMillis() - s));
-        
-            s = System.currentTimeMillis();
-            rePrimeNF2();
-            if (Snorocket.DEBUGGING) System.err.println(deltaOntologyNF2.size() + "\t" + (System.currentTimeMillis() - s));
-        
-            s = System.currentTimeMillis();
-            rePrimeNF3();
-            if (Snorocket.DEBUGGING) System.err.println(deltaOntologyNF3QueueEntry.size() + "\t" + (System.currentTimeMillis() - s));
-        
-            s = System.currentTimeMillis();
-            rePrimeNF4();
-            if (Snorocket.DEBUGGING) System.err.println(deltaOntologyNF4.size() + "\t" + (System.currentTimeMillis() - s));
-        
-            s = System.currentTimeMillis();
-            rePrimeNF5();
-            if (Snorocket.DEBUGGING) System.err.println(deltaOntologyNF5.size() + "\t" + (System.currentTimeMillis() - s));
-        
-        }
-    
-        private void rePrimeNF5() {
-            // NF5. r o s [ t
-            //      Q(A) += {-> t.C}, for all (A,B) in R(r), (B,C) in R(s), (A,C) not in R(t)
-            summarise("deltaOntologyNF5", deltaOntologyNF5);
-
-            for (final NF5 nf5: deltaOntologyNF5) {
-                final int t = nf5.getT();
-        
-                for (final IntIterator aItr = subsumptions.keyIterator(); aItr.hasNext(); ) {
-                    final int a = aItr.next();
-        
-                    final IQueue<IRoleQueueEntry> queueA = getRoleQueueEntry(a);
-                    final IConceptSet setR = Rr.lookupB(a, nf5.getR());
-                    final IConceptSet setT = Rr.lookupB(a, t);
-        
-                    for (final IntIterator bItr = setR.iterator(); bItr.hasNext(); ) {
-                        final int b = bItr.next();
-        
-                        final IConceptSet setS = Rr.lookupB(b, nf5.getS());
-        
-                        for (final IntIterator cItr = setS.iterator(); cItr.hasNext(); ) {
-                            final int c = cItr.next();
-        
-                            if (!setT.contains(c)) {
-                                final IRoleQueueEntry entry = new IRoleQueueEntry(){
-                                    public int getB() {
-                                        return c;
-                                    }
-                                    public int getR() {
-                                        return t;
-                                    }
-                                };
-                                queueA.add(entry);
-                                if (TRACE_REPRIME) System.err.println("5    " + a + "\t" + entry);    // TRACE
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    
-        private void rePrimeNF4() {
-            // NF4. r [ s
-            //      Q(A) += {-> s.B}, for all (A,B) in R(r)
-            summarise("deltaOntologyNF4", deltaOntologyNF4);
-
-            for (final NF4 nf4: deltaOntologyNF4) {
-                for (final IntIterator aItr = subsumptions.keyIterator(); aItr.hasNext(); ) {
-                    final int a = aItr.next();
-        
-                    final IQueue<IRoleQueueEntry> queueA = getRoleQueueEntry(a);
-                    final IConceptSet Bs = Rr.lookupB(a, nf4.getR());
-        
-                    for (final IntIterator bItr = Bs.iterator(); bItr.hasNext(); ) {
-                        final int b = bItr.next();
-        
-                        final IRoleQueueEntry entry = new IRoleQueueEntry() {
-                            public int getB() {
-                                return b;
-                            }
-                            public int getR() {
-                                return nf4.getS();
-                            }
-                        };
-                        queueA.add(entry);
-                        if (TRACE_REPRIME) System.err.println("4    " + a + "\t" + entry);    // TRACE
-                    }
-                }
-            }
-        }
-    
-        private void rePrimeNF3() {
-            // NF3. r.A [ B
-            //      Q(X) += {-> B}, for all (X,Y) in R(r) and A in S(Y)
-            summarise("deltaOntologyNF3QueueEntry", deltaOntologyNF3QueueEntry);
-            
-            for (final IntIterator aItr = deltaOntologyNF3QueueEntry.keyIterator(); aItr.hasNext(); ) {
-                final int a = aItr.next();
-                final RoleMap<IConjunctionQueueEntry> entries = deltaOntologyNF3QueueEntry.get(a);
-        
-                for (int r = 0; r < factory.getTotalRoles(); r++) {
-                    if (entries.containsKey(r)) {
-                        final IConjunctionQueueEntry entry = entries.get(r);
-        
-                        if (TRACE_REPRIME) System.err.println("3    " + factory.lookupRoleId(r) + "." + factory.lookupConceptId(a) + " [ " + factory.lookupConceptId(entry.getB()));    // TRACE
-        
-                        for (final IntIterator xItr = subsumptions.keyIterator(); xItr.hasNext(); ) {
-                            final int x = xItr.next();
-        
-                            if (Rr.lookupB(x, r).contains(a)) {
-                                getConceptQueue(x).add(entry);
-                                if (TRACE_REPRIME) System.err.println("3    " + x + "\t" + entry);    // TRACE
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    
-        private void rePrimeNF2() {
-            // NF2. A [ r.B
-            //      Q(X) += {-> r.B}, for all A in S(X)
-            summarise("deltaOntologyNF2", deltaOntologyNF2);
-        
-            for (final IntIterator xItr = subsumptions.keyIterator(); xItr.hasNext(); ) {
-                int x = xItr.next();
-                final IConceptSet Sc = subsumptions.get(x);
-                for (final IntIterator aItr = Sc.iterator(); aItr.hasNext(); ) {
-                    final int a = aItr.next();
-                    if (deltaOntologyNF2.containsKey(a)) {
-                        final MonotonicCollection<NF2> set = deltaOntologyNF2.get(a);
-                        getRoleQueueEntry(x).addAll(set);
-                        if (TRACE_REPRIME) System.err.println("2    " + x + "\t" + set);    // TRACE
-                    }
-                }
-            }
-        }
-    
-        private void summarise(String label, IConceptMap<?> map) {
-            if (Snorocket.DEBUGGING) {
-                System.err.println(label + "\t* " + map.size());
-                for (IntIterator itr = map.keyIterator(); itr.hasNext(); ) {
-                    int key = itr.next();
-                    System.err.println(key + "\t" + map.get(key));
-                }
-                System.err.println("------");
-            }
-        }
-        
-        private void summarise(String label, IMonotonicCollection<? extends Object> set) {
-            if (Snorocket.DEBUGGING) {
-                System.err.println(label + "\t* " + set.size());
-                for (Iterator<? extends Object> itr = set.iterator(); itr.hasNext(); ) {
-                    Object key = itr.next();
-                    System.err.println(key);
-                }
-                System.err.println("------");
-            }
-        }
-        
-        private void rePrimeNF1() {
-            // NF1. A1 + ... + An [ B
-            //      Q(C) += {A1 + ... + An -> B}, for all C, B not in S(C)
-    
-            // FIXME: Do we need the following??
-            //      Q(A') += Ohat(r,B), for all (A',A) in R(r)
-            if (Snorocket.DEBUGGING) System.err.println(factory.getTotalConcepts() + " * " + deltaOntologyNF1QueueEntries.size());
-            summarise("deltaOntologyNF1QueueEntries", deltaOntologyNF1QueueEntries);
-    
-            // Want the set <c, a> such that <c, a> in S and exists x such that <a, x> in deltaOntologyNF1QueueEntries
-            // that is, we want to join S and deltaOntologyNF1QueueEntries on S.col2 and deltaOntologyNF1QueueEntries.key
-            //
-            for (final IntIterator cItr = subsumptions.keyIterator(); cItr.hasNext(); ) {
-                int c = cItr.next();
-                final IConceptSet Sc = subsumptions.get(c);
-                IQueue<IConjunctionQueueEntry> queueC = conceptQueues.get(c);
-    
-                for (final IntIterator aItr = Sc.iterator(); aItr.hasNext(); ) {
-                    final int a = aItr.next();
-                    if (deltaOntologyNF1QueueEntries.containsKey(a)) {
-                        final MonotonicCollection<IConjunctionQueueEntry> set = deltaOntologyNF1QueueEntries.get(a);
-                        for (final IConjunctionQueueEntry entry: set) {
-                            if (null == queueC) {
-//                                  System.err.println("No conceptQ for: " + factory.lookupConceptId(c));
-                                queueC = newConceptQueue();
-                                conceptQueues.put(c, queueC);
-                                if (roleQueues.containsKey(c)) {
-                                    LOGGER.severe("Internal Error: Role queue already contains entry for concept " + c);
-                                }
-                                roleQueues.put(c, newRoleQueue());
-                            }
-                            queueC.add(entry);
-                            if (TRACE_REPRIME) System.err.println("1    " + c + "\t" + entry);
-                        }
-                    }
-                }
-    
-            }
-    
-        }
-        
-    }
-
-    final private Classification baseClassification;
-    
-    /**
-     * The set of NF1 terms in the ontology added since last (re)run
-     */
-    private final IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> deltaOntologyNF1QueueEntries;
-    /**
-     * The set of NF2 terms in the ontology added since last (re)run
-     */
-    private final IConceptMap<MonotonicCollection<NF2>> deltaOntologyNF2;
-    /**
-     * The set of NF3 terms in the ontology added since last (re)run
-     * <ul><li>Concept map 9.3% full (SNOMED 20061230)</li><li>Unknown usage profile for Role maps</li></ul>
-     */
-    private final IConceptMap<RoleMap<IConjunctionQueueEntry>> deltaOntologyNF3QueueEntry;
-    /**
-     * The set of NF4 terms in the ontology added since last (re)run
-     */
-    private final IMonotonicCollection<NF4> deltaOntologyNF4;
-    /**
-     * The set of NF5 terms in the ontology added since last (re)run
-     */
-    private final IMonotonicCollection<NF5> deltaOntologyNF5;
-
-    /**
-     * The set of reflexive roles in the ontology
-     */
-    final protected IConceptSet deltaReflexiveRoles = new SparseConceptSet();
-
-    protected ExtensionOntology_Nid(final IFactory_123 factory, final Classification base, final NormalisedOntology_123 ontologyBase, Set<Inclusion_123> inclusions) {
-        super(factory,
-                // wrapped with DuoStructures to handle super.addTerm(...) call below
-                // Wrapping these avoids corruption of the NF structures that would limit
-                // us to a single incremental run.
-                new DuoConceptMap<MonotonicCollection<IConjunctionQueueEntry>>(ontologyBase.ontologyNF1QueueEntries, new SparseConceptMap<MonotonicCollection<IConjunctionQueueEntry>>(factory.getTotalConcepts(), "deltaOntologyNF1")),
-                new DuoConceptMap<MonotonicCollection<NF2>>(ontologyBase.ontologyNF2, new SparseConceptMap<MonotonicCollection<NF2>>(factory.getTotalConcepts(), "deltaOntologyNF2")),
-                new DuoConceptMap<RoleMap<IConjunctionQueueEntry>>(ontologyBase.ontologyNF3QueueEntry, new SparseConceptMap<RoleMap<IConjunctionQueueEntry>>(factory.getTotalConcepts(), "deltaOntologyNF3")),
-                new DuoMonotonicCollection<NF4>(ontologyBase.ontologyNF4, new MonotonicCollection<NF4>(15)),
-                new DuoMonotonicCollection<NF5>(ontologyBase.ontologyNF5, new MonotonicCollection<NF5>(1))
-                );
-        
-        this.baseClassification = base;
-        
-        deltaOntologyNF1QueueEntries = ((DuoConceptMap<MonotonicCollection<IConjunctionQueueEntry>>) ontologyNF1QueueEntries).getOverlay();
-        deltaOntologyNF2 = ((DuoConceptMap<MonotonicCollection<NF2>>) ontologyNF2).getOverlay();
-        deltaOntologyNF3QueueEntry = ((DuoConceptMap<RoleMap<IConjunctionQueueEntry>>) ontologyNF3QueueEntry).getOverlay();
-        deltaOntologyNF4 = ((DuoMonotonicCollection<NF4>) ontologyNF4).getOverlay();
-        deltaOntologyNF5 = ((DuoMonotonicCollection<NF5>) ontologyNF5).getOverlay();
-        
-        for (Inclusion_123 i: normalise(inclusions)) {
-            addTerm(i.getNormalForm());
-        }
-    }
-    
-    @Override
-    public IncrementalClassification getClassification() {
-        return new IncrementalClassification();
-    }
-    
-    @Override
-    protected void addTerm(NormalFormGCI term) {
-        super.addTerm(term);
-        
-        if (term instanceof NF1a) {
-            final NF1a nf1 = (NF1a) term;
-            final int a = nf1.lhsA();
-            addQueueEntry(deltaOntologyNF1QueueEntries, a, nf1.getQueueEntry());
-        } else if (term instanceof NF1b) {
-            final NF1b nf1 = (NF1b) term;
-            final int a1 = nf1.lhsA1();
-            final int a2 = nf1.lhsA2();
-            addQueueEntry(deltaOntologyNF1QueueEntries, a1, nf1.getQueueEntry1());
-            addQueueEntry(deltaOntologyNF1QueueEntries, a2, nf1.getQueueEntry2());
-        } else if (term instanceof NF2) {
-            final NF2 nf2 = (NF2) term;
-            addQueueEntries(deltaOntologyNF2, nf2);
-        } else if (term instanceof NF3) {
-            final NF3 nf3 = (NF3) term;
-            addQueueEntry(deltaOntologyNF3QueueEntry, nf3);
-        } else if (term instanceof NF4) {
-            deltaOntologyNF4.add((NF4) term);
-        } else if (term instanceof NF5) {
-            deltaOntologyNF5.add((NF5) term);
-        } else if (term instanceof NF6) {
-            deltaReflexiveRoles.add(((NF6) term).getR());
-        } else {
-            throw new IllegalArgumentException("type of " + term + " must be one of NF1 through NF6");
-        }
-    }
-
 }
