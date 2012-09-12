@@ -37,7 +37,9 @@ final public class SnorocketFactory implements I_SnorocketFactory {
     }
 
     public SnorocketFactory(InputStream stream) {
-        this(new Snorocket(stream));
+        //this(new Snorocket(stream));
+    	// FIXME: need to re-implement loading from stream functionality
+    	this(new Snorocket());
     }
 
     private SnorocketFactory(I_Snorocket rocket) {

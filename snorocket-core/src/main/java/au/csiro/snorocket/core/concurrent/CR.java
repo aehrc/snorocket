@@ -33,7 +33,7 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  * @author Alejandro Metke
  *
  */
-public class CR {
+public final class CR {
     private IConceptSet[] data;
     
     public CR(final int roles) {

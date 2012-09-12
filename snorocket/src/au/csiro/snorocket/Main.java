@@ -85,7 +85,7 @@ public class Main implements Runnable {
 
 	public Main(String[] args) {
 		au.csiro.snorocket.core.Snorocket.installLoggingHander();
-		NormalisedOntology.setBatchMode(true);
+		//NormalisedOntology.setBatchMode(true);
 		if (null != args) {
 			processArgs(args);
 		}
@@ -180,6 +180,7 @@ public class Main implements Runnable {
 				setIncludeVirtualConcepts(true);
 			}
 		});
+		/*
 		argHandlers.put("--Xbatch", new NoParamArgHandler() {
 			public void handleArg() {
 				NormalisedOntology.setBatchMode(true);
@@ -190,6 +191,7 @@ public class Main implements Runnable {
 				NormalisedOntology.setBatchMode(false);
 			}
 		});
+		*/
 		argHandlers.put("--Xcompress", new NoParamArgHandler() {
 			public void handleArg() {
 				setUsingCompression(true);
@@ -350,7 +352,7 @@ public class Main implements Runnable {
 		}
 
 		public Snorocket2(final InputStream state, PrintWriter printWriter) {
-			super(state);
+			//super(state);
 			this.incremental = true;
 			this.printWriter = printWriter;
 		}
@@ -358,7 +360,7 @@ public class Main implements Runnable {
 		// called by createExtension
 		protected Snorocket2(final Classification classification,
 				final String isaId, PrintWriter printWriter) {
-			super(classification, isaId);
+			//super(classification, isaId);
 			this.incremental = true;
 			this.printWriter = printWriter;
 			init();
