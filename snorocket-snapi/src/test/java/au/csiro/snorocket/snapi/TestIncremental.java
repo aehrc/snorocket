@@ -54,7 +54,8 @@ public class TestIncremental {
         InputStream out = rocket.getStream();
         assertNotNull(out);
     }
-
+    
+    /*
     @Test
     public void createAndRestoreEmptyInitialState() throws IOException {
         I_Snorocket rocket1 = new Snorocket();
@@ -71,6 +72,7 @@ public class TestIncremental {
             }
         });
     }
+    */
     
     @Test
     public void createEmptyLocalExtension() {
@@ -98,46 +100,55 @@ public class TestIncremental {
         final I_Snorocket rocket2 = rocket1.createExtension();
         classifyExtraIsaRelationshipWithExistingConcept(rocket2);
     }
-
+    
+    /*
     @Test
     public void createNonEmptySerialisedExtensionWithExistingConceptAndIsa() throws IOException {
         System.out.println("---------------------------------- createNonEmptySerialisedExtensionWithExistingConceptAndIsa");
         final I_Snorocket rocket2 = getExtensionRocket();
         classifyExtraIsaRelationshipWithExistingConcept(rocket2);
     }
-    
+    */
+    /*
     @Test
     public void createNonEmptySerialisedExtensionWithNewConceptAndIsa() throws IOException {
         System.out.println("---------------------------------- createNonEmptySerialisedExtensionWithNewConceptAndIsa");
         final I_Snorocket rocket2 = getExtensionRocket();
         classifyExtraIsaRelationshipWithNewConcept(rocket2);
     }
+    */
     
     /**
      * C [ hasProperty.A
      * B [ hasProperty.C
      */
+    /*
     @Test
     public void createNonEmptySerialisedExtensionWithHasProperty() throws IOException {
         System.out.println("---------------------------------- createNonEmptySerialisedExtensionWithHasProperty");
         final I_Snorocket rocket2 = getExtensionRocket();
         classifyExtraHasPropertyRelationshipWithExistingConcept(rocket2);
     }
+    */
     
     /**
      * C [ hasProperty.A
      * X [ hasProperty.C
      */
+    /*
     @Test
     public void createNonEmptySerialisedExtensionWithNewConceptAndHasProperty() throws IOException {
         System.out.println("---------------------------------- createNonEmptySerialisedExtensionWithNewConceptAndHasProperty");
         final I_Snorocket rocket2 = getExtensionRocket();
         classifyExtraHasPropertyRelationshipWithNewConcept(rocket2);
     }
+    */
+    
 
     /**
      * C [ hasProperty.A
      */
+    /*
     private I_Snorocket getExtensionRocket() throws IOException {
         I_Snorocket rocket1 = getInitialClassifiedRocket();
         System.out.println("----------------------------------");
@@ -148,6 +159,7 @@ public class TestIncremental {
         final I_Snorocket rocket2 = new Snorocket(state).createExtension();
         return rocket2;
     }
+    */
 
     /**
      * C [ hasProperty.A

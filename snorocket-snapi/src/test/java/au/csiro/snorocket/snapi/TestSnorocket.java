@@ -360,7 +360,6 @@ class Main implements Runnable {
 
     public Main(String[] args) {
 //        Snorocket.installLoggingHander();
-        NormalisedOntology.setBatchMode(true);
         if (null != args) {
             processArgs(args);
         }
@@ -447,10 +446,6 @@ class Main implements Runnable {
 //                    Snorocket.uninstallLoggingHander();
                 } else if (arg.equals("--XvirtualConcepts")) {
                     setIncludeVirtualConcepts(true);
-                } else if (arg.equals("--Xbatch")) {
-                    NormalisedOntology.setBatchMode(true);
-                } else if (arg.equals("--Xnobatch")) {
-                    NormalisedOntology.setBatchMode(false);
                 } else if (arg.equals("--Xcompress")) {
                     setUsingCompression(true);
                 } else {
@@ -548,6 +543,7 @@ class Main implements Runnable {
         }
     }
     
+    /*
     protected NormalisedOntology loadOntology() {
         long start = System.currentTimeMillis();
         
@@ -621,6 +617,7 @@ class Main implements Runnable {
         
         return normalisedOntology;
     }
+    */
 
     private Set<Inclusion> loadSnorocketOntology(final IFactory factory) {
         if (null != getConceptsFile()) {
@@ -725,8 +722,9 @@ class Main implements Runnable {
     private void handleFileNotFoundException(FileNotFoundException e, String file) {
         LOGGER.log(Level.SEVERE, "File not found: " + file + ", " + e.getMessage(), e);
     }
-
+    
     public void run() {
+    	/*
         long start = System.currentTimeMillis();
         final NormalisedOntology normalisedOntology = loadOntology();
 
@@ -805,7 +803,7 @@ class Main implements Runnable {
 //                }
 //            }
         }
-
+		*/
     }
 
     public boolean isSkipHeader() {

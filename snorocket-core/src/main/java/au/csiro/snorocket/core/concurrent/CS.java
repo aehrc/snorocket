@@ -30,7 +30,7 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  * 
  * @author Alejandro Metke
  */
-final class CS {
+public final class CS {
 
     private IConceptSet set;
     
@@ -40,7 +40,7 @@ final class CS {
     	set.add(IFactory.TOP_CONCEPT);
     }
     
-    IConceptSet getSet() {
+    public IConceptSet getSet() {
         return set;
     }
 

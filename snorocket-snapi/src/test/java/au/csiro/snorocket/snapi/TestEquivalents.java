@@ -68,7 +68,8 @@ public class TestEquivalents extends AbstractTest {
         checkExpectedDistributionRelationshipCount(rocket, 3);
         checkExpectedEquivalenceCount(rocket, 1);
     }
-
+    
+    /*
     @Test
     public void testIncrementalEquivalency() {
         final I_Snorocket rocket = getExtensionRocket();
@@ -84,7 +85,9 @@ public class TestEquivalents extends AbstractTest {
         // The following is undefined
 //        checkExpectedEquivalenceCount(rocket, 1);
     }
+    */
     
+    /*
     private I_Snorocket getExtensionRocket() {
         I_Snorocket rocket1 = getInitialClassifiedRocket();
         System.out.println("----------------------------------");
@@ -101,6 +104,7 @@ public class TestEquivalents extends AbstractTest {
         final I_Snorocket rocket2 = new Snorocket(state).createExtension();
         return rocket2;
     }
+    */
 
     private I_Snorocket getInitialClassifiedRocket() {
         final I_Snorocket rocket = new Snorocket();

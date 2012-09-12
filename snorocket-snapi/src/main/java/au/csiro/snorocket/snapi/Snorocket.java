@@ -132,6 +132,7 @@ public class Snorocket implements I_Snorocket {
 	}
 
 	// called by createExtension
+	/*
 	protected Snorocket(final Classification classification, String isaId) {
         LOGGER.info("::: Snorocket(final Classification classification, String isaId)");
 		if (null == classification) {
@@ -143,6 +144,7 @@ public class Snorocket implements I_Snorocket {
 		ROLE_GROUP = factory.getRole("roleGroup");
 		setIsa(isaId);
 	}
+	*/
 
 	/**
 	 * Pre-load from stored state
@@ -151,6 +153,7 @@ public class Snorocket implements I_Snorocket {
 	 * @throws RuntimeException
 	 *             if version is not available
 	 */
+	/*
 	public Snorocket(InputStream state) {
         LOGGER.info("::: Snorocket(InputStream state)");
         
@@ -222,6 +225,7 @@ public class Snorocket implements I_Snorocket {
 					+ e.getLocalizedMessage(), e);
 		}
 	}
+	*/
 
 	public void setIsa(String id) {
 		if (null == id) {
@@ -367,8 +371,6 @@ public class Snorocket implements I_Snorocket {
 	    } catch (IOException e) {
 	        e.printStackTrace();
 	    }
-
-		NormalisedOntology.setBatchMode(true); // Just in case
 
 		long start = System.currentTimeMillis();
 		final NormalisedOntology ontology = populateOntology();
@@ -1022,7 +1024,8 @@ public class Snorocket implements I_Snorocket {
 				}
 			}
 		}
-
+		
+		/*
 		boolean containsAll(final RVGroup other) {
 			for (final Rel otherRel : other.getRels()) {
 				boolean contained = false;
@@ -1039,7 +1042,9 @@ public class Snorocket implements I_Snorocket {
 
 			return true;
 		}
-
+		*/
+		
+		/*
 		void filterRedundant() {
 			for (int role = 0; role < roleValuesMap.length; role++) {
 				final IConceptSet values = roleValuesMap[role];
@@ -1062,7 +1067,8 @@ public class Snorocket implements I_Snorocket {
 				}
 			}
 		}
-
+		*/
+		/*
 		private boolean contains(final Rel lhs, final Rel rhs) {
 			IConceptSet set;
 			return (lhs.role == rhs.role || classification.getRoleClosure(
@@ -1071,6 +1077,7 @@ public class Snorocket implements I_Snorocket {
 							.getSubsumptions().get(lhs.concept2)) && set
 							.contains(rhs.concept2)));
 		}
+		*/
 
 		private Collection<Rel> getRels() {
 			if (null == _rels) {
@@ -1141,7 +1148,7 @@ public class Snorocket implements I_Snorocket {
 
 		if (filterRedundant) {
 			// Filter redundant role values
-			rvGroup.filterRedundant();
+			//rvGroup.filterRedundant();
 			// for (int role = 0; role < roleValuesMap.length; role++) {
 			// final IConceptSet values = roleValuesMap[role];
 			// final IConceptSet parentRoles = subsumptions.get(role);
@@ -1262,12 +1269,12 @@ public class Snorocket implements I_Snorocket {
 			boolean duplicate = false;
 
 			for (final RVGroup rvg : newRVGroups) {
-				if (rvg.containsAll(rvGroup)) {
+				/*if (rvg.containsAll(rvGroup)) {
 					duplicate = true;
 					break;
 				} else if (rvGroup.containsAll(rvg)) {
 					redundant.add(rvg);
-				}
+				}*/
 			}
 
 			newRVGroups.removeAll(redundant);
@@ -1365,7 +1372,8 @@ public class Snorocket implements I_Snorocket {
 		return (id == Factory.TOP_CONCEPT || id == Factory.BOTTOM_CONCEPT || factory
 				.isVirtualConcept(id));
 	}
-
+	
+	
 	public InputStream getStream() throws IOException {
 		final PipedInputStream result = new PipedInputStream();
 		final PipedOutputStream out = new PipedOutputStream(result);
@@ -1374,7 +1382,7 @@ public class Snorocket implements I_Snorocket {
 			public void run() {
 				final PrintWriter printWriter = new PrintWriter(out);
 				try {
-					classification.printClassification(printWriter);
+					//classification.printClassification(printWriter);
 
 					printWriter.println(isaId);
 					printWriter.println(FILE_VERSION);
@@ -1413,7 +1421,8 @@ public class Snorocket implements I_Snorocket {
 
 	protected I_Snorocket createExtension(Classification classification,
 			String isaId) {
-		return new Snorocket(classification, isaId);
+		//return new Snorocket(classification, isaId);
+		return null;
 	}
 
 	static boolean isDebugging() {

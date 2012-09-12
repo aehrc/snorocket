@@ -36,7 +36,7 @@ import au.csiro.snorocket.core.util.MonotonicCollection;
  *
  * @param <QueueEntry>
  */
-final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
+public final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
     private static final int DEFAULT_ALLOC_SIZE = 4;
     private static final Object[] EMPTY = {};
 
@@ -54,7 +54,7 @@ final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
      * @param typeToken
      */
     @SuppressWarnings("unchecked")
-    QueueImpl(Class<QueueEntry> typeToken) {
+	public QueueImpl(Class<QueueEntry> typeToken) {
         items = (QueueEntry[]) EMPTY;
 
         number++;
