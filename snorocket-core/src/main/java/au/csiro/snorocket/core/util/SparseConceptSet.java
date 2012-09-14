@@ -48,6 +48,17 @@ final public class SparseConceptSet implements IConceptSet {
     public SparseConceptSet() {
         this(10);
     }
+    
+    /**
+     * Private constructor used for cloning.
+     * 
+     * @param items
+     * @param size
+     */
+    private SparseConceptSet(int[] items, int size) {
+    	this.items = items;
+    	this.size = size;
+    }
 
     public void add(final int concept) {
         int low = 0;
@@ -185,6 +196,13 @@ final public class SparseConceptSet implements IConceptSet {
         final int[] newItems = new int[newSize];
         System.arraycopy(items, 0, newItems, 0, size);
         items = newItems;
+    }
+    
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+    	int[] newItems = new int[items.length];
+    	System.arraycopy(items, 0, newItems, 0, items.length);
+    	return new SparseConceptSet(newItems, size);
     }
 
 }

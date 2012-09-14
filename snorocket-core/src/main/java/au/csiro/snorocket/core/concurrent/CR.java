@@ -77,6 +77,31 @@ public final class CR {
             return new ReadonlyConceptSet(data[r]);
         }
     }
+    
+    /**
+     * Returns the set of concepts associated to the concept in a 
+     * {@link Context} by role r.
+     * 
+     * @param r The role
+     * @return The set of concepts associated to the concept in the context.
+     */
+    /*public IConceptSet lookupConceptCopy(int r) {
+    	if (r >= data.length) {
+            return IConceptSet.EMPTY_SET;
+        }
+        
+        if (null == data[r]) {
+        	return IConceptSet.EMPTY_SET;
+        } else {
+        	try {
+        		// Awful double cast!
+        		return new ReadonlyConceptSet((SparseConceptSet)
+        				((SparseConceptSet)data[r]).clone());
+			} catch (CloneNotSupportedException e) {
+				throw new RuntimeException(e);
+			}
+        }
+    }*/
 
     public void clear() {
         Arrays.fill(data, null);
