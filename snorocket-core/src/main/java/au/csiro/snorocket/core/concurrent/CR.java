@@ -51,7 +51,7 @@ public final class CR {
      */
     protected IConceptSet getConcept(int r) {
         if (r >= data.length) {
-            resizeRoles(r);
+            resizeRoles(r+1);
         }
         if (null == data[r]) {
             data[r] = new SparseConceptSet();
@@ -108,7 +108,7 @@ public final class CR {
      * @param r
      * @param B
      */
-    void store(int r, int B) {
+    synchronized void store(int r, int B) {
         getConcept(r).add(B);
     }
     

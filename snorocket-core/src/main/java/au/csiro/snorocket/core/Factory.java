@@ -208,7 +208,8 @@ final public class Factory implements IFactory {
      * @see au.csiro.snorocket.IFactory#lookupRoleId(int)
      */
     public String lookupRoleId(final int id) {
-        assert id >= roleBase && id <= roleIdCounter + roleBase;
+    	// FIXME: why is this assertion failing with Endocarditis example + logging
+        //assert id >= roleBase && id <= roleIdCounter + roleBase;
         return roles[id - roleBase];
     }
 

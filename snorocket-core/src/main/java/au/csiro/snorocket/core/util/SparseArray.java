@@ -57,7 +57,9 @@ public class SparseArray<T> {
     }
     
     T get(int index) {
-        if ((index / M) < groups.length) {
+    	if(index == -1) {
+    		return null;
+    	} else if ((index / M) < groups.length) {
             final T[] group = groups[index / M];
             return null == group ? null : group[index % M];
         } else {
