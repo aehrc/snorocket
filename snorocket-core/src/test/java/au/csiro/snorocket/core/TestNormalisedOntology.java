@@ -4,7 +4,8 @@
  */
 package au.csiro.snorocket.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,35 +24,12 @@ import au.csiro.snorocket.core.model.Existential;
 import au.csiro.snorocket.core.model.IntegerLiteral;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
-import au.csiro.snorocket.core.util.IntIterator;
 
 /**
  * @author Alejandro Metke
  *
  */
 public class TestNormalisedOntology {
-	
-	private String printClassNode(ClassNode cn, IFactory fac) {
-		StringBuilder sb = new StringBuilder();
-		
-		IConceptSet eqs = cn.getEquivalentConcepts();
-		sb.append("Concept [");
-		for(IntIterator it = eqs.iterator(); it.hasNext(); ) {
-			sb.append(fac.lookupConceptId(it.next()));
-			sb.append(" ");
-		}
-		sb.append("] \n Parents [");
-		for(ClassNode parent : cn.getParents()) {
-			for(IntIterator it = parent.getEquivalentConcepts().iterator(); 
-					it.hasNext(); ) {
-				sb.append(fac.lookupConceptId(it.next()));
-				sb.append(" ");
-			}
-		}
-		sb.append("]");
-
-		return sb.toString();
-	}
 	
 	/**
 	 * Tests the simple example found in the paper "Efficient Reasoning in EL+".
@@ -154,124 +132,81 @@ public class TestNormalisedOntology {
         ClassNode bottomNode = ppd.getEquivalents(IFactory.BOTTOM_CONCEPT);
         Set<ClassNode> bottomRes = bottomNode.getParents();
         
-        System.out.println(printClassNode(bottomNode, factory));
-        
-        /*
         assertTrue(bottomRes.size() == 5);
         assertTrue(bottomRes.contains(ppd.getEquivalents(endocardium)));
         assertTrue(bottomRes.contains(ppd.getEquivalents(endocarditis)));
         assertTrue(bottomRes.contains(ppd.getEquivalents(heartWall)));
         assertTrue(bottomRes.contains(ppd.getEquivalents(heartValve)));
         assertTrue(bottomRes.contains(ppd.getEquivalents(heart)));
-        */
-        
         
         ClassNode endocarditisNode = ppd.getEquivalents(endocarditis);
         Set<ClassNode> endocarditisRes = endocarditisNode.getParents();
-        /*
         assertTrue(endocarditisRes.size() == 3);
         assertTrue(endocarditisRes.contains(ppd.getEquivalents(inflammation)));
         assertTrue(endocarditisRes.contains(ppd.getEquivalents(heartdisease)));
         assertTrue(endocarditisRes.contains(
         		ppd.getEquivalents(criticalDisease)));
-        */
-        
-        System.out.println(printClassNode(endocarditisNode, factory));
         
         ClassNode inflammationNode = ppd.getEquivalents(inflammation);
         Set<ClassNode> inflammationRes = inflammationNode.getParents();
-        /*
         assertTrue(inflammationRes.size() == 1);
         assertTrue(inflammationRes.contains(ppd.getEquivalents(disease)));
-        */
-        System.out.println(printClassNode(inflammationNode, factory));
         
         ClassNode endocardiumNode = ppd.getEquivalents(endocardium);
         Set<ClassNode> endocardiumRes = endocardiumNode.getParents();
-        /*
         assertTrue(endocardiumRes.size() == 1);
         assertTrue(endocardiumRes.contains(ppd.getEquivalents(tissue)));
-        */
-        System.out.println(printClassNode(endocardiumNode, factory));
         
         ClassNode heartdiseaseNode = ppd.getEquivalents(heartdisease);
         Set<ClassNode> heartdiseaseRes = heartdiseaseNode.getParents();
-        /*
         assertTrue(heartdiseaseRes.size() == 1);
         assertTrue(heartdiseaseRes.contains(ppd.getEquivalents(disease)));
-        */
-        System.out.println(printClassNode(heartdiseaseNode, factory));
         
         ClassNode heartWallNode = ppd.getEquivalents(heartWall);
         Set<ClassNode> heartWallRes = heartWallNode.getParents();
-        /*
         assertTrue(heartWallRes.size() == 1);
         assertTrue(heartWallRes.contains(ppd.getEquivalents(bodyWall)));
-        */
-        System.out.println(printClassNode(heartWallNode, factory));
         
         ClassNode heartValveNode = ppd.getEquivalents(heartValve);
         Set<ClassNode> heartValveRes = heartValveNode.getParents();
-        /*
         assertTrue(heartValveRes.size() == 1);
         assertTrue(heartValveRes.contains(ppd.getEquivalents(bodyValve)));
-        */
-        System.out.println(printClassNode(heartValveNode, factory));
         
         ClassNode diseaseNode = ppd.getEquivalents(disease);
         Set<ClassNode> diseaseRes = diseaseNode.getParents();
-        /*
         assertTrue(diseaseRes.size() == 1);
         assertTrue(diseaseRes.contains(ppd.getEquivalents(
         		IFactory.TOP_CONCEPT)));
-        */
-        System.out.println(printClassNode(diseaseNode, factory));
         
         ClassNode tissueNode = ppd.getEquivalents(tissue);
         Set<ClassNode> tissueRes = tissueNode.getParents();
-        /*
         assertTrue(tissueRes.size() == 1);
         assertTrue(tissueRes.contains(ppd.getEquivalents(
         		IFactory.TOP_CONCEPT)));
-        */
-        
-        System.out.println(printClassNode(tissueNode, factory));
         
         ClassNode heartNode = ppd.getEquivalents(heart);
         Set<ClassNode> heartRes = heartNode.getParents();
-        /*
         assertTrue(heartRes.size() == 1);
         assertTrue(heartRes.contains(ppd.getEquivalents(
         		IFactory.TOP_CONCEPT)));
-        */
-        System.out.println(printClassNode(heartNode, factory));
         
         ClassNode bodyValveNode = ppd.getEquivalents(bodyValve);
         Set<ClassNode> bodyValveRes = bodyValveNode.getParents();
-        /*
         assertTrue(bodyValveRes.size() == 1);
         assertTrue(bodyValveRes.contains(ppd.getEquivalents(
         		IFactory.TOP_CONCEPT)));
-        */
-        System.out.println(printClassNode(bodyValveNode, factory));
         
         ClassNode bodyWallNode = ppd.getEquivalents(bodyWall);
         Set<ClassNode> bodyWallRes = bodyWallNode.getParents();
-        /*
         assertTrue(bodyWallRes.size() == 1);
         assertTrue(bodyWallRes.contains(ppd.getEquivalents(
         		IFactory.TOP_CONCEPT)));
-        */
-        System.out.println(printClassNode(bodyWallNode, factory));
         
         ClassNode criticalDiseaseNode = ppd.getEquivalents(criticalDisease);
         Set<ClassNode> criticalDiseaseRes = criticalDiseaseNode.getParents();
-        /*
         assertTrue(criticalDiseaseRes.size() == 1);
         assertTrue(criticalDiseaseRes.contains(
         		ppd.getEquivalents(IFactory.TOP_CONCEPT)));
-        */
-        System.out.println(printClassNode(criticalDiseaseNode, factory));
 	}
 	
 	/**
@@ -286,7 +221,7 @@ public class TestNormalisedOntology {
 	 *     -Panadol_500mg
 	 *   -Paracetamol
 	 */
-	//@Test
+	@Test
 	public void testConcreteDomainsEquality() {
 		IFactory factory = new Factory();
 		
@@ -402,7 +337,7 @@ public class TestNormalisedOntology {
 	 * the Description Logic EL with Numerical Datatypes". It uses integer
 	 * values and the operators less than, equals, and greater than.
 	 */
-	//@Test
+	@Test
 	public void testConcreteDomainsOperators() {
 		IFactory factory = new Factory();
 		
@@ -507,7 +442,7 @@ public class TestNormalisedOntology {
         assertTrue(bottomRes.contains(ppd.getEquivalents(patient)));
 	}
 	
-	//@Test
+	@Test
 	public void testNormalise() {
 		IFactory factory = new Factory();
 		

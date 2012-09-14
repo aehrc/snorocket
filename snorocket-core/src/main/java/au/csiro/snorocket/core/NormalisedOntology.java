@@ -140,12 +140,12 @@ public class NormalisedOntology {
  	/**
  	 * The map of contexts by concept id.
  	 */
- 	private final IConceptMap<Context> contextIndex;
+ 	private volatile IConceptMap<Context> contextIndex;
  	
  	/**
  	 * The global role closure.
  	 */
- 	private final RoleMap<RoleSet> roleClosureCache;
+ 	private volatile RoleMap<RoleSet> roleClosureCache;
     
     public IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> 
     	getOntologyNF1() {

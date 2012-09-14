@@ -2,7 +2,10 @@ package au.csiro.snorocket.core.concurrent;
 
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import au.csiro.snorocket.core.Factory;
@@ -52,8 +55,8 @@ public class Context {
      * Queue (List) of ConjunctionQueueEntries indicating work to be done
      * for this concept.
      */
-    private final IQueue<IConjunctionQueueEntry> conceptQueue = 
-    		new QueueImpl<IConjunctionQueueEntry>(IConjunctionQueueEntry.class);
+    private Queue<IConjunctionQueueEntry> conceptQueue = 
+    		new ConcurrentLinkedQueue<>();
     
     /**
      * Queue (List) of RoleQueueEntries indicating work to be done for this
@@ -73,8 +76,8 @@ public class Context {
      * Queue used to process entries from other contexts that trigger calls to
      * processNewEdge.
      */
-    private final IQueue<IRoleQueueEntry> externalQueue = 
-    		new QueueImpl<IRoleQueueEntry>(IRoleQueueEntry.class);
+    private final Queue<IRoleQueueEntry> externalQueue = 
+    		new ConcurrentLinkedQueue<>();
     
     /**
      * Keeps track of the parents of this concept.
@@ -201,10 +204,20 @@ public class Context {
 		primeQueue();
 	}
 	
+	private void addToConceptQueue(
+			MonotonicCollection<IConjunctionQueueEntry> entries) {
+		Iterator<IConjunctionQueueEntry> it = entries.iterator();
+		while(it.hasNext()) {
+			conceptQueue.add(it.next());
+		}
+	}
+	
 	private void primeQueue() {
 		final MonotonicCollection<IConjunctionQueueEntry> nf1e = 
 				ontologyNF1.get(concept);
-		if(nf1e != null) conceptQueue.addAll(nf1e);
+		if(nf1e != null) {
+			addToConceptQueue(nf1e);
+		}
 		
 		final MonotonicCollection<NF2> nf2e = ontologyNF2.get(concept);
 		if(nf2e != null) roleQueue.addAll(nf2e);
@@ -276,40 +289,17 @@ public class Context {
 		conceptQueue.add(entry);
 	}
 	
-	/**
-	 * Adds a successor to the local derived axioms.
-	 * 
-	 * @param role
-	 * @param expr
-	 * @return
-	 */
-	public boolean addSuccessor(int role, int concept) {
-		succ.store(role, concept);
-		return true;
-	}
-	
-	/**
-	 * Adds a predecessor to the local derived axioms.
-	 * 
-	 * @param role
-	 * @param expr
-	 * @return
-	 */
-	public boolean addPredecessor(int role, int concept) {
-		pred.store(role, concept);
-		return true;
-	}
-	
-	/**
-	 * Adds a successor derived in another context.
-	 * 
-	 * @param expr
-	 * @return
-	 */
-	public boolean addSuperConcept(int concept) {
-		s.put(concept);
-		return true;
-	}
+	// TODO: remove these
+	/*
+	private String formatEntry(IConjunctionQueueEntry entry) {
+        return factory.lookupConceptId(entry.getBi()) + " -> " + factory.lookupConceptId(entry.getB());
+    }
+    
+    private String formatEntry(IRoleQueueEntry entry) {
+        return factory.lookupRoleId(entry.getR()) + "." + factory.lookupConceptId(entry.getB());
+    }
+    */
+    // END TODO
 	
 	/**
 	 * Starts the classification process.
@@ -326,12 +316,19 @@ public class Context {
                     done = false;
                     final IConjunctionQueueEntry entry = conceptQueue.remove();
                     final int b = entry.getB();
+                    
+                    // TODO remove
+                    //System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|  A = " + factory.lookupConceptId(concept) + ", X = " + formatEntry(entry));
 
                     final IConceptSet sa = s.getSet();
                     if (!sa.contains(b)) {
                         final int bi = entry.getBi();
                         if (sa.contains(bi)) {
-                            s.put(b);
+                        	
+                        	// TODO remove
+                        	//System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|    Add " + factory.lookupConceptId(concept) + " [ " + factory.lookupConceptId(b));
+                            
+                        	s.put(b);
                             processNewSubsumption(b);
                         }
                     }
@@ -375,7 +372,7 @@ public class Context {
                     	}
                     }
                     
-                    conceptQueue.addAll(res);
+                    addToConceptQueue(res);
                 } while (!featureQueue.isEmpty());
             }
             
@@ -383,7 +380,11 @@ public class Context {
             if (!roleQueue.isEmpty()) {
                 done = false;
                 final IRoleQueueEntry entry = roleQueue.remove();
-                if(succ.lookupConcept(entry.getR()).contains(entry.getB())) {
+                
+                // TODO: remove
+                //System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|  A = " + factory.lookupConceptId(concept) + ", X = " + formatEntry(entry));
+                
+                if(!succ.lookupConcept(entry.getR()).contains(entry.getB())) {
                 	processNewEdge(entry.getR(), entry.getB());
                 }
             }
@@ -403,11 +404,28 @@ public class Context {
         final MonotonicCollection<IConjunctionQueueEntry> bConceptEntries = 
         		ontologyNF1.get(b);
         if (null != bConceptEntries && bConceptEntries.size() > 0) {
+        	
+        	// TODO: remove
+        	/*System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|    Queue(" + factory.lookupConceptId(concept) + ") += " + bConceptEntries.size());        // TRACE
+            final Iterator<IConjunctionQueueEntry> itr = bConceptEntries.iterator();
+            while (itr.hasNext()) {
+                System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|\t" + formatEntry(itr.next()));
+            }*/
+        	// TODO END
+        	
             // Add these to the queue of a
-            conceptQueue.addAll(bConceptEntries);
+        	addToConceptQueue(bConceptEntries);
         }
         final MonotonicCollection<NF2> bRoleEntries = ontologyNF2.get(b);
         if (null != bRoleEntries) {
+        	
+        	// TODO: remove
+        	/*System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|    RoleQueue(" + factory.lookupConceptId(concept) + ") += " + bRoleEntries.size());        // TRACE
+        	for(NF2 entry : bRoleEntries) {
+        		System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|        RoleEntry(" + factory.lookupConceptId(entry.lhsA) + " [ " + factory.lookupRoleId(entry.rhsR) + "." + factory.lookupConceptId(entry.rhsR) + ")");
+        	}*/
+        	// TODO END
+        	
             roleQueue.addAll(bRoleEntries);
         }
     
@@ -429,7 +447,11 @@ public class Context {
                         if(concept == aa) {
                         	conceptQueue.add(entry);
                         } else {
-                        	contextIndex.get(aa).addConceptQueueEntry(entry);
+                        	// Add to external context concept queue and
+                        	// activate
+                        	Context oc = contextIndex.get(aa);
+                        	oc.addConceptQueueEntry(entry);
+                        	if(oc.activate()) parentTodo.add(oc);
                         }
                     }
                 }
@@ -596,15 +618,57 @@ public class Context {
     private void processNewEdge(int role, int b) {
         final RoleSet roleClosure = getRoleClosure(role);
         for (int s = roleClosure.first(); s >= 0; s = roleClosure.next(s + 1)) {
-    
+        	
+        	// TODO: remove
+        	//System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|    Processing edge "+factory.lookupConceptId(concept)+" [ "+factory.lookupRoleId(role)+"."+factory.lookupConceptId(b));
+        	//System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|        Add to R(" +factory.lookupRoleId(s)+") : "+ factory.lookupConceptId(concept) + " -> " + factory.lookupConceptId(b));
+        	// TODO END
+        	
             // R(s) := R(s) u {(A,B)}
             succ.store(s, b);
+            
+            // Add the predecessor to the the corresponding context
+            // Is this necessary?
+            Context bContext = contextIndex.get(b);
+            
+            // FIXME------------------------------------------------------------
+            
+            try {
+            	bContext.getPred().store(s, concept);
+            } catch(Exception e) {
+            	System.out.println("Concept: "+concept+ " role: "+role+" b: "+b+" bContext: "+bContext+" s:"+s);
+            	e.printStackTrace();
+            }
             
             // TODO: I believe this call should not require locking and should
             // not generate any issues... but this should be checked.
             // queue(A) := queue(A) u U{B'|B' in S(B)}.O^(s.B')
+            // FIXME: There is a dependency on the state of context b in this
+            // call. To solve this dependency issue a call to this method
+            // should be rescheduled when b gets a new member in S. How to do
+            // this?
             final IConceptSet sb = contextIndex.get(b).getS().getSet();
-            addOntHat(conceptQueue, s, sb);
+            
+            //Computes the minimal set of QueueEntries from s.a [ bb is in O
+            for (IntIterator itr = sb.iterator(); itr.hasNext(); ) {
+                final int bb = itr.next();
+
+                final RoleMap<IConjunctionQueueEntry> map = ontologyNF3.get(bb);
+                
+                // TODO: remove
+                //System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|    NF3 Map = " + factory.lookupConceptId(b) + " " + map);
+
+                if (null != map) {
+                    final IConjunctionQueueEntry entry = map.get(s);
+                    if (null != entry) {
+                    	
+                    	// TODO: remove
+                    	//System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|        Add = " + factory.lookupRoleId(s) + "." + factory.lookupConceptId(b) + " [ " + factory.lookupConceptId(entry.getB()));
+                    	
+                    	conceptQueue.add(entry);
+                    }
+                }
+            }
             
             // Handle reflexive roles
             if (reflexiveRoles.contains(s)) {
@@ -614,6 +678,10 @@ public class Context {
                 }
                 
                 // check for (b,b) in R(s)
+                // FIXME: this is a dependency on the predecessors of an 
+                // external context that will not affect the Endocarditis test 
+                // case because there are no reflexive roles in it (could solve 
+                // this later)
                 Context tc = contextIndex.get(b);
                 if (!tc.getPred().lookupConcept(s).contains(concept)) {
                     tc.processExternalEdge(s, concept);
@@ -632,6 +700,8 @@ public class Context {
                     
                     // TODO: again in this case I believe there should be no
                     // concurrency issues.
+                    // FIXME: again in this case there is a dependency with the
+                    // predecessors of an external context.
                     final IConceptSet bUPrimes = 
                     		contextIndex.get(b).getPred().lookupConcept(u);
     
@@ -648,6 +718,7 @@ public class Context {
             }
             
             for (final int[] pair: work) {
+            	//System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|     Added edge from predecessors "+factory.lookupConceptId(pair[0])+" [ "+factory.lookupRoleId(pair[1])+"."+factory.lookupConceptId(b));
             	if(pair[0] == concept) {
             		processNewEdge(pair[1], b);
             	} else {
@@ -664,6 +735,8 @@ public class Context {
                 if (s == nf5.getR()) {
                     final int t = nf5.getS();
                     final int u = nf5.getT();
+                    // FIXME: in this case there is a dependency with the
+                    // successors of an external context.
                     final IConceptSet bTPrimes = 
                     		contextIndex.get(b).getSucc().lookupConcept(t);
                     final IConceptSet aUPrimes = succ.lookupConcept(u);
@@ -671,6 +744,15 @@ public class Context {
                     for (final IntIterator itr = bTPrimes.iterator(); 
                     		itr.hasNext(); ) {
                         final int bb = itr.next();
+                        
+                        // TODO: remove////////////////////////////////////
+                        
+                        if(bb == -1) {
+                        	System.out.println("b (concept with -1 succ): "+b);
+                        }
+                        
+                        /////////////////////////////////////////////////////
+                        
     
                         if (!aUPrimes.contains(bb)) {
                             work.add(new int[] {u, bb});
@@ -680,39 +762,8 @@ public class Context {
                 }
             }
             for (final int[] pair: work) {
-            	if(pair[0] == concept) {
-            		processNewEdge(pair[1], b);
-            	} else {
-            		Context tc = contextIndex.get(pair[0]);
-            		tc.processExternalEdge(pair[1], b);
-            		if(tc.activate()) {
-                    	parentTodo.add(tc);
-                    }
-            	}
-            }
-        }
-    }
-    
-    /**
-     * Computes the minimal set of QueueEntries from:
-     * <li> r.a [ B is in O </li>
-     * @param queue 
-     * @param r
-     * @param b
-     * @return
-     */
-    private void addOntHat(IQueue<IConjunctionQueueEntry> queue, final int r, 
-    		final IConceptSet sb) {
-        for (IntIterator itr = sb.iterator(); itr.hasNext(); ) {
-            final int b = itr.next();
-
-            final RoleMap<IConjunctionQueueEntry> map = ontologyNF3.get(b);
-
-            if (null != map) {
-                final IConjunctionQueueEntry entry = map.get(r);
-                if (null != entry) {
-                    queue.add(entry);
-                }
+            	//System.err.println(Thread.currentThread().getId()+"|"+System.nanoTime()+"|     Added edge from successors "+factory.lookupConceptId(concept)+" [ "+factory.lookupRoleId(pair[0])+"."+factory.lookupConceptId(pair[1]));
+            	processNewEdge(pair[0], pair[1]);
             }
         }
     }
