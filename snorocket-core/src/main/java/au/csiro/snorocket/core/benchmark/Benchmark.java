@@ -35,7 +35,7 @@ public class Benchmark {
 	final static String RES_DIR = "src/main/resources/";
 	final static String OUT_DIR = "src/site/resources/";
 	
-	public static final String VERSION = "1.1.22";
+	public static final String VERSION = "2.0.0";
 	
 	/**
 	 * Runs the benchmark using an RF1 file as input.
