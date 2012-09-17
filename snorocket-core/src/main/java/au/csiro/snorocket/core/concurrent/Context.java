@@ -407,9 +407,6 @@ public class Context {
                         // Add to queue aa
                         if(concept == aa) {
                         	conceptQueue.add(entry);
-                        } else if(aa == -1) {
-                        	// TODO: check this
-                        	break;
                         } else {
                         	// Add to external context concept queue and
                         	// activate
@@ -580,8 +577,6 @@ public class Context {
      * @param b
      */
     private void processNewEdge(int role, int b) {
-    	// TODO: check this
-    	if(b == -1) return;
         final RoleSet roleClosure = getRoleClosure(role);
         for (int s = roleClosure.first(); s >= 0; s = roleClosure.next(s + 1)) {
             // R(s) := R(s) u {(A,B)}
@@ -591,14 +586,7 @@ public class Context {
             // Is this necessary?
             Context bContext = contextIndex.get(b);
             
-            // FIXME------------------------------------------------------------
-            // Concurrent test of anatomy
-            try {
-            	bContext.getPred().store(s, concept);
-            } catch(Exception e) {
-            	System.out.println("Concept: "+concept+ " role: "+role+" b: "+b+" bContext: "+bContext+" s:"+s);
-            	e.printStackTrace();
-            }
+            bContext.getPred().store(s, concept);
             
             // queue(A) := queue(A) u U{B'|B' in S(B)}.O^(s.B')
             final IConceptSet sb = contextIndex.get(b).getS().getSet();
@@ -640,7 +628,7 @@ public class Context {
                     final int u = nf5.getT();
                     final IConceptSet aTPrimes = pred.lookupConcept(t);
 
-                    // FIXME: again in this case there is a dependency with the
+                    // Again in this case there is a dependency with the
                     // predecessors of an external context.
                     final IConceptSet bUPrimes = 
                     		contextIndex.get(b).getPred().lookupConcept(u);
@@ -662,6 +650,9 @@ public class Context {
             		processNewEdge(pair[1], b);
             	} else {
             		Context tc = contextIndex.get(pair[0]);
+            		
+            		// Found a NullPointer problem here
+            		
             		tc.processExternalEdge(pair[1], b);
             		if(tc.activate()) {
                     	parentTodo.add(tc);
@@ -674,7 +665,7 @@ public class Context {
                 if (s == nf5.getR()) {
                     final int t = nf5.getS();
                     final int u = nf5.getT();
-                    // FIXME: in this case there is a dependency with the
+                    // In this case there is a dependency with the
                     // successors of an external context.
                     final IConceptSet bTPrimes = 
                     		contextIndex.get(b).getSucc().lookupConcept(t);
