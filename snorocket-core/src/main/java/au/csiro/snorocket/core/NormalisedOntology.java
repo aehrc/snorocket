@@ -471,7 +471,7 @@ public class NormalisedOntology {
      * Starts the concurrent classification process.
      */
     private void classify() {
-		int numThreads = Runtime.getRuntime().availableProcessors();
+		int numThreads = 16;//Runtime.getRuntime().availableProcessors();
 		LOGGER.log(Level.INFO, "Classifying with "+numThreads+" threads");
 		
 		Context.init(NormalisedOntology.this);
