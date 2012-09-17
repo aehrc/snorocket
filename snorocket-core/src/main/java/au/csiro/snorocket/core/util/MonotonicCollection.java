@@ -38,7 +38,8 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
     public T[] data;
     int count = 0;
     
-    public MonotonicCollection(final int size) {
+    @SuppressWarnings("unchecked")
+	public MonotonicCollection(final int size) {
         data = (T[]) new Object[size];
     }
 
@@ -47,7 +48,8 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
         data[count++] = element;
     }
 
-    private void checkSize() {
+    @SuppressWarnings("unchecked")
+	private void checkSize() {
         if (count == data.length) {
             final int newSize = count < 134217728 ? count << 1 : count + 10000000;
             if (Snorocket.DEBUGGING && count > 1024) System.err.println(hashCode() + "\t" + getClass().getSimpleName() + " resize to: " + (newSize));

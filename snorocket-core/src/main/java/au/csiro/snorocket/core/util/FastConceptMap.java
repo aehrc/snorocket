@@ -59,7 +59,8 @@ public final class FastConceptMap<V> implements IConceptMap<V> {
         return null != get(key);
     }
 
-    public V get(int key) {
+    @SuppressWarnings("unchecked")
+	public V get(int key) {
         final int len = _keys.length;
         final int mask = len - 1;
         int reprobe_count = 0;
@@ -157,7 +158,8 @@ public final class FastConceptMap<V> implements IConceptMap<V> {
         return _size;
     }
 
-    public void grow(final int newSize) {
+    @SuppressWarnings("unchecked")
+	public void grow(final int newSize) {
         final int[] oldKeys = _keys;
         final Object[] oldValues = _values;
 
