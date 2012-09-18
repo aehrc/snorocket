@@ -22,10 +22,10 @@
 package au.csiro.snorocket.core;
 
 import java.io.PrintWriter;
-import java.util.Deque;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -135,7 +135,7 @@ public class NormalisedOntology {
     /**
      * The queue of contexts to process.
      */
- 	private final Deque<Context> todo = new ConcurrentLinkedDeque<>();
+ 	private final Queue<Context> todo = new ConcurrentLinkedQueue<>();
  	
  	/**
  	 * The map of contexts by concept id.
@@ -180,7 +180,7 @@ public class NormalisedOntology {
 		return ontologyNF8;
 	}
 
-	public Deque<Context> getTodo() {
+	public Queue<Context> getTodo() {
 		return todo;
 	}
 

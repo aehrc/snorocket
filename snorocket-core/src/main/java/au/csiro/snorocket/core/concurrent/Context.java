@@ -1,7 +1,6 @@
 package au.csiro.snorocket.core.concurrent;
 
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
@@ -100,7 +99,7 @@ public class Context {
      * Reference to the parent context queue. Used to add this context back to
      * the queue when reactivated.
      */
-    private static Deque<Context> parentTodo;
+    private static Queue<Context> parentTodo;
     
     /**
      * Reference to the parent context index. Used to add queue entries to other
