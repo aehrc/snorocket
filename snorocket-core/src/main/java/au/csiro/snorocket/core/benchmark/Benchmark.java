@@ -90,7 +90,8 @@ public class Benchmark {
 			sb.append("Date,VM Parameters,Concepts File,Relationships File," +
 					"Snorocket Version,Axiom Transformation Time (ms)," +
 					"Axiom Loading Time (ms),Classification Time(ms)," +
-					"Taxonomy Construction Time(ms), Total Time(ms)\n");
+					"Taxonomy Construction Time(ms), Total Time(ms), " +
+					"Used Memory(bytes), Max Memory (bytes)\n");
 			
 			for(int j = 0; j < numRuns; j++) {
 				Stats stats = Benchmark.runBechmarkRF1(concepts, relations);
@@ -121,6 +122,11 @@ public class Benchmark {
 				sb.append(stats.getTaxonomyBuildingTimeMs());
 				sb.append(",");
 				sb.append(stats.getTotalTime());
+				sb.append(",");
+				sb.append(Runtime.getRuntime().totalMemory()-
+						Runtime.getRuntime().freeMemory());
+				sb.append(",");
+				sb.append(Runtime.getRuntime().maxMemory());
 				sb.append("\n");
 				
 				System.gc();
