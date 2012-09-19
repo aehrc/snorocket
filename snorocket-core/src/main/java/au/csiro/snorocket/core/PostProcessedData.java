@@ -52,6 +52,12 @@ public class PostProcessedData {
     	
     }
     
+    public void computeDagIncremental(final IFactory factory, 
+    		final IConceptMap<IConceptSet> subsumptions, 
+    		ReasonerProgressMonitor monitor) {
+    	// TODO: implement
+    }
+    
     public void computeDag(final IFactory factory, 
     		final IConceptMap<IConceptSet> subsumptions, 
     		ReasonerProgressMonitor monitor) {

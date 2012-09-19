@@ -244,7 +244,34 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             return;
         }
 		
-		synchronise();
+		boolean hasImportChange = false;
+		List<OWLAxiom> newAxioms = new ArrayList<OWLAxiom>();
+		
+		for(OWLOntologyChange change : rawChanges) {
+			if(change.isImportChange()) {
+				hasImportChange = true;
+				break;
+			} else if(change.isAxiomChange()) {
+				OWLAxiom axiom = change.getAxiom();
+				newAxioms.add(axiom);
+			} else {
+				// Should never happen
+				assert(false);
+			}
+		}
+		
+		if(hasImportChange) {
+			synchronise();
+		} else {
+			
+			
+			OWLImporter oi = new OWLImporter(reasoner.getFactory());
+			Set<Inclusion> axioms = oi.transform(newAxioms, monitor);
+			Classification ic = reasoner.getIncrementalClassification(axioms);
+			final IConceptMap<IConceptSet> s = ic.getSubsumptions();
+	        ppd.computeDagIncremental(factory, s, monitor);
+		}
+		
 		rawChanges.clear();
 	}
 
