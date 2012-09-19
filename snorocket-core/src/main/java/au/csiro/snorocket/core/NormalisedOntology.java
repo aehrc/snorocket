@@ -140,7 +140,7 @@ public class NormalisedOntology {
  	/**
  	 * The map of contexts by concept id.
  	 */
- 	private volatile IConceptMap<Context> contextIndex;
+ 	private final IConceptMap<Context> contextIndex;
  	
  	/**
  	 * The global role closure.
@@ -459,12 +459,23 @@ public class NormalisedOntology {
     }
 
     /**
-     * Entry to the CEL Classification algorithm.
+     * Entry to the CEL classification algorithm.
      * 
      */
     public Classification getClassification() {
     	classify();
         return new Classification();
+    }
+    
+    /**
+     * Runs an incremental classification.
+     * 
+     * @return
+     */
+    public Classification getIncrementalClassification(
+    		Set<Inclusion> incAxioms) {
+    	// TODO: implement
+    	return null;
     }
     
     /**

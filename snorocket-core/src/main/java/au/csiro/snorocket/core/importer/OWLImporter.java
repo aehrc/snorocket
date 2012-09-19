@@ -15,6 +15,7 @@ import java.util.Stack;
 import javax.xml.bind.DatatypeConverter;
 
 import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLClassExpressionVisitor;
@@ -29,6 +30,7 @@ import org.semanticweb.owlapi.model.OWLDataPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLDataSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLDatatype;
+import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLEquivalentObjectPropertiesAxiom;
@@ -251,15 +253,184 @@ public class OWLImporter {
 		types.put(OWL2Datatype.RDF_XML_LITERAL, set);
 	}
 	
+	private Inclusion transformOWLSubPropertyChainOfAxiom(
+			OWLSubPropertyChainOfAxiom a) {
+		List<OWLObjectPropertyExpression> sub = a.getPropertyChain();
+    	OWLObjectPropertyExpression sup = a.getSuperProperty();
+    	
+    	int size = sub.size();
+    	int[] lhss = new int[size];
+    	for(int i = 0; i < size; i++) {
+    		lhss[i] = factory.getRole(
+    				sub.get(i).asOWLObjectProperty().toStringID());
+    	}
+    	
+    	int rhs = factory.getRole(sup.asOWLObjectProperty().toStringID());
+    	
+    	if(lhss.length == 1) {
+    		return new RI(lhss[0], rhs);
+    	} else if(lhss.length == 2) {
+    		return new RI(lhss, rhs);
+    	} else {
+    		throw new RuntimeException(
+    				"RoleChains longer than 2 not supported.");
+    	}
+	}
+	
+	private Inclusion transformOWLSubObjectPropertyOfAxiom(
+			OWLSubObjectPropertyOfAxiom a) {
+		OWLObjectPropertyExpression sub = a.getSubProperty();
+    	OWLObjectPropertyExpression sup = a.getSuperProperty();
+    	
+    	int lhs = factory.getRole(sub.asOWLObjectProperty().toStringID());
+    	int rhs = factory.getRole(sup.asOWLObjectProperty().toStringID());
+    	
+    	return new RI(lhs, rhs);
+	}
+	
+	private Inclusion transformOWLReflexiveObjectPropertyAxiom(
+			OWLReflexiveObjectPropertyAxiom a) {
+		OWLObjectPropertyExpression exp = a.getProperty();
+    	return new RI(new int[]{}, 
+    			factory.getRole(exp.asOWLObjectProperty().toStringID()));
+	}
+	
+	private Inclusion transformOWLTransitiveObjectPropertyAxiom(
+			OWLTransitiveObjectPropertyAxiom a) {
+		OWLObjectPropertyExpression exp = a.getProperty();
+    	int r = factory.getRole(exp.asOWLObjectProperty().toStringID());
+    	return new RI(new int[]{r, r}, r);
+	}
+	
+	private Inclusion transformOWLSubClassOfAxiom(OWLSubClassOfAxiom a) {
+		OWLClassExpression sub = a.getSubClass();
+    	OWLClassExpression sup = a.getSuperClass();
+    	
+    	AbstractConcept subConcept = getConcept(sub);
+    	AbstractConcept superConcept = getConcept(sup);
+    	
+    	if(subConcept != null && superConcept != null) {
+    		return new GCI(subConcept, superConcept);
+    	} else {
+    		throw new RuntimeException("Unable to load axiom "+a);
+    	}
+	}
+	
+	private List<Inclusion> transformOWLEquivalentClassesAxiom(
+			OWLEquivalentClassesAxiom a) {
+		List<Inclusion> axioms = new ArrayList<>();
+		List<OWLClassExpression> exps = a.getClassExpressionsAsList();
+    	
+    	int size = exps.size();
+    	
+    	for(int i = 0; i < size-1; i++) {
+    		OWLClassExpression e1 = exps.get(i);
+    		AbstractConcept concept1 = getConcept(e1);
+    		for(int j = i; j < size; j++) {
+    			OWLClassExpression e2 = exps.get(j);
+    			if(e1 == e2) continue;
+            	AbstractConcept concept2 = getConcept(e2);
+            	axioms.add(new GCI(concept1, concept2));
+            	axioms.add(new GCI(concept2, concept1));
+    		}
+    	}
+    	return axioms;
+	}
+	
+	private Inclusion transformOWLDisjointClassesAxiom(
+			OWLDisjointClassesAxiom a) {
+		List<OWLClassExpression> exps = a.getClassExpressionsAsList();
+    	List<AbstractConcept> concepts = new ArrayList<AbstractConcept>();
+    	for(OWLClassExpression exp : exps) {
+    		concepts.add(getConcept(exp));
+    	}
+    	
+    	AbstractConcept[] conjs = new AbstractConcept[concepts.size()];
+    	int i = 0;
+        for(; i < concepts.size(); i++) {
+        	conjs[i] = concepts.get(i);
+        }
+    	
+    	return new GCI(new Conjunction(conjs), 
+    			factory.getConcept(IFactory.BOTTOM));
+	}
+	
+	private List<Inclusion> transformOWLEquivalentObjectPropertiesAxiom(
+			OWLEquivalentObjectPropertiesAxiom a) {
+		List<Inclusion> axioms = new ArrayList<>();
+		for(OWLSubObjectPropertyOfAxiom ax : 
+    		a.asSubObjectPropertyOfAxioms()) {
+    		OWLObjectPropertyExpression sub = ax.getSubProperty();
+        	OWLObjectPropertyExpression sup = ax.getSuperProperty();
+        	
+        	axioms.add(new RI(
+        		factory.getRole(sub.asOWLObjectProperty().toStringID()), 
+        		factory.getRole(sup.asOWLObjectProperty().toStringID())));
+    	}
+		return axioms;
+	}
+	
+	public Set<Inclusion> transform(List<OWLAxiom> axioms, 
+			ReasonerProgressMonitor monitor) {
+		monitor.reasonerTaskStarted("Loading axioms");
+		final Set<Inclusion> res = new HashSet<>();
+		int totalAxioms = axioms.size();
+        int workDone = 0;
+        
+        for(OWLAxiom axiom : axioms) {
+        	if(axiom instanceof OWLDeclarationAxiom) continue;
+        	
+        	if(axiom instanceof OWLSubPropertyChainOfAxiom) {
+        		OWLSubPropertyChainOfAxiom a = 
+        				(OWLSubPropertyChainOfAxiom)axiom;
+            	res.add(transformOWLSubPropertyChainOfAxiom(a));
+            	monitor.reasonerTaskProgressChanged(workDone, totalAxioms);
+        	} else if(axiom instanceof OWLSubObjectPropertyOfAxiom) {
+        		OWLSubObjectPropertyOfAxiom a = 
+        				(OWLSubObjectPropertyOfAxiom)axiom;
+            	res.add(transformOWLSubObjectPropertyOfAxiom(a));
+            	monitor.reasonerTaskProgressChanged(++workDone, totalAxioms);
+        	} else if(axiom instanceof OWLReflexiveObjectPropertyAxiom) {
+        		OWLReflexiveObjectPropertyAxiom a = 
+        				(OWLReflexiveObjectPropertyAxiom)axiom;
+        		res.add(transformOWLReflexiveObjectPropertyAxiom(a));
+        		monitor.reasonerTaskProgressChanged(++workDone, totalAxioms);
+        	} else if(axiom instanceof OWLTransitiveObjectPropertyAxiom) {
+        		OWLTransitiveObjectPropertyAxiom a = 
+        				(OWLTransitiveObjectPropertyAxiom)axiom;
+        		res.add(transformOWLTransitiveObjectPropertyAxiom(a));
+        		monitor.reasonerTaskProgressChanged(++workDone, totalAxioms);
+        	} else if(axiom instanceof OWLSubClassOfAxiom) {
+        		OWLSubClassOfAxiom a = (OWLSubClassOfAxiom)axiom;
+        		res.add(transformOWLSubClassOfAxiom(a));
+        		monitor.reasonerTaskProgressChanged(++workDone, totalAxioms);
+        	} else if(axiom instanceof OWLEquivalentClassesAxiom) {
+        		OWLEquivalentClassesAxiom a = (OWLEquivalentClassesAxiom)axiom;
+        		res.addAll(transformOWLEquivalentClassesAxiom(a));
+        		monitor.reasonerTaskProgressChanged(++workDone, totalAxioms);
+        	} else if(axiom instanceof OWLDisjointClassesAxiom) {
+        		OWLDisjointClassesAxiom a = (OWLDisjointClassesAxiom)axiom;
+        		res.add(transformOWLDisjointClassesAxiom(a));
+        		monitor.reasonerTaskProgressChanged(++workDone, totalAxioms);
+        	} else if(axiom instanceof OWLEquivalentObjectPropertiesAxiom) {
+        		OWLEquivalentObjectPropertiesAxiom a = 
+        				(OWLEquivalentObjectPropertiesAxiom)axiom;
+        		res.addAll(transformOWLEquivalentObjectPropertiesAxiom(
+        				a));
+        		monitor.reasonerTaskProgressChanged(++workDone, totalAxioms);
+        	}
+        }
+        
+        // TODO: deal with other axioms types even if Snorocket does not
+        // currently support them
+        monitor.reasonerTaskStopped();
+        return res;
+	}
+	
 	public Set<Inclusion> transform(OWLOntology ont, 
 			ReasonerProgressMonitor monitor) {
 		monitor.reasonerTaskStarted("Loading axioms");
 		final Set<Inclusion> axioms = new HashSet<>();
-		
-		// Load concepts and roles
-		/*factory.addConceptsRolesFeatures(ont.getClassesInSignature(true), 
-				ont.getObjectPropertiesInSignature(true), 
-				ont.getDataPropertiesInSignature(true));*/
         
         int totalAxioms = 
     		ont.getAxiomCount(AxiomType.SUB_OBJECT_PROPERTY, true) + 
@@ -283,131 +454,56 @@ public class OWLImporter {
         
         for(OWLSubPropertyChainOfAxiom a : ont.getAxioms(
         		AxiomType.SUB_PROPERTY_CHAIN_OF, true)) {
-        	List<OWLObjectPropertyExpression> sub = a.getPropertyChain();
-        	OWLObjectPropertyExpression sup = a.getSuperProperty();
-        	
-        	int size = sub.size();
-        	int[] lhss = new int[size];
-        	for(int i = 0; i < size; i++) {
-        		lhss[i] = factory.getRole(
-        				sub.get(i).asOWLObjectProperty().toStringID());
-        	}
-        	
-        	int rhs = factory.getRole(sup.asOWLObjectProperty().toStringID());
-        	
-        	if(lhss.length == 1) {
-        		axioms.add(new RI(lhss[0], rhs));
-        	} else if(lhss.length == 2) {
-        		axioms.add(new RI(lhss, rhs));
-        	} else {
-        		throw new RuntimeException(
-        				"RoleChains longer than 2 not supported.");
-        	}
-        	
+        	axioms.add(transformOWLSubPropertyChainOfAxiom(a));
         	workDone++;
         	monitor.reasonerTaskProgressChanged(workDone, totalAxioms);
         }
         
         for(OWLSubObjectPropertyOfAxiom a : ont.getAxioms(
         		AxiomType.SUB_OBJECT_PROPERTY, true)) {
-        	OWLObjectPropertyExpression sub = a.getSubProperty();
-        	OWLObjectPropertyExpression sup = a.getSuperProperty();
-        	
-        	int lhs = factory.getRole(sub.asOWLObjectProperty().toStringID());
-        	int rhs = factory.getRole(sup.asOWLObjectProperty().toStringID());
-        	
-        	axioms.add(new RI(lhs, rhs));
+        	axioms.add(transformOWLSubObjectPropertyOfAxiom(a));
         	workDone++;
         	monitor.reasonerTaskProgressChanged(workDone, totalAxioms);
         }
         
         for(OWLReflexiveObjectPropertyAxiom a : ont.getAxioms(
         		AxiomType.REFLEXIVE_OBJECT_PROPERTY, true)) {
-        	OWLObjectPropertyExpression exp = a.getProperty();
-        	axioms.add(new RI(new int[]{}, 
-        			factory.getRole(exp.asOWLObjectProperty().toStringID())));
+        	axioms.add(transformOWLReflexiveObjectPropertyAxiom(a));
             workDone++;
             monitor.reasonerTaskProgressChanged(workDone, totalAxioms);
         }
         
         for(OWLTransitiveObjectPropertyAxiom a : ont.getAxioms(
         		AxiomType.TRANSITIVE_OBJECT_PROPERTY, true)) {
-        	OWLObjectPropertyExpression exp = a.getProperty();
-        	int r = factory.getRole(exp.asOWLObjectProperty().toStringID());
-        	axioms.add(new RI(new int[]{r, r}, r));
+        	axioms.add(transformOWLTransitiveObjectPropertyAxiom(a));
             workDone++;
             monitor.reasonerTaskProgressChanged(workDone, totalAxioms);
         }
         
         for(OWLSubClassOfAxiom a : ont.getAxioms(
         		AxiomType.SUBCLASS_OF, true)) {
-        	OWLClassExpression sub = a.getSubClass();
-        	OWLClassExpression sup = a.getSuperClass();
-        	
-        	AbstractConcept subConcept = getConcept(sub);
-        	AbstractConcept superConcept = getConcept(sup);
-        	
-        	if(subConcept != null && superConcept != null) {
-        		axioms.add(new GCI(subConcept, superConcept));
-        	} else {
-        		throw new RuntimeException("Unable to load axiom "+a);
-        	}
+        	axioms.add(transformOWLSubClassOfAxiom(a));
         	workDone++;
         	monitor.reasonerTaskProgressChanged(workDone, totalAxioms);
         }
         
         for(OWLEquivalentClassesAxiom a : ont.getAxioms(
         		AxiomType.EQUIVALENT_CLASSES, true)) {
-        	List<OWLClassExpression> exps = a.getClassExpressionsAsList();
-        	
-        	int size = exps.size();
-        	
-        	for(int i = 0; i < size-1; i++) {
-        		OWLClassExpression e1 = exps.get(i);
-        		AbstractConcept concept1 = getConcept(e1);
-        		for(int j = i; j < size; j++) {
-        			OWLClassExpression e2 = exps.get(j);
-        			if(e1 == e2) continue;
-                	AbstractConcept concept2 = getConcept(e2);
-                	axioms.add(new GCI(concept1, concept2));
-                	axioms.add(new GCI(concept2, concept1));
-        		}
-        	}
+        	axioms.addAll(transformOWLEquivalentClassesAxiom(a));
         	workDone++;
         	monitor.reasonerTaskProgressChanged(workDone, totalAxioms);
         }
         
         for(OWLDisjointClassesAxiom a : ont.getAxioms(
         		AxiomType.DISJOINT_CLASSES, true)) {
-        	List<OWLClassExpression> exps = a.getClassExpressionsAsList();
-        	List<AbstractConcept> concepts = new ArrayList<AbstractConcept>();
-        	for(OWLClassExpression exp : exps) {
-        		concepts.add(getConcept(exp));
-        	}
-        	
-        	AbstractConcept[] conjs = new AbstractConcept[concepts.size()];
-        	int i = 0;
-            for(; i < concepts.size(); i++) {
-            	conjs[i] = concepts.get(i);
-            }
-        	
-        	axioms.add(new GCI(new Conjunction(conjs), 
-        			factory.getConcept(IFactory.BOTTOM)));
+        	axioms.add(transformOWLDisjointClassesAxiom(a));
         	workDone++;
         	monitor.reasonerTaskProgressChanged(workDone, totalAxioms);
         }
         
         for(OWLEquivalentObjectPropertiesAxiom a : ont.getAxioms(
         		AxiomType.EQUIVALENT_OBJECT_PROPERTIES, true)) {
-        	for(OWLSubObjectPropertyOfAxiom ax : 
-        		a.asSubObjectPropertyOfAxioms()) {
-        		OWLObjectPropertyExpression sub = ax.getSubProperty();
-            	OWLObjectPropertyExpression sup = ax.getSuperProperty();
-            	
-            	axioms.add(new RI(
-            		factory.getRole(sub.asOWLObjectProperty().toStringID()), 
-            		factory.getRole(sup.asOWLObjectProperty().toStringID())));
-        	}
+        	axioms.addAll(transformOWLEquivalentObjectPropertiesAxiom(a));
         	workDone++;
         	monitor.reasonerTaskProgressChanged(workDone, totalAxioms);
         }
