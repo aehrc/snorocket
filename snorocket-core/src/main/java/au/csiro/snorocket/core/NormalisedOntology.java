@@ -379,7 +379,7 @@ public class NormalisedOntology {
     		final IConjunctionQueueEntry queueEntry) {
         MonotonicCollection<IConjunctionQueueEntry> queueA = entries.get(a);
         if (null == queueA) {
-            queueA = new MonotonicCollection<IConjunctionQueueEntry>(2); // FIXME can we estimate size better?
+            queueA = new MonotonicCollection<IConjunctionQueueEntry>(2);
             entries.put(a, queueA);
         }
         queueA.add(queueEntry);
@@ -394,7 +394,7 @@ public class NormalisedOntology {
     		final NF2 nf2) {
         MonotonicCollection<NF2> set = entries.get(nf2.lhsA);
         if (null == set) {
-            set = new MonotonicCollection<NF2>(2);  // FIXME can we estimate size better?
+            set = new MonotonicCollection<NF2>(2);
             entries.put(nf2.lhsA, set);
         }
         set.add(nf2);
@@ -435,7 +435,7 @@ public class NormalisedOntology {
     		final NF7 nf7) {
         MonotonicCollection<NF7> set = entries.get(nf7.lhsA);
         if (null == set) {
-            set = new MonotonicCollection<NF7>(2);  // FIXME can we estimate size better?
+            set = new MonotonicCollection<NF7>(2);
             entries.put(nf7.lhsA, set);
         }
         set.add(nf7);
