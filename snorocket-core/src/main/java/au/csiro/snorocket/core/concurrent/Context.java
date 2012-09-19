@@ -214,9 +214,7 @@ public class Context {
 	private void primeQueue() {
 		final MonotonicCollection<IConjunctionQueueEntry> nf1e = 
 				ontologyNF1.get(concept);
-		if(nf1e != null) {
-			addToConceptQueue(nf1e);
-		}
+		if(nf1e != null) addToConceptQueue(nf1e);
 		
 		final MonotonicCollection<NF2> nf2e = ontologyNF2.get(concept);
 		if(nf2e != null) roleQueue.addAll(nf2e);
@@ -224,6 +222,23 @@ public class Context {
 		final MonotonicCollection<NF7> nf7e = ontologyNF7.get(concept);
         if(nf7e != null) featureQueue.addAll(nf7e);
     }
+	
+	/**
+	 * Adds queue entries for this concept based on the new axioms added in an
+	 * incremental classification.
+	 * 
+	 * @param conceptEntries
+	 * @param roleEntries
+	 * @param featureEntries
+	 */
+	public void primeQueuesIncremental(
+			MonotonicCollection<IConjunctionQueueEntry> conceptEntries, 
+			MonotonicCollection<IRoleQueueEntry> roleEntries, 
+			MonotonicCollection<IFeatureQueueEntry> featureEntries) {
+		if(conceptEntries != null) addToConceptQueue(conceptEntries);
+		if(roleEntries != null) roleQueue.addAll(roleEntries);
+		if(featureEntries != null) featureQueue.addAll(featureEntries);
+	}
 	
 	/**
 	 * Returns this concept's subsumptions.
@@ -286,6 +301,15 @@ public class Context {
 	 */
 	public void addConceptQueueEntry(IConjunctionQueueEntry entry) {
 		conceptQueue.add(entry);
+	}
+	
+	/**
+	 * Adds an entry to this context's role queue/
+	 * 
+	 * @param entry
+	 */
+	public void addRoleQueueEntry(IRoleQueueEntry entry) {
+		roleQueue.add(entry);
 	}
 	
 	/**

@@ -52,10 +52,23 @@ public class PostProcessedData {
     	
     }
     
+    /**
+     * Computes and incremental DAG based on the subsumptions for concepts in
+     * the new axioms.
+     * 
+     * @param factory The factory.
+     * @param subsumptions The subsumptions for the new or modified concepts 
+     * only.
+     * @param monitor
+     */
     public void computeDagIncremental(final IFactory factory, 
     		final IConceptMap<IConceptSet> subsumptions, 
     		ReasonerProgressMonitor monitor) {
     	// TODO: implement
+    	
+    	// FIXME: remove
+    	// For now just rebuild entire DAG
+    	computeDag(factory, subsumptions, monitor);
     }
     
     public void computeDag(final IFactory factory, 
@@ -263,7 +276,7 @@ public class PostProcessedData {
     		final IConceptMap<IConceptSet> subsumptions, 
     		final IConceptMap<IConceptSet> baseSubsumptions,
     		ReasonerProgressMonitor monitor) {
-    	// TODO: implement
+    	// TODO: implement - used by SNAPI
     }
     
     public IConceptMap<IConceptSet> getParents(final IFactory factory) {

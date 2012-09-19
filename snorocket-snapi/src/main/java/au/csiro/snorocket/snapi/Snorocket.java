@@ -48,7 +48,7 @@ import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.ParseException;
 import au.csiro.snorocket.core.PostProcessedData;
 import au.csiro.snorocket.core.R;
-import au.csiro.snorocket.core.NormalisedOntology.Classification;
+//import au.csiro.snorocket.core.NormalisedOntology.Classification;
 import au.csiro.snorocket.core.axioms.GCI;
 import au.csiro.snorocket.core.axioms.Inclusion;
 import au.csiro.snorocket.core.axioms.RI;
@@ -83,7 +83,7 @@ public class Snorocket implements I_Snorocket {
 
 	private String isaId;
 
-	private Classification classification = null;
+	//private Classification classification = null;
 	private PostProcessedData postProcessedData = new PostProcessedData();
 
 	final private List<Row> rowList = new ArrayList<Row>();
@@ -102,7 +102,7 @@ public class Snorocket implements I_Snorocket {
 
 	transient private Collection<RI> roleCompositions = new ArrayList<RI>();
 
-	transient final private Classification baseClassification;
+	//transient final private Classification baseClassification;
 
 	transient final protected IFactory factory;
 
@@ -114,7 +114,7 @@ public class Snorocket implements I_Snorocket {
 	
 	public Snorocket() {
         LOGGER.info("::: Snorocket()");
-		baseClassification = null;
+		//baseClassification = null;
 		factory = new Factory();
 		ROLE_GROUP = factory.getRole("roleGroup");
 
@@ -313,12 +313,12 @@ public class Snorocket implements I_Snorocket {
 		final int c2 = factory.getConcept(conceptId2);
 
 		// TODO make this check more efficient (cache the subsumptions)
-		if (null != baseClassification
+		/*if (null != baseClassification
 				&& baseClassification.getSubsumptions().containsKey(c1)) {
 			throw new IllegalArgumentException(
 					"Cannot add new relationships for concepts defined in base ontology: "
 							+ conceptId1);
-		}
+		}*/
 
 		rowList.add(new Row(c1, rel, c2, group));
 		
@@ -377,7 +377,7 @@ public class Snorocket implements I_Snorocket {
         LOGGER.info("populate time: " + (System.currentTimeMillis() - start)
 				/ 1000.0 + "s");
 		start = System.currentTimeMillis();
-		classification = ontology.getClassification();
+		//classification = ontology.getClassification();
 		LOGGER.info("classify time: " + (System.currentTimeMillis() - start)
 				/ 1000.0 + "s");
 	}
@@ -577,12 +577,13 @@ public class Snorocket implements I_Snorocket {
         // :!!!:zzz:
 //        LOGGER.info("::: Set<Inclusion> ontology = getInclusions(); --> SIZE= " + ontology.size());
 		
-		if (null != baseClassification) {
+		/*if (null != baseClassification) {
 			//return baseClassification.getExtensionOntology(factory, ontology);
 			return new NormalisedOntology(factory, ontology);
 		} else {
 			return new NormalisedOntology(factory, ontology);
-		}
+		}*/
+		return null;
 	}
 
 	protected Set<Inclusion> getInclusions() {
@@ -856,12 +857,12 @@ public class Snorocket implements I_Snorocket {
 
 	private void returnRelationships(final I_Callback callback,
 			final boolean filterRedundant) {
-		if (null == classification) {
+		/*if (null == classification) {
 			throw new IllegalStateException("Ontology has not been classified.");
-		}
+		}*/
 		nestedRoleGroupCount = 0;
 
-		final IConceptMap<IConceptSet> subsumptions = classification
+		/*final IConceptMap<IConceptSet> subsumptions = classification
 				.getSubsumptions();
 		final R rels = classification.getRelationships();
 		final IConceptMap<IConceptSet> filteredSubsumptions = filterRedundant ? getPostProcessedData()
@@ -895,10 +896,11 @@ public class Snorocket implements I_Snorocket {
 			LOGGER
 					.warning("SNOMED CT should not contain nested role groups, but detected "
 							+ nestedRoleGroupCount);
-		}
+		}*/
 	}
 
 	private PostProcessedData getPostProcessedData() {
+		/*
 		if (null == classification) {
 			throw new IllegalStateException("Ontology has not been classified.");
 		}
@@ -915,7 +917,7 @@ public class Snorocket implements I_Snorocket {
 						subsumptions, 
 						null);
 			}
-		}
+		}*/
 
 		return postProcessedData;
 	}
@@ -964,6 +966,7 @@ public class Snorocket implements I_Snorocket {
 	 * @param concept
 	 * @param filterRedundant
 	 */
+	/*
 	private void returnOtherRelationships(final I_Callback callback,
 			final Classification classification, final R rels,
 			final int concept, final boolean filterRedundant) {
@@ -990,21 +993,23 @@ public class Snorocket implements I_Snorocket {
 		// roleId, values);
 		// }
 	}
+	*/
 
 	private interface RVCallback {
 		void map(int role, int value);
 	}
-
+	
+	
 	private class RVGroup {
-		final private Classification classification;
+		//final private Classification classification;
 
 		final IConceptSet[] roleValuesMap = new IConceptSet[factory
 				.getTotalRoles()];
 		Collection<Rel> _rels = null;
 
-		RVGroup(final Classification classification) {
+		/*RVGroup(final Classification classification) {
 			this.classification = classification;
-		}
+		}*/
 
 		void add(int rel, int val) {
 			if (null == roleValuesMap[rel]) {
@@ -1105,6 +1110,7 @@ public class Snorocket implements I_Snorocket {
 	 * @param filterRedundant
 	 * @return
 	 */
+	/*
 	private RVGroup computeRoleValues(final Classification classification,
 			final R rels, final int concept, final boolean filterRedundant) {
 		final int maxRole = factory.getTotalRoles();
@@ -1167,6 +1173,7 @@ public class Snorocket implements I_Snorocket {
 
 		return rvGroup;
 	}
+	*/
 
 	/**
 	 * Before invoking the callback we check that the (ungrouped) relationship
@@ -1229,6 +1236,7 @@ public class Snorocket implements I_Snorocket {
 	 * @param filterRedundant
 	 * @param filterStated
 	 */
+	/*
 	private void returnGroupedRelationships(final I_Callback callback,
 			final Classification classification, final R rels,
 			final int concept, final IConceptSet roleValues,
@@ -1269,12 +1277,12 @@ public class Snorocket implements I_Snorocket {
 			boolean duplicate = false;
 
 			for (final RVGroup rvg : newRVGroups) {
-				/*if (rvg.containsAll(rvGroup)) {
-					duplicate = true;
-					break;
-				} else if (rvGroup.containsAll(rvg)) {
-					redundant.add(rvg);
-				}*/
+				//if (rvg.containsAll(rvGroup)) {
+				//	duplicate = true;
+				//	break;
+				//} else if (rvGroup.containsAll(rvg)) {
+				//	redundant.add(rvg);
+				//}
 			}
 
 			newRVGroups.removeAll(redundant);
@@ -1310,6 +1318,7 @@ public class Snorocket implements I_Snorocket {
 			// }
 		}
 	}
+	*/
 
 	private void handleNestedRoleGroups(final String conceptId,
 			final IConceptSet nestedCandidateValues) {
@@ -1344,6 +1353,7 @@ public class Snorocket implements I_Snorocket {
 	 * @return
 	 */
 	private IConceptSet getLeaves(final IConceptSet bs) {
+		/*
 		final IConceptMap<IConceptSet> subsumptions = classification
 				.getSubsumptions();
 		final IConceptMap<IConceptSet> baseSubsumptions = null == baseClassification ? null
@@ -1366,6 +1376,8 @@ public class Snorocket implements I_Snorocket {
 			leafBs.removeAll(ancestors);
 		}
 		return leafBs;
+		*/
+		return null;
 	}
 
 	private boolean skip(int id) {
@@ -1416,14 +1428,17 @@ public class Snorocket implements I_Snorocket {
 	}
 
 	public I_Snorocket createExtension() {
-		return createExtension(classification, isaId);
+		//return createExtension(classification, isaId);
+		return null;
 	}
-
+	
+	/*
 	protected I_Snorocket createExtension(Classification classification,
 			String isaId) {
 		//return new Snorocket(classification, isaId);
 		return null;
 	}
+	*/
 
 	static boolean isDebugging() {
 		return au.csiro.snorocket.core.Snorocket.DEBUGGING;

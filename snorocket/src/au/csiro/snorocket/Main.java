@@ -43,7 +43,6 @@ import java.util.zip.GZIPOutputStream;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.ParseException;
-import au.csiro.snorocket.core.NormalisedOntology.Classification;
 import au.csiro.snorocket.core.axioms.Inclusion;
 import au.csiro.snorocket.parser.FileTableParser;
 import au.csiro.snorocket.parser.KRSSParser;
@@ -358,6 +357,7 @@ public class Main implements Runnable {
 		}
 
 		// called by createExtension
+		/*
 		protected Snorocket2(final Classification classification,
 				final String isaId, PrintWriter printWriter) {
 			//super(classification, isaId);
@@ -371,6 +371,7 @@ public class Main implements Runnable {
 				String isaId) {
 			return new Snorocket2(classification, isaId, printWriter);
 		}
+		*/
 
 		private void init() {
 

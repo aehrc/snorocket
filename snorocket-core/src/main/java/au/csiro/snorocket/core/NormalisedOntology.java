@@ -45,6 +45,7 @@ import au.csiro.snorocket.core.axioms.NF8;
 import au.csiro.snorocket.core.axioms.NormalFormGCI;
 import au.csiro.snorocket.core.concurrent.Context;
 import au.csiro.snorocket.core.concurrent.Worker;
+import au.csiro.snorocket.core.util.AxiomSet;
 import au.csiro.snorocket.core.util.DenseConceptMap;
 import au.csiro.snorocket.core.util.FastConceptMap;
 import au.csiro.snorocket.core.util.FeatureMap;
@@ -458,30 +459,191 @@ public class NormalisedOntology {
         set.add(nf8);
     }
 
-    /**
-     * Entry to the CEL classification algorithm.
-     * 
-     */
-    public Classification getClassification() {
-    	classify();
-        return new Classification();
-    }
     
     /**
      * Runs an incremental classification.
      * 
      * @return
      */
-    public Classification getIncrementalClassification(
-    		Set<Inclusion> incAxioms) {
+    public void classifyIncremental(Set<Inclusion> incAxioms) {
     	// TODO: implement
-    	return null;
+    	
+    	// Normalise axioms
+    	Set<Inclusion> inclusions = normalise(incAxioms);
+    	
+    	// Add new axioms to corresponding normal form and determine which
+    	// contexts are affected
+    	AxiomSet as = new AxiomSet();
+    	for (Inclusion i: inclusions) {
+    		NormalFormGCI nf = i.getNormalForm();
+            as.addAxiom(nf);
+        }
+    	
+    	IConceptMap<IConceptSet> subsumptions = getSubsumptions();
+    	
+    	rePrimeNF1(as, subsumptions);
+    	rePrimeNF2(as, subsumptions);
+    	/*
+    	rePrimeNF3(as, subsumptions);
+    	rePrimeNF4(as, subsumptions);
+    	rePrimeNF5(as, subsumptions);
+    	rePrimeNF6(as, subsumptions);
+    	rePrimeNF7(as, subsumptions);
+    	rePrimeNF8(as, subsumptions);
+    	*/
+    	
+    	
+    	// Classify
+    	classify();
     }
     
     /**
+     * Processes the axioms in normal form 1 from a set of axioms added 
+     * incrementally and does the following:
+     * <ol>
+     *   <li>Adds the axioms to the local map.</li>
+     *   <li>Calculates the new query entries derived from the addition of these
+     *   axioms.</li>
+     *   <li>Adds query entries to corresponding contexts and activates them.
+     *   </li>
+     * </ol>
+     * 
+     * @param as The set of axioms added incrementally.
+     */
+    private void rePrimeNF1(AxiomSet as, 
+    		IConceptMap<IConceptSet> subsumptions) {
+        // NF1. A1 + ... + X + ... + An [ B
+        //      Q(A) += {A1 + ... + An -> B}, for all X in S(A)
+
+        // Want the set <x, a> such that <x, a> in S and exists c such that 
+    	// <a, c> in deltaOntologyNF1QueueEntries that is, we want to join S and
+    	// deltaOntologyNF1QueueEntries on S.col2 and 
+    	// deltaOntologyNF1QueueEntries.key
+    	IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> deltaNF1 = 
+    		new SparseConceptMap<MonotonicCollection<IConjunctionQueueEntry>>(
+    			as.getNf1aAxioms().size());
+    	for(NF1a nf1a : as.getNf1aAxioms()) {
+    		IConjunctionQueueEntry qe = nf1a.getQueueEntry();
+    		addTerms(deltaNF1, nf1a.lhsA(), qe);
+    	}
+    	
+    	for(NF1b nf1b : as.getNf1bAxioms()) {
+    		final int a1 = nf1b.lhsA1();
+            final int a2 = nf1b.lhsA2();
+            addTerms(deltaNF1, a1, nf1b.getQueueEntry1());
+            addTerms(deltaNF1, a2, nf1b.getQueueEntry2());
+    	}
+    	
+        for (final IntIterator aItr = subsumptions.keyIterator(); 
+        		aItr.hasNext(); ) {
+            final int a = aItr.next();
+
+            final IConceptSet Sa = subsumptions.get(a);
+
+            for (final IntIterator xItr = Sa.iterator(); xItr.hasNext(); ) {
+                final int x = xItr.next();
+                
+                if (deltaNF1.containsKey(x)) {
+                    final IMonotonicCollection<IConjunctionQueueEntry> set = 
+                    		deltaNF1.get(x);
+                    
+                    for (final IConjunctionQueueEntry entry: set) {
+                    	// Add to corresponding context and activate
+                    	Context ctx = contextIndex.get(a); 
+                    	ctx.addConceptQueueEntry(entry);
+                    	if(ctx.activate()) {
+                    		todo.add(ctx);
+                    	}
+                    }
+                }
+            }
+        }
+    }
+    
+    private void rePrimeNF2(AxiomSet as, 
+    		IConceptMap<IConceptSet> subsumptions) {
+        // NF2. A [ r.B
+        //      Q(A) += {-> r.B}, for all X in S(A)
+    	
+    	IConceptMap<MonotonicCollection<NF2>> deltaNF2 = 
+    			new SparseConceptMap<MonotonicCollection<NF2>>(
+    					as.getNf2Axioms().size());
+    	for(NF2 nf2 : as.getNf2Axioms()) {
+    		addTerms(deltaNF2, nf2);
+    	}
+    	
+        for (final IntIterator aItr = subsumptions.keyIterator(); aItr.hasNext(); ) {
+            final int a = aItr.next();
+            Context ctx = contextIndex.get(a); 
+            
+            final IConceptSet Sa = subsumptions.get(a);
+            
+            for (final IntIterator xItr = Sa.iterator(); xItr.hasNext(); ) {
+                final int x = xItr.next();
+                
+                if (deltaNF2.containsKey(x)) {
+                    final IMonotonicCollection<NF2> set = deltaNF2.get(x);
+                    for (NF2 entry: set) {
+                    	ctx.addRoleQueueEntry(entry);
+                    	if(ctx.activate()) {
+                    		todo.add(ctx);
+                    	}
+                    }
+                }
+            }
+        }
+    }
+    
+    /*
+    private void rePrimeNF3(AxiomSet as, 
+    		IConceptMap<IConceptSet> subsumptions) {
+        // NF3. r.X [ Y
+        //      Q(A) += {-> Y}, for all (A,B) in R(r) and X in S(B)
+    	
+    	IConceptMap<RoleMap<IConjunctionQueueEntry>> deltaNF3 = 
+    			new SparseConceptMap<RoleMap<IConjunctionQueueEntry>>(
+    					as.getNf3Axioms().size());
+    	for(NF3 nf3 : as.getNf3Axioms()) {
+    		addTerms(deltaNF3, nf3);
+    	}
+    	
+        for (final IntIterator xItr = deltaNF3.keyIterator(); xItr.hasNext(); ) {
+            final int x = xItr.next();
+            final RoleMap<IConjunctionQueueEntry> entries = deltaNF3.get(x);
+
+            final RoleSet keySet = entries.keySet();
+            for (int r = keySet.first(); r >= 0; r = keySet.next(r + 1)) {
+                for (final ConjunctionQueueEntry entry: entries.get(r)) {
+
+
+                    for (final IntIterator aItr = subsumptions.keyIterator(); aItr.hasNext(); ) {
+                        final int a = aItr.next();
+
+                        boolean addIt = false;
+
+                        for (final IntIterator bItr = Rr.lookupB(a, r); bItr.hasNext(); ) {
+                            final int b = bItr.next();
+
+                            if (subsumptions.get(b).contains(x)) {
+                                addIt = true;
+                                break;
+                            }
+                        }
+
+                        if (addIt) {
+                            conceptQueue.add(new ConjunctionQueueEntry(a, entry.B, entry.Bi));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    */
+
+    /**
      * Starts the concurrent classification process.
      */
-    private void classify() {
+    public void classify() {
 		int numThreads = Runtime.getRuntime().availableProcessors();
 		LOGGER.log(Level.INFO, "Classifying with "+numThreads+" threads");
 		
@@ -523,31 +685,22 @@ public class NormalisedOntology {
 		}
     }
     
-    public class Classification {
-    	/**
-    	 * Constructor.
-    	 */
-        public Classification() {
-            
-        }
+    public IConceptMap<IConceptSet> getSubsumptions() {
+        IConceptMap<IConceptSet> res = new DenseConceptMap<IConceptSet>(
+        		factory.getTotalConcepts());
+    	// Collect subsumptions from context index
+    	for(IntIterator it = contextIndex.keyIterator(); it.hasNext(); ) {
+    		int key = it.next();
+    		Context ctx = contextIndex.get(key);
+    		res.put(key, ctx.getS().getSet());
+    	}
+    	return res;
+    }
 
-        public IConceptMap<IConceptSet> getSubsumptions() {
-            IConceptMap<IConceptSet> res = new DenseConceptMap<IConceptSet>(
-            		factory.getTotalConcepts());
-        	// Collect subsumptions from context index
-        	for(IntIterator it = contextIndex.keyIterator(); it.hasNext(); ) {
-        		int key = it.next();
-        		Context ctx = contextIndex.get(key);
-        		res.put(key, ctx.getS().getSet());
-        	}
-        	return res;
-        }
-
-        public R getRelationships() {
-            // Collect relationships from context index
-        	// TODO: implement
-        	return null;
-        }
+    public R getRelationships() {
+        // Collect relationships from context index
+    	// TODO: implement
+    	return null;
     }
     
     /**

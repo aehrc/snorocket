@@ -12,7 +12,6 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import au.csiro.snorocket.core.NormalisedOntology.Classification;
 import au.csiro.snorocket.core.axioms.GCI;
 import au.csiro.snorocket.core.axioms.Inclusion;
 import au.csiro.snorocket.core.axioms.RI;
@@ -123,8 +122,8 @@ public class TestNormalisedOntology {
         
         // Classify
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
-        final Classification c = o.getClassification();
-        final IConceptMap<IConceptSet> s = c.getSubsumptions();
+        o.classify();
+        final IConceptMap<IConceptSet> s = o.getSubsumptions();
         
         // Build taxonomy
         PostProcessedData ppd = new PostProcessedData();
@@ -290,8 +289,8 @@ public class TestNormalisedOntology {
         
         // Classify
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
-        final Classification c = o.getClassification();
-        final IConceptMap<IConceptSet> s = c.getSubsumptions();
+        o.classify();
+        final IConceptMap<IConceptSet> s = o.getSubsumptions();
         
         // Build taxonomy
         PostProcessedData ppd = new PostProcessedData();
@@ -408,8 +407,8 @@ public class TestNormalisedOntology {
         
         // Classify
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
-        final Classification c = o.getClassification();
-        final IConceptMap<IConceptSet> s = c.getSubsumptions();
+        o.classify();
+        final IConceptMap<IConceptSet> s = o.getSubsumptions();
         
         // Build taxonomy
         PostProcessedData ppd = new PostProcessedData();
@@ -623,8 +622,8 @@ public class TestNormalisedOntology {
         axioms.add(a11);
 
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
-        final Classification c = o.getClassification();
-        IConceptMap<IConceptSet> s = c.getSubsumptions();
+        o.classify();
+        IConceptMap<IConceptSet> s = o.getSubsumptions();
         PostProcessedData ppd = new PostProcessedData();
         ppd.computeDag(factory, s, null);
         
@@ -647,8 +646,8 @@ public class TestNormalisedOntology {
         incAxioms.add(a1);
         incAxioms.add(a4);
         
-        Classification ic = o.getIncrementalClassification(incAxioms);
-        s = ic.getSubsumptions();
+        o.classifyIncremental(incAxioms);
+        s = o.getSubsumptions();
         ppd.computeDagIncremental(factory, s, null);
         
         // Test results

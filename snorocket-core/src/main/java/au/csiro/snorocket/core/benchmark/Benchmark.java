@@ -20,7 +20,6 @@ import au.csiro.snorocket.core.Factory;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.PostProcessedData;
-import au.csiro.snorocket.core.NormalisedOntology.Classification;
 import au.csiro.snorocket.core.axioms.Inclusion;
 import au.csiro.snorocket.core.importer.RF1Importer;
 
@@ -62,12 +61,12 @@ public class Benchmark {
         res.setAxiomLoadingTimeMs(System.currentTimeMillis()-start);
         start = System.currentTimeMillis();
         System.out.println("Running classification");
-        Classification c = no.getClassification();
+        no.classify();
         res.setClassificationTimeMs(System.currentTimeMillis()-start);
         start = System.currentTimeMillis();
         System.out.println("Computing taxonomy");
 		PostProcessedData ppd = new PostProcessedData();
-        ppd.computeDag(factory, c.getSubsumptions(), null);
+        ppd.computeDag(factory, no.getSubsumptions(), null);
         res.setTaxonomyBuildingTimeMs(System.currentTimeMillis()-start);
         System.out.println("Done");
 		
