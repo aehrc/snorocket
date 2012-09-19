@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import au.csiro.snorocket.core.NormalisedOntology.Classification;
 import au.csiro.snorocket.core.axioms.NF1a;
 import au.csiro.snorocket.core.axioms.NF2;
 import au.csiro.snorocket.core.axioms.NF3;
@@ -73,8 +72,8 @@ public class TestReflexiveRoles {
         o.addTerm(NF2.getInstance(allPartsOrWhole, partOrWholeOf, gastroTract));
         o.addTerm(NF3.getInstance(partOrWholeOf, gastroTract, allPartsOrWhole));
         
-        final Classification c = o.getClassification();
-        final IConceptMap<IConceptSet> s = c.getSubsumptions();
+        o.classify();
+        final IConceptMap<IConceptSet> s = o.getSubsumptions();
         
         final int count = printAll(factory, s);
         
@@ -112,12 +111,11 @@ public class TestReflexiveRoles {
         o.addTerm(NF1a.getInstance(lowerLeg, bodyPart));
         o.addTerm(NF1a.getInstance(foot, bodyPart));
         
-        final Classification c = o.getClassification();
-        final IConceptMap<IConceptSet> s = c.getSubsumptions();
+        final IConceptMap<IConceptSet> s = o.getSubsumptions();
         
         printAll(factory, s);
 
-        final R r = c.getRelationships();
+        final R r = o.getRelationships();
         
         for (int concept = 0; concept < factory.getTotalConcepts(); concept++) {
             for (int role = 0; role < factory.getTotalRoles(); role++) {

@@ -29,4 +29,5 @@ package au.csiro.snorocket.core.axioms;
  */
 public abstract class NormalFormGCI {
 	
+	
 }

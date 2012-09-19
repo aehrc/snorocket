@@ -26,34 +26,23 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.Reader;
-import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import org.junit.Ignore;
 import org.junit.Test;
 
-import au.csiro.snorocket.core.Factory;
 import au.csiro.snorocket.core.IFactory;
-import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.ParseException;
 import au.csiro.snorocket.core.Snorocket;
-import au.csiro.snorocket.core.NormalisedOntology.Classification;
 import au.csiro.snorocket.core.axioms.Inclusion;
 import au.csiro.snorocket.core.util.LineReader;
 import au.csiro.snorocket.snapi.I_Snorocket.I_Callback;
