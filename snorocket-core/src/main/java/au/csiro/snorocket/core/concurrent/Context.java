@@ -1,6 +1,7 @@
 package au.csiro.snorocket.core.concurrent;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
@@ -137,7 +138,8 @@ public class Context {
      * 
      * These terms are of the form r.A [ b and indexed by A.
      */
-    private static IConceptMap<RoleMap<IConjunctionQueueEntry>> ontologyNF3;
+    private static IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> 
+    	ontologyNF3;
 
     /**
      * The set of NF4 terms in the ontology
@@ -303,13 +305,26 @@ public class Context {
 		conceptQueue.add(entry);
 	}
 	
+	public void addConceptQueueEntries(Collection<IConjunctionQueueEntry> 
+		entries) {
+		conceptQueue.addAll(entries);
+	}
+	
 	/**
-	 * Adds an entry to this context's role queue/
+	 * Adds an entry to this context's role queue.
 	 * 
 	 * @param entry
 	 */
 	public void addRoleQueueEntry(IRoleQueueEntry entry) {
 		roleQueue.add(entry);
+	}
+	
+	/**
+	 * Adds and entry to this context's feature queue.
+	 * @param entry
+	 */
+	public void addFeatureQueueEntry(IFeatureQueueEntry entry) {
+		featureQueue.add(entry);
 	}
 	
 	/**
@@ -416,25 +431,26 @@ public class Context {
         // inlined ontHat(conceptQueues.get(pairA(p)), r, b) in following
         // to move test and fetch outside innermost loop
         //
-        final RoleMap<IConjunctionQueueEntry> map = ontologyNF3.get(b);
+        final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+        		ontologyNF3.get(b);
         if (null != map) {
             final RoleSet keySet = map.keySet();
             for (int r = keySet.first(); r >= 0; r = keySet.next(r + 1)) {
-                final IConjunctionQueueEntry entry = map.get(r);
+                final Collection<IConjunctionQueueEntry> entries = map.get(r);
     
-                if (null != entry) {
+                if (null != entries) {
                     final IConceptSet aPrimes = pred.lookupConcept(r);
                     for (final IntIterator itr = aPrimes.iterator(); 
                     		itr.hasNext(); ) {
                         final int aa = itr.next();
                         // Add to queue aa
                         if(concept == aa) {
-                        	conceptQueue.add(entry);
+                        	conceptQueue.addAll(entries);
                         } else {
                         	// Add to external context concept queue and
                         	// activate
                         	Context oc = contextIndex.get(aa);
-                        	oc.addConceptQueueEntry(entry);
+                        	oc.addConceptQueueEntries(entries);
                         	if(oc.activate()) parentTodo.add(oc);
                         }
                     }
@@ -617,12 +633,14 @@ public class Context {
             // Computes the minimal set of QueueEntries from s.a [ bb is in O
             for (IntIterator itr = sb.iterator(); itr.hasNext(); ) {
                 final int bb = itr.next();
-                final RoleMap<IConjunctionQueueEntry> map = ontologyNF3.get(bb);
+                final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+                		ontologyNF3.get(bb);
 
                 if (null != map) {
-                    final IConjunctionQueueEntry entry = map.get(s);
-                    if (null != entry) {
-                    	conceptQueue.add(entry);
+                    final Collection<IConjunctionQueueEntry> entries = 
+                    		map.get(s);
+                    if (null != entries) {
+                    	conceptQueue.addAll(entries);
                     }
                 }
             }

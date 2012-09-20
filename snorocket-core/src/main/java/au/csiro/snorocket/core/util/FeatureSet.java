@@ -56,7 +56,7 @@ final public class FeatureSet extends java.util.BitSet {
         return nextSetBit(0);
     }
 
-    public int next(int role) {
-        return nextSetBit(role);
+    public int next(int feature) {
+        return nextSetBit(feature);
     }
 }

@@ -22,7 +22,9 @@
 package au.csiro.snorocket.core;
 
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -32,6 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import au.csiro.snorocket.core.axioms.IConjunctionQueueEntry;
+import au.csiro.snorocket.core.axioms.IRoleQueueEntry;
 import au.csiro.snorocket.core.axioms.Inclusion;
 import au.csiro.snorocket.core.axioms.NF1a;
 import au.csiro.snorocket.core.axioms.NF1b;
@@ -49,6 +52,7 @@ import au.csiro.snorocket.core.util.AxiomSet;
 import au.csiro.snorocket.core.util.DenseConceptMap;
 import au.csiro.snorocket.core.util.FastConceptMap;
 import au.csiro.snorocket.core.util.FeatureMap;
+import au.csiro.snorocket.core.util.FeatureSet;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IMonotonicCollection;
@@ -102,7 +106,8 @@ public class NormalisedOntology {
      * 
      * These terms are of the form r.A [ b and indexed by A.
      */
-    final protected IConceptMap<RoleMap<IConjunctionQueueEntry>> ontologyNF3;
+    final protected IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> 
+    	ontologyNF3;
 
     /**
      * The set of NF4 terms in the ontology
@@ -157,7 +162,8 @@ public class NormalisedOntology {
 		return ontologyNF2;
 	}
 
-	public IConceptMap<RoleMap<IConjunctionQueueEntry>> getOntologyNF3() {
+	public IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> 
+		getOntologyNF3() {
 		return ontologyNF3;
 	}
 
@@ -215,8 +221,9 @@ public class NormalisedOntology {
             		factory.getTotalConcepts()),
             new SparseConceptMap<MonotonicCollection<NF2>>(
             		factory.getTotalConcepts(), "ontologyNF2"),
-            new SparseConceptMap<RoleMap<IConjunctionQueueEntry>>(
-            		factory.getTotalConcepts(), "ontologyNF3"),
+            new SparseConceptMap<RoleMap<Collection<
+            		IConjunctionQueueEntry>>>(
+            				factory.getTotalConcepts(), "ontologyNF3"),
             new MonotonicCollection<NF4>(15),
             new MonotonicCollection<NF5>(1),
             new SparseConceptMap<MonotonicCollection<NF7>>(
@@ -241,7 +248,7 @@ public class NormalisedOntology {
             final IFactory factory,
             final IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> nf1q,
             final IConceptMap<MonotonicCollection<NF2>> nf2q,
-            final IConceptMap<RoleMap<IConjunctionQueueEntry>> nf3q,
+            final IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> nf3q,
             final IMonotonicCollection<NF4> nf4q,
             final IMonotonicCollection<NF5> nf5q,
             final IConceptMap<MonotonicCollection<NF7>> nf7q,
@@ -406,24 +413,24 @@ public class NormalisedOntology {
      * @param queue
      * @param nf3
      */
-    protected void addTerms(final IConceptMap<RoleMap<
-    		IConjunctionQueueEntry>> queue, final NF3 nf3) {
-        RoleMap<IConjunctionQueueEntry> map = queue.get(nf3.lhsA);
-        IConjunctionQueueEntry entry;
+    protected void addTerms(final IConceptMap<RoleMap<Collection<
+    		IConjunctionQueueEntry>>> queue, final NF3 nf3) {
+        RoleMap<Collection<IConjunctionQueueEntry>> map = queue.get(nf3.lhsA);
+        Collection<IConjunctionQueueEntry> entry;
         if (null == map) {
-            map = new RoleMap<IConjunctionQueueEntry>(factory.getTotalRoles());
+            map = new RoleMap<Collection<IConjunctionQueueEntry>>(
+            		factory.getTotalRoles());
             queue.put(nf3.lhsA, map);
             entry = null;
         } else {
             entry = map.get(nf3.lhsR);
         }
         if (null == entry) {
-            map.put(nf3.lhsR, nf3.getQueueEntry());
-        } else if (nf3.rhsB != nf3.getQueueEntry().getB()) {
-            throw new IllegalArgumentException("This implementation only " +
-            		"supports a single GCI per LHS role,concept pair: " + 
-            		factory.lookupRoleId(nf3.lhsR) + "." + 
-            		factory.lookupConceptId(nf3.lhsA));
+        	entry = new HashSet<>();
+        	entry.add(nf3.getQueueEntry());
+            map.put(nf3.lhsR, entry);
+        } else {
+            entry.add(nf3.getQueueEntry());
         }
     }
     
@@ -466,8 +473,6 @@ public class NormalisedOntology {
      * @return
      */
     public void classifyIncremental(Set<Inclusion> incAxioms) {
-    	// TODO: implement
-    	
     	// Normalise axioms
     	Set<Inclusion> inclusions = normalise(incAxioms);
     	
@@ -483,15 +488,12 @@ public class NormalisedOntology {
     	
     	rePrimeNF1(as, subsumptions);
     	rePrimeNF2(as, subsumptions);
-    	/*
     	rePrimeNF3(as, subsumptions);
     	rePrimeNF4(as, subsumptions);
     	rePrimeNF5(as, subsumptions);
     	rePrimeNF6(as, subsumptions);
     	rePrimeNF7(as, subsumptions);
     	rePrimeNF8(as, subsumptions);
-    	*/
-    	
     	
     	// Classify
     	classify();
@@ -534,6 +536,7 @@ public class NormalisedOntology {
             addTerms(deltaNF1, a2, nf1b.getQueueEntry2());
     	}
     	
+    	// Get all the subsumptions a [ x
         for (final IntIterator aItr = subsumptions.keyIterator(); 
         		aItr.hasNext(); ) {
             final int a = aItr.next();
@@ -543,11 +546,13 @@ public class NormalisedOntology {
             for (final IntIterator xItr = Sa.iterator(); xItr.hasNext(); ) {
                 final int x = xItr.next();
                 
+                // If any of the new axioms is of the form x [ y then add
+                // an entry
                 if (deltaNF1.containsKey(x)) {
                     final IMonotonicCollection<IConjunctionQueueEntry> set = 
                     		deltaNF1.get(x);
                     
-                    for (final IConjunctionQueueEntry entry: set) {
+                    for (final IConjunctionQueueEntry entry : set) {
                     	// Add to corresponding context and activate
                     	Context ctx = contextIndex.get(a); 
                     	ctx.addConceptQueueEntry(entry);
@@ -572,7 +577,8 @@ public class NormalisedOntology {
     		addTerms(deltaNF2, nf2);
     	}
     	
-        for (final IntIterator aItr = subsumptions.keyIterator(); aItr.hasNext(); ) {
+        for (final IntIterator aItr = subsumptions.keyIterator(); 
+        		aItr.hasNext(); ) {
             final int a = aItr.next();
             Context ctx = contextIndex.get(a); 
             
@@ -594,34 +600,37 @@ public class NormalisedOntology {
         }
     }
     
-    /*
     private void rePrimeNF3(AxiomSet as, 
     		IConceptMap<IConceptSet> subsumptions) {
         // NF3. r.X [ Y
         //      Q(A) += {-> Y}, for all (A,B) in R(r) and X in S(B)
     	
-    	IConceptMap<RoleMap<IConjunctionQueueEntry>> deltaNF3 = 
-    			new SparseConceptMap<RoleMap<IConjunctionQueueEntry>>(
-    					as.getNf3Axioms().size());
+    	IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> deltaNF3 = 
+    		new SparseConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>>(
+    			as.getNf3Axioms().size());
     	for(NF3 nf3 : as.getNf3Axioms()) {
     		addTerms(deltaNF3, nf3);
     	}
     	
-        for (final IntIterator xItr = deltaNF3.keyIterator(); xItr.hasNext(); ) {
+        for (final IntIterator xItr = deltaNF3.keyIterator(); 
+        		xItr.hasNext(); ) {
             final int x = xItr.next();
-            final RoleMap<IConjunctionQueueEntry> entries = deltaNF3.get(x);
+            final RoleMap<Collection<IConjunctionQueueEntry>> entries = 
+            		deltaNF3.get(x);
 
             final RoleSet keySet = entries.keySet();
             for (int r = keySet.first(); r >= 0; r = keySet.next(r + 1)) {
-                for (final ConjunctionQueueEntry entry: entries.get(r)) {
-
-
-                    for (final IntIterator aItr = subsumptions.keyIterator(); aItr.hasNext(); ) {
+                for (final IConjunctionQueueEntry entry: entries.get(r)) {
+                    for (final IntIterator aItr = subsumptions.keyIterator(); 
+                    		aItr.hasNext(); ) {
                         final int a = aItr.next();
-
                         boolean addIt = false;
-
-                        for (final IntIterator bItr = Rr.lookupB(a, r); bItr.hasNext(); ) {
+                        
+                        // Get all of a's successors with role r
+                        Context aCtx = contextIndex.get(a);
+                        IConceptSet cs = aCtx.getSucc().lookupConcept(r);
+                        for (final IntIterator bItr = cs.iterator(); 
+                        		bItr.hasNext(); ) {
                             final int b = bItr.next();
 
                             if (subsumptions.get(b).contains(x)) {
@@ -631,14 +640,222 @@ public class NormalisedOntology {
                         }
 
                         if (addIt) {
-                            conceptQueue.add(new ConjunctionQueueEntry(a, entry.B, entry.Bi));
+                        	aCtx.addConceptQueueEntry(entry);
+                        	if(aCtx.activate()) {
+                        		todo.add(aCtx);
+                        	}
                         }
                     }
                 }
             }
         }
     }
-    */
+    
+    private void rePrimeNF4(AxiomSet as, 
+    		IConceptMap<IConceptSet> subsumptions) {
+        // NF4. r [ s
+        //      Q(A) += {-> s.B}, for all (A,B) in R(r)
+    	
+    	IMonotonicCollection<NF4> deltaNF4 = 
+    		new MonotonicCollection<NF4>(as.getNf4Axioms().size());
+    	for(NF4 nf4 : as.getNf4Axioms()) {
+    		deltaNF4.add(nf4);
+    	}
+    	
+        for (final NF4 nf4: deltaNF4) {
+            for (final IntIterator aItr = subsumptions.keyIterator(); 
+            		aItr.hasNext(); ) {
+                final int a = aItr.next();
+                
+                Context aCtx = contextIndex.get(a);
+                IConceptSet cs = aCtx.getSucc().lookupConcept(nf4.getR());
+                
+                for (final IntIterator bItr = cs.iterator(); bItr.hasNext(); ) {
+                    final int b = bItr.next();
+                    
+                    IRoleQueueEntry entry = new IRoleQueueEntry() {
+						@Override
+						public int getR() {
+							return nf4.getS();
+						}
+
+						@Override
+						public int getB() {
+							return b;
+						}
+                    	
+                    };
+                    aCtx.addRoleQueueEntry(entry);
+                    if(aCtx.activate()) {
+                		todo.add(aCtx);
+                	}
+                }
+            }
+        }
+    }
+    
+    private void rePrimeNF5(AxiomSet as, 
+    		IConceptMap<IConceptSet> subsumptions) {
+        // NF5. r o s [ t
+        // Q(A) += {-> t.C}, for all (A,B) in R(r), (B,C) in R(s), (A,C) not in 
+    	// R(t)
+    	
+    	IMonotonicCollection<NF5> deltaNF5 = 
+        		new MonotonicCollection<NF5>(as.getNf5Axioms().size());
+    	for(NF5 nf5 : as.getNf5Axioms()) {
+    		deltaNF5.add(nf5);
+    	}
+
+        for (final NF5 nf5: deltaNF5) {
+            final int t = nf5.getT();
+
+            for (final IntIterator aItr = subsumptions.keyIterator(); 
+            		aItr.hasNext(); ) {
+                final int a = aItr.next();
+                
+                Context aCtx = contextIndex.get(a);
+
+                for (final IntIterator bItr = aCtx.getSucc().lookupConcept(
+                		nf5.getR()).iterator(); 
+                		bItr.hasNext(); ) {
+                    final int b = bItr.next();
+                    
+                    Context bCtx = contextIndex.get(b);
+
+                    for (final IntIterator cItr = bCtx.getSucc().lookupConcept(
+                    		nf5.getS()).iterator(); 
+                    		cItr.hasNext(); ) {
+                        final int c = cItr.next();
+
+                        if (!aCtx.getSucc().lookupConcept(t).contains(c)) {
+                            final IRoleQueueEntry entry = 
+                            		new IRoleQueueEntry() {
+
+									@Override
+									public int getR() {
+										return t;
+									}
+
+									@Override
+									public int getB() {
+										return c;
+									}
+                            };
+                            aCtx.addRoleQueueEntry(entry);
+                            if(aCtx.activate()) {
+                        		todo.add(aCtx);
+                        	}
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * These are reflexive role axioms. If an axiom of this kind is added, then
+     * an "external edge" must be added to all the contexts that contain that 
+     * role and don't contain a successor to themselves.
+     * 
+     * @param as
+     * @param subsumptions
+     */
+    private void rePrimeNF6(AxiomSet as, 
+    		IConceptMap<IConceptSet> subsumptions) {
+    	IConceptSet deltaNF6 = new SparseConceptSet(as.getNf6Axioms().size());
+    	for(NF6 nf6 : as.getNf6Axioms()) {
+    		deltaNF6.add(nf6.getR());
+    	}
+    	
+    	for(IntIterator it = deltaNF6.iterator(); it.hasNext(); ) {
+    		int role = it.next();
+    		for(IntIterator it2 = contextIndex.keyIterator(); it2.hasNext(); ) {
+    			int concept = it2.next();
+    			Context ctx = contextIndex.get(concept);
+    			if(ctx.getSucc().containsRole(role) && 
+    					!ctx.getSucc().lookupConcept(role).contains(concept)) {
+    				ctx.processExternalEdge(role, concept);
+    			}
+    		}
+    	}
+    }
+    
+    /**
+     * These axioms are of the form A [ f.(o, v) and are indexed by A. A feature
+     * queue element must be added to the contexts that have A in their 
+     * subsumptions.
+     * 
+     * @param as
+     * @param subsumptions
+     */
+    private void rePrimeNF7(AxiomSet as, 
+    		IConceptMap<IConceptSet> subsumptions) {
+    	IConceptMap<MonotonicCollection<NF7>> deltaNF7 = 
+    		new SparseConceptMap<MonotonicCollection<NF7>>(
+    				as.getNf7Axioms().size());
+    	for(NF7 nf7 : as.getNf7Axioms()) {
+    		addTerms(deltaNF7, nf7);
+    	}
+    	
+    	// Get all the subsumptions a [ x
+        for (final IntIterator aItr = subsumptions.keyIterator(); 
+        		aItr.hasNext(); ) {
+            final int a = aItr.next();
+
+            final IConceptSet Sa = subsumptions.get(a);
+
+            for (final IntIterator xItr = Sa.iterator(); xItr.hasNext(); ) {
+                final int x = xItr.next();
+                
+                // If any of the new axioms is of the form x [ y then add
+                // an entry
+                if (deltaNF7.containsKey(x)) {
+                    final IMonotonicCollection<NF7> set = deltaNF7.get(x);
+                    
+                    for (final NF7 entry : set) {
+                    	// Add to corresponding context and activate
+                    	Context ctx = contextIndex.get(a); 
+                    	ctx.addFeatureQueueEntry(entry);
+                    	if(ctx.activate()) {
+                    		todo.add(ctx);
+                    	}
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * TODO: check this!
+     * 
+     * @param as
+     * @param subsumptions
+     */
+    private void rePrimeNF8(AxiomSet as, 
+    		IConceptMap<IConceptSet> subsumptions) {
+    	FeatureMap<MonotonicCollection<NF8>> deltaNF8 = 
+    		new FeatureMap<MonotonicCollection<NF8>>(as.getNf8Axioms().size());
+    	for(NF8 nf8 : as.getNf8Axioms()) {
+    		addTerms(deltaNF8, nf8);
+    	}
+    	
+    	FeatureSet fs = deltaNF8.keySet();
+    	int fid = fs.first();
+    	while(fid != -1) {
+    		for(IntIterator it = ontologyNF7.keyIterator(); it.hasNext(); ) {
+    			int a = it.next();
+    			Context aCtx = contextIndex.get(a);
+    			
+    			for(Iterator<NF7> i = ontologyNF7.get(a).iterator(); 
+    					i.hasNext(); ) {
+    				NF7 nf7 = i.next();
+    				if(nf7.rhsD.getFeature() == fid) {
+    					aCtx.addFeatureQueueEntry(nf7);
+    				}
+    			}
+    		}
+    	}
+    }
 
     /**
      * Starts the concurrent classification process.
@@ -699,7 +916,7 @@ public class NormalisedOntology {
 
     public R getRelationships() {
         // Collect relationships from context index
-    	// TODO: implement
+    	// TODO: implement or check if needed.
     	return null;
     }
     
@@ -780,16 +997,20 @@ public class NormalisedOntology {
         for (final IntIterator itr = ontologyNF3.keyIterator(); 
         		itr.hasNext(); ) {
             final int a = itr.next();
-            RoleMap<IConjunctionQueueEntry> map = ontologyNF3.get(a);
+            RoleMap<Collection<IConjunctionQueueEntry>> map = 
+            		ontologyNF3.get(a);
             for (int r = 0; r < factory.getTotalRoles(); r++) {
                 if (map.containsKey(r)) {
-                    final IConjunctionQueueEntry entry = map.get(r);
-                    writer.print(a + "\t" + r + "\t=>");
-                    writer.print("\t" + entry.getB());
-                    if (entry.getBi() > TOP) {
-                        writer.print("\t" + entry.getBi());
+                    final Collection<IConjunctionQueueEntry> entries = 
+                    		map.get(r);
+                    for(IConjunctionQueueEntry entry : entries) {
+	                    writer.print(a + "\t" + r + "\t=>");
+	                    writer.print("\t" + entry.getB());
+	                    if (entry.getBi() > TOP) {
+	                        writer.print("\t" + entry.getBi());
+	                    }
+	                    writer.println();
                     }
-                    writer.println();
                 }
             }
         }
