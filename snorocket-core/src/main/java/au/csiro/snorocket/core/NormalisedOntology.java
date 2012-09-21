@@ -521,9 +521,11 @@ public class NormalisedOntology {
     	// <a, c> in deltaOntologyNF1QueueEntries that is, we want to join S and
     	// deltaOntologyNF1QueueEntries on S.col2 and 
     	// deltaOntologyNF1QueueEntries.key
+    	int size = as.getNf1aAxioms().size() + as.getNf1bAxioms().size();
+    	if(size == 0) return;
     	IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> deltaNF1 = 
     		new SparseConceptMap<MonotonicCollection<IConjunctionQueueEntry>>(
-    			as.getNf1aAxioms().size());
+    			size);
     	for(NF1a nf1a : as.getNf1aAxioms()) {
     		IConjunctionQueueEntry qe = nf1a.getQueueEntry();
     		addTerms(deltaNF1, nf1a.lhsA(), qe);
@@ -570,9 +572,10 @@ public class NormalisedOntology {
         // NF2. A [ r.B
         //      Q(A) += {-> r.B}, for all X in S(A)
     	
+    	int size = as.getNf2Axioms().size();
+    	if(size == 0) return;
     	IConceptMap<MonotonicCollection<NF2>> deltaNF2 = 
-    			new SparseConceptMap<MonotonicCollection<NF2>>(
-    					as.getNf2Axioms().size());
+    			new SparseConceptMap<MonotonicCollection<NF2>>(size);
     	for(NF2 nf2 : as.getNf2Axioms()) {
     		addTerms(deltaNF2, nf2);
     	}
@@ -605,9 +608,11 @@ public class NormalisedOntology {
         // NF3. r.X [ Y
         //      Q(A) += {-> Y}, for all (A,B) in R(r) and X in S(B)
     	
+    	int size = as.getNf3Axioms().size();
+    	if(size == 0) return;
     	IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> deltaNF3 = 
     		new SparseConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>>(
-    			as.getNf3Axioms().size());
+    			size);
     	for(NF3 nf3 : as.getNf3Axioms()) {
     		addTerms(deltaNF3, nf3);
     	}
@@ -656,8 +661,9 @@ public class NormalisedOntology {
         // NF4. r [ s
         //      Q(A) += {-> s.B}, for all (A,B) in R(r)
     	
-    	IMonotonicCollection<NF4> deltaNF4 = 
-    		new MonotonicCollection<NF4>(as.getNf4Axioms().size());
+    	int size = as.getNf4Axioms().size();
+    	if(size == 0) return;
+    	IMonotonicCollection<NF4> deltaNF4 = new MonotonicCollection<NF4>(size);
     	for(NF4 nf4 : as.getNf4Axioms()) {
     		deltaNF4.add(nf4);
     	}
@@ -699,9 +705,9 @@ public class NormalisedOntology {
         // NF5. r o s [ t
         // Q(A) += {-> t.C}, for all (A,B) in R(r), (B,C) in R(s), (A,C) not in 
     	// R(t)
-    	
-    	IMonotonicCollection<NF5> deltaNF5 = 
-        		new MonotonicCollection<NF5>(as.getNf5Axioms().size());
+    	int size = as.getNf5Axioms().size();
+    	if(size == 0) return;
+    	IMonotonicCollection<NF5> deltaNF5 = new MonotonicCollection<NF5>(size);
     	for(NF5 nf5 : as.getNf5Axioms()) {
     		deltaNF5.add(nf5);
     	}
@@ -762,7 +768,9 @@ public class NormalisedOntology {
      */
     private void rePrimeNF6(AxiomSet as, 
     		IConceptMap<IConceptSet> subsumptions) {
-    	IConceptSet deltaNF6 = new SparseConceptSet(as.getNf6Axioms().size());
+    	int size = as.getNf6Axioms().size();
+    	if(size == 0) return;
+    	IConceptSet deltaNF6 = new SparseConceptSet(size);
     	for(NF6 nf6 : as.getNf6Axioms()) {
     		deltaNF6.add(nf6.getR());
     	}
@@ -790,9 +798,10 @@ public class NormalisedOntology {
      */
     private void rePrimeNF7(AxiomSet as, 
     		IConceptMap<IConceptSet> subsumptions) {
+    	int size = as.getNf7Axioms().size();
+    	if(size == 0) return;
     	IConceptMap<MonotonicCollection<NF7>> deltaNF7 = 
-    		new SparseConceptMap<MonotonicCollection<NF7>>(
-    				as.getNf7Axioms().size());
+    		new SparseConceptMap<MonotonicCollection<NF7>>(size);
     	for(NF7 nf7 : as.getNf7Axioms()) {
     		addTerms(deltaNF7, nf7);
     	}
@@ -833,8 +842,10 @@ public class NormalisedOntology {
      */
     private void rePrimeNF8(AxiomSet as, 
     		IConceptMap<IConceptSet> subsumptions) {
+    	int size = as.getNf8Axioms().size();
+    	if(size == 0) return;
     	FeatureMap<MonotonicCollection<NF8>> deltaNF8 = 
-    		new FeatureMap<MonotonicCollection<NF8>>(as.getNf8Axioms().size());
+    		new FeatureMap<MonotonicCollection<NF8>>(size);
     	for(NF8 nf8 : as.getNf8Axioms()) {
     		addTerms(deltaNF8, nf8);
     	}
