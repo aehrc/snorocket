@@ -97,6 +97,18 @@ public class Context {
     private final CR succ;
     
     /**
+     * Flag to indicate if chenges to the subsumptions of this context should be
+     * tracked.
+     */
+    private boolean track = false;
+    
+    /**
+     * Flag used to indicate if this context has generated new subsumptions
+     * while being tracked.
+     */
+    private boolean changed = false;
+    
+    /**
      * Reference to the parent context queue. Used to add this context back to
      * the queue when reactivated.
      */
@@ -327,11 +339,8 @@ public class Context {
 		featureQueue.add(entry);
 	}
 	
-	/**
-	 * Starts the classification process.
-	 */
-	public void processOntology() {
-        boolean done;
+	private void processOntologyNoTracking() {
+		boolean done;
         
         do {
             done = true;
@@ -413,6 +422,106 @@ public class Context {
             }
 
         } while (!done);
+	}
+	
+	private void processOntologyTracking() {
+		boolean done;
+        
+        do {
+            done = true;
+            
+            // Process concept queue
+            if (!conceptQueue.isEmpty()) {
+                do {
+                    done = false;
+                    final IConjunctionQueueEntry entry = conceptQueue.remove();
+                    final int b = entry.getB();
+
+                    final IConceptSet sa = s.getSet();
+                    if (!sa.contains(b)) {
+                        final int bi = entry.getBi();
+                        if (sa.contains(bi)) {
+                        	s.put(b);
+                        	changed = true;
+                            processNewSubsumption(b);
+                        }
+                    }
+                } while (!conceptQueue.isEmpty());
+            }
+            
+            // Process feature queue
+            if (!featureQueue.isEmpty()) {
+                do {
+                    done = false;
+                    final IFeatureQueueEntry entry = featureQueue.remove();
+                    
+                    Datatype d = entry.getD();
+                    
+                    // Get right hand sides from NF8 expressions that
+                    // match d on their left hand side
+                    MonotonicCollection<NF8> entries = 
+                    		ontologyNF8.get(d.getFeature());
+                    
+                    if(entries == null) continue;
+                    
+                    // Evaluate to determine the ones that match
+                    MonotonicCollection<IConjunctionQueueEntry> res = 
+                    		new MonotonicCollection<IConjunctionQueueEntry>(2);
+                    for(final NF8 e : entries) {
+                    	Datatype d2 = e.lhsD;
+                    	
+                    	// If they match add a conjunction queue entry
+                    	// to queueA
+                    	if(datatypeMatches(d, d2)) {
+                    		res.add(new IConjunctionQueueEntry() {
+								@Override
+								public int getBi() {
+									return Factory.TOP_CONCEPT;
+								}
+								
+								@Override
+								public int getB() {
+									return e.rhsB;
+								}
+							});
+                    	}
+                    }
+                    
+                    addToConceptQueue(res);
+                } while (!featureQueue.isEmpty());
+            }
+            
+            // Process role queue
+            if (!roleQueue.isEmpty()) {
+                done = false;
+                final IRoleQueueEntry entry = roleQueue.remove();
+                
+                if(!succ.lookupConcept(entry.getR()).contains(entry.getB())) {
+                	processNewEdge(entry.getR(), entry.getB());
+                }
+            }
+            
+            if(!externalQueue.isEmpty()) {
+            	done = false;
+            	final IRoleQueueEntry entry = externalQueue.remove();
+            	processNewEdge(entry.getR(), entry.getB());
+            }
+
+        } while (!done);
+	}
+	
+	/**
+	 * Starts the classification process.
+	 */
+	public void processOntology() {
+		// This code is duplicated for performance reasons. When not running in
+		// incremental mode the evaluation of the track flag is only done once
+		// for each time the context is activated.
+        if(track) {
+        	processOntologyTracking();
+        } else {
+        	processOntologyNoTracking();
+        }
         
         deactivate();
     }
@@ -700,9 +809,6 @@ public class Context {
         		processNewEdge(pair[1], b);
         	} else {
         		Context tc = contextIndex.get(pair[0]);
-        		
-        		// Found a NullPointer problem here
-        		
         		tc.processExternalEdge(pair[1], b);
         		if(tc.activate()) {
                 	parentTodo.add(tc);
@@ -752,6 +858,31 @@ public class Context {
             roleClosureCache.put(r, result);
         }
         return result;
+    }
+    
+    /**
+     * Starts tracking changes in the context's subsumptions. It is used in 
+     * incremental classification to detect which contexts have been affected by
+     * the new axioms. 
+     */
+    public void startTracking() {
+    	changed = false;
+    	track = true;
+    }
+    
+    /**
+     * Stops tracking changes to the context's subsumptions.
+     */
+    public void endTracking() {
+    	track = false;
+    }
+    
+    /**
+     * Indicates if the context has generated new subsumptions while being 
+     * tracked.
+     */
+    public boolean hasNewSubsumptions() {
+    	return changed;
     }
 
 }
