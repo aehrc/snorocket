@@ -332,7 +332,7 @@ public class Context {
 	 */
 	public void processOntology() {
         boolean done;
-
+        
         do {
             done = true;
             
@@ -359,6 +359,7 @@ public class Context {
                 do {
                     done = false;
                     final IFeatureQueueEntry entry = featureQueue.remove();
+                    
                     Datatype d = entry.getD();
                     
                     // Get right hand sides from NF8 expressions that
@@ -399,7 +400,7 @@ public class Context {
             if (!roleQueue.isEmpty()) {
                 done = false;
                 final IRoleQueueEntry entry = roleQueue.remove();
-
+                
                 if(!succ.lookupConcept(entry.getR()).contains(entry.getB())) {
                 	processNewEdge(entry.getR(), entry.getB());
                 }
@@ -412,6 +413,7 @@ public class Context {
             }
 
         } while (!done);
+        
         deactivate();
     }
 	
@@ -617,115 +619,121 @@ public class Context {
      */
     private void processNewEdge(int role, int b) {
         final RoleSet roleClosure = getRoleClosure(role);
+        processRole(role, b);
         for (int s = roleClosure.first(); s >= 0; s = roleClosure.next(s + 1)) {
-            // R(s) := R(s) u {(A,B)}
-            succ.store(s, b);
-            
-            // Add the predecessor to the the corresponding context
-            // Is this necessary?
-            Context bContext = contextIndex.get(b);
-            
-            bContext.getPred().store(s, concept);
-            
-            // queue(A) := queue(A) u U{B'|B' in S(B)}.O^(s.B')
-            final IConceptSet sb = contextIndex.get(b).getS().getSet();
-            
-            // Computes the minimal set of QueueEntries from s.a [ bb is in O
-            for (IntIterator itr = sb.iterator(); itr.hasNext(); ) {
-                final int bb = itr.next();
-                final RoleMap<Collection<IConjunctionQueueEntry>> map = 
-                		ontologyNF3.get(bb);
+            if(s == role) continue;
+            processRole(s, b);
+        }
+    }
+    
+    private void processRole(int s, int b) {
+    	// R(s) := R(s) u {(A,B)}
+        succ.store(s, b);
+        
+        // Add the predecessor to the the corresponding context
+        // Is this necessary?
+        Context bContext = contextIndex.get(b);
+        
+        bContext.getPred().store(s, concept);
+        
+        // queue(A) := queue(A) u U{B'|B' in S(B)}.O^(s.B')
+        final IConceptSet sb = contextIndex.get(b).getS().getSet();
+        
+        // Computes the minimal set of QueueEntries from s.a [ bb is in O
+        for (IntIterator itr = sb.iterator(); itr.hasNext(); ) {
+            final int bb = itr.next();
+            final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+            		ontologyNF3.get(bb);
 
-                if (null != map) {
-                    final Collection<IConjunctionQueueEntry> entries = 
-                    		map.get(s);
-                    if (null != entries) {
-                    	conceptQueue.addAll(entries);
-                    }
+            if (null != map) {
+                final Collection<IConjunctionQueueEntry> entries = 
+                		map.get(s);
+                if (null != entries) {
+                	conceptQueue.addAll(entries);
                 }
+            }
+        }
+        
+        // Handle reflexive roles
+        if (reflexiveRoles.contains(s)) {
+            // check for (a,a) in R(s)
+            if (!pred.lookupConcept(s).contains(concept)) {
+                processNewEdge(s, concept);
             }
             
-            // Handle reflexive roles
-            if (reflexiveRoles.contains(s)) {
-                // check for (a,a) in R(s)
-                if (!pred.lookupConcept(s).contains(concept)) {
-                    processNewEdge(s, concept);
-                }
-                
-                // check for (b,b) in R(s)
-                Context tc = contextIndex.get(b);
-                if (!tc.getPred().lookupConcept(s).contains(b)) {
-                    tc.processExternalEdge(s, b);
-                    if(tc.activate()) {
-                    	parentTodo.add(tc);
-                    }
+            // check for (b,b) in R(s)
+            Context tc = contextIndex.get(b);
+            if (!tc.getPred().lookupConcept(s).contains(b)) {
+                tc.processExternalEdge(s, b);
+                if(tc.activate()) {
+                	parentTodo.add(tc);
                 }
             }
+        }
 
-            final List<int[]> work = new ArrayList<int[]>();
-            for (final NF5 nf5: ontologyNF5) {
-                if (s == nf5.getS()) {
-                    final int t = nf5.getR();
-                    final int u = nf5.getT();
-                    final IConceptSet aTPrimes = pred.lookupConcept(t);
+        final List<int[]> work = new ArrayList<int[]>();
+        for (final NF5 nf5: ontologyNF5) {
+            if (s == nf5.getS()) {
+                final int t = nf5.getR();
+                final int u = nf5.getT();
+                final IConceptSet aTPrimes = pred.lookupConcept(t);
 
-                    // Again in this case there is a dependency with the
-                    // predecessors of an external context.
-                    final IConceptSet bUPrimes = 
-                    		contextIndex.get(b).getPred().lookupConcept(u);
-    
-                    for (final IntIterator itr = aTPrimes.iterator(); 
-                    		itr.hasNext(); ) {
-                        final int aa = itr.next();
-    
-                        if (!bUPrimes.contains(aa)) {
-                            work.add(new int[] {aa, u});
-                        }
-    
+                // Again in this case there is a dependency with the
+                // predecessors of an external context.
+                final IConceptSet bUPrimes = 
+                		contextIndex.get(b).getPred().lookupConcept(u);
+
+                for (final IntIterator itr = aTPrimes.iterator(); 
+                		itr.hasNext(); ) {
+                    final int aa = itr.next();
+
+                    if (!bUPrimes.contains(aa)) {
+                        work.add(new int[] {aa, u});
                     }
+
                 }
             }
-            
-            for (final int[] pair: work) {
-            	if(pair[0] == concept) {
-            		processNewEdge(pair[1], b);
-            	} else {
-            		Context tc = contextIndex.get(pair[0]);
-            		
-            		// Found a NullPointer problem here
-            		
-            		tc.processExternalEdge(pair[1], b);
-            		if(tc.activate()) {
-                    	parentTodo.add(tc);
-                    }
-            	}
-            }
-            
-            work.clear();
-            for (final NF5 nf5: ontologyNF5) {
-                if (s == nf5.getR()) {
-                    final int t = nf5.getS();
-                    final int u = nf5.getT();
-                    // In this case there is a dependency with the
-                    // successors of an external context.
-                    final IConceptSet bTPrimes = 
-                    		contextIndex.get(b).getSucc().lookupConcept(t);
-                    final IConceptSet aUPrimes = succ.lookupConcept(u);
-    
-                    for (final IntIterator itr = bTPrimes.iterator(); 
-                    		itr.hasNext(); ) {
-                        final int bb = itr.next();
+        }
+        
+        for (final int[] pair: work) {
+        	if(pair[0] == concept) {
+        		processNewEdge(pair[1], b);
+        	} else {
+        		Context tc = contextIndex.get(pair[0]);
+        		
+        		// Found a NullPointer problem here
+        		
+        		tc.processExternalEdge(pair[1], b);
+        		if(tc.activate()) {
+                	parentTodo.add(tc);
+                }
+        	}
+        }
+        
+        work.clear();
+        for (final NF5 nf5: ontologyNF5) {
+            if (s == nf5.getR()) {
+                final int t = nf5.getS();
+                final int u = nf5.getT();
+                // In this case there is a dependency with the
+                // successors of an external context.
+                final IConceptSet bTPrimes = 
+                		contextIndex.get(b).getSucc().lookupConcept(t);
+                final IConceptSet aUPrimes = succ.lookupConcept(u);
 
-                        if (!aUPrimes.contains(bb)) {
-                            work.add(new int[] {u, bb});
-                        }
-    
+                for (final IntIterator itr = bTPrimes.iterator(); 
+                		itr.hasNext(); ) {
+                    final int bb = itr.next();
+
+                    if (!aUPrimes.contains(bb)) {
+                        work.add(new int[] {u, bb});
                     }
+
                 }
             }
-            for (final int[] pair: work) {
-            	processNewEdge(pair[0], pair[1]);
-            }
+        }
+        for (final int[] pair: work) {
+        	processNewEdge(pair[0], pair[1]);
         }
     }
     

@@ -41,4 +41,9 @@ public final class NF6 extends NormalFormGCI {
         return lhsR;
     }
 
+	@Override
+	public int[] getConceptsInAxiom() {
+		return new int[]{};
+	}
+
 }

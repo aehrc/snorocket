@@ -114,4 +114,9 @@ public final class NF1b extends NormalFormGCI {
         return rhsB;
     }
 
+	@Override
+	public int[] getConceptsInAxiom() {
+		return new int[]{lhsA1, lhsA2, rhsB};
+	}
+
 }

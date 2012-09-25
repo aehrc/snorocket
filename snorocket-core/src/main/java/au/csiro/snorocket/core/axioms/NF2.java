@@ -70,4 +70,9 @@ public final class NF2 extends NormalFormGCI implements IRoleQueueEntry {
         return rhsR;
     }
 
+	@Override
+	public int[] getConceptsInAxiom() {
+		return new int[]{lhsA, rhsB};
+	}
+
 }

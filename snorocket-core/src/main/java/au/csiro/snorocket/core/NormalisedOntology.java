@@ -476,13 +476,42 @@ public class NormalisedOntology {
     	// Normalise axioms
     	Set<Inclusion> inclusions = normalise(incAxioms);
     	
-    	// Add new axioms to corresponding normal form and determine which
-    	// contexts are affected
+    	// Add new axioms to corresponding normal form
     	AxiomSet as = new AxiomSet();
+    	int numNewConcepts = 0;
+    	
     	for (Inclusion i: inclusions) {
     		NormalFormGCI nf = i.getNormalForm();
             as.addAxiom(nf);
+            addTerm(nf);
         }
+    	
+    	//  Determine which contexts are affected
+    	for (Inclusion i: inclusions) {
+    		NormalFormGCI nf = i.getNormalForm();
+            
+            // Add a context to the context index for every new concept in the
+            // axioms being added incrementally
+            int[] cids = nf.getConceptsInAxiom();
+            
+            for(int j = 0; j < cids.length; j++) {
+            	int cid = cids[j];
+            	if(!contextIndex.containsKey(cid)) {
+            		Context c = new Context(cid);
+        			contextIndex.put(cid, c);
+        			if(c.activate()) {
+        				todo.add(c);
+        			}
+        			if(LOGGER.isLoggable(Level.FINE)) {
+        				LOGGER.fine("Added context "+c);
+        			}
+            		
+            		numNewConcepts++;
+            	}
+            }
+        }
+    	
+    	LOGGER.info("Added "+numNewConcepts+" new concepts to the ontology.");
     	
     	IConceptMap<IConceptSet> subsumptions = getSubsumptions();
     	
@@ -496,7 +525,31 @@ public class NormalisedOntology {
     	rePrimeNF8(as, subsumptions);
     	
     	// Classify
-    	classify();
+    	int numThreads = Runtime.getRuntime().availableProcessors();
+		LOGGER.log(Level.INFO, "Classifying incrementally with "+numThreads+
+				" threads");
+		
+		LOGGER.log(Level.INFO, "Running saturation");
+		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+		for(int j = 0; j < numThreads; j++) {
+			Runnable worker = new Worker(todo);
+			executor.execute(worker);
+		}
+		
+		executor.shutdown();
+		while (!executor.isTerminated()) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		assert(todo.isEmpty());
+		
+		if(LOGGER.isLoggable(Level.FINE)) {
+			LOGGER.fine("Processed "+contextIndex.size()+" contexts");
+		}
     }
     
     /**
@@ -560,7 +613,7 @@ public class NormalisedOntology {
                     	ctx.addConceptQueueEntry(entry);
                     	if(ctx.activate()) {
                     		todo.add(ctx);
-                    	}
+                    	}	
                     }
                 }
             }
@@ -694,7 +747,7 @@ public class NormalisedOntology {
                     aCtx.addRoleQueueEntry(entry);
                     if(aCtx.activate()) {
                 		todo.add(aCtx);
-                	}
+                	}       
                 }
             }
         }

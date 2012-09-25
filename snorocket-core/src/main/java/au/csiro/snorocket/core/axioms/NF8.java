@@ -34,4 +34,9 @@ public final class NF8 extends NormalFormGCI {
         		lhsD.getLiteral()+")" + " [ " + rhsB;
     }
 
+	@Override
+	public int[] getConceptsInAxiom() {
+		return new int[] {rhsB};
+	}
+
 }
