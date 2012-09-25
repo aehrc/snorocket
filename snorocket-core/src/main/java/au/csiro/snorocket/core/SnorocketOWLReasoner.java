@@ -265,8 +265,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
 			OWLImporter oi = new OWLImporter(reasoner.getFactory());
 			Set<Inclusion> axioms = oi.transform(newAxioms, monitor);
 			reasoner.classifyIncremental(axioms);
-			final IConceptMap<IConceptSet> s = reasoner.getSubsumptions();
-	        ppd.computeDagIncremental(factory, s, monitor);
+			final IConceptMap<IConceptSet> n = reasoner.getNewSubsumptions();
+			final IConceptMap<IConceptSet> a = 
+					reasoner.getAffectedSubsumptions();
+	        ppd.computeDagIncremental(factory, n, a, monitor);
 		}
 		
 		rawChanges.clear();

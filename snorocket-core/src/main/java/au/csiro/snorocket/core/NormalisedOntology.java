@@ -151,7 +151,18 @@ public class NormalisedOntology {
  	/**
  	 * The global role closure.
  	 */
- 	private volatile RoleMap<RoleSet> roleClosureCache;
+ 	private final RoleMap<RoleSet> roleClosureCache;
+ 	
+ 	/**
+ 	 * A map of new contexts added in an incremental classification.
+ 	 */
+ 	private final IConceptMap<Context> newContexts = new SparseConceptMap<>(2);
+ 	
+ 	/**
+ 	 * A map of contexts potentially affected by an incremental classification.
+ 	 */
+ 	private final IConceptMap<Context> affectedContexts = 
+ 			new SparseConceptMap<>(2);
     
     public IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> 
     	getOntologyNF1() {
@@ -273,7 +284,10 @@ public class NormalisedOntology {
      * @param inclusions
      */
     public void loadAxioms(final Set<? extends Inclusion> inclusions) {
-    	for (Inclusion i: normalise(inclusions)) {
+    	LOGGER.info("Loading "+inclusions.size()+" axioms");
+    	Set<Inclusion> normInclusions = normalise(inclusions);
+    	LOGGER.info("Processing "+normInclusions.size()+" normalised axioms");
+    	for (Inclusion i: normInclusions) {
             addTerm(i.getNormalForm());
         }
     }
@@ -473,6 +487,10 @@ public class NormalisedOntology {
      * @return
      */
     public void classifyIncremental(Set<Inclusion> incAxioms) {
+    	// Clear any state from previous incremental classifications
+    	newContexts.clear();
+    	affectedContexts.clear();
+    	
     	// Normalise axioms
     	Set<Inclusion> inclusions = normalise(incAxioms);
     	
@@ -486,7 +504,7 @@ public class NormalisedOntology {
             addTerm(nf);
         }
     	
-    	//  Determine which contexts are affected
+    	// Determine which contexts are affected
     	for (Inclusion i: inclusions) {
     		NormalFormGCI nf = i.getNormalForm();
             
@@ -505,6 +523,9 @@ public class NormalisedOntology {
         			if(LOGGER.isLoggable(Level.FINE)) {
         				LOGGER.fine("Added context "+c);
         			}
+        			
+        			// Keep track of the newly added contexts
+        			newContexts.put(cid, c);
             		
             		numNewConcepts++;
             	}
@@ -523,6 +544,12 @@ public class NormalisedOntology {
     	rePrimeNF6(as, subsumptions);
     	rePrimeNF7(as, subsumptions);
     	rePrimeNF8(as, subsumptions);
+    	
+    	// Track changes in reactivated contexts
+    	for(IntIterator i = affectedContexts.keyIterator(); i.hasNext(); ) {
+			Context ctx = affectedContexts.get(i.next());
+			ctx.startTracking();
+		}
     	
     	// Classify
     	int numThreads = Runtime.getRuntime().availableProcessors();
@@ -546,6 +573,12 @@ public class NormalisedOntology {
 		}
 		
 		assert(todo.isEmpty());
+		
+		// Stop tracking changes in reactivated contexts
+		for(IntIterator i = affectedContexts.keyIterator(); i.hasNext(); ) {
+			Context ctx = affectedContexts.get(i.next());
+			ctx.endTracking();
+		}
 		
 		if(LOGGER.isLoggable(Level.FINE)) {
 			LOGGER.fine("Processed "+contextIndex.size()+" contexts");
@@ -611,6 +644,7 @@ public class NormalisedOntology {
                     	// Add to corresponding context and activate
                     	Context ctx = contextIndex.get(a); 
                     	ctx.addConceptQueueEntry(entry);
+                    	affectedContexts.put(a, ctx);
                     	if(ctx.activate()) {
                     		todo.add(ctx);
                     	}	
@@ -647,6 +681,7 @@ public class NormalisedOntology {
                     final IMonotonicCollection<NF2> set = deltaNF2.get(x);
                     for (NF2 entry: set) {
                     	ctx.addRoleQueueEntry(entry);
+                    	affectedContexts.put(a, ctx);
                     	if(ctx.activate()) {
                     		todo.add(ctx);
                     	}
@@ -699,6 +734,7 @@ public class NormalisedOntology {
 
                         if (addIt) {
                         	aCtx.addConceptQueueEntry(entry);
+                        	affectedContexts.put(a, aCtx);
                         	if(aCtx.activate()) {
                         		todo.add(aCtx);
                         	}
@@ -745,6 +781,7 @@ public class NormalisedOntology {
                     	
                     };
                     aCtx.addRoleQueueEntry(entry);
+                    affectedContexts.put(a, aCtx);
                     if(aCtx.activate()) {
                 		todo.add(aCtx);
                 	}       
@@ -801,6 +838,7 @@ public class NormalisedOntology {
 									}
                             };
                             aCtx.addRoleQueueEntry(entry);
+                            affectedContexts.put(a, aCtx);
                             if(aCtx.activate()) {
                         		todo.add(aCtx);
                         	}
@@ -836,6 +874,10 @@ public class NormalisedOntology {
     			if(ctx.getSucc().containsRole(role) && 
     					!ctx.getSucc().lookupConcept(role).contains(concept)) {
     				ctx.processExternalEdge(role, concept);
+    				affectedContexts.put(concept, ctx);
+    				if(ctx.activate()) {
+    					todo.add(ctx);
+    				}
     			}
     		}
     	}
@@ -878,6 +920,7 @@ public class NormalisedOntology {
                     	// Add to corresponding context and activate
                     	Context ctx = contextIndex.get(a); 
                     	ctx.addFeatureQueueEntry(entry);
+                    	affectedContexts.put(a, ctx);
                     	if(ctx.activate()) {
                     		todo.add(ctx);
                     	}
@@ -915,6 +958,10 @@ public class NormalisedOntology {
     				NF7 nf7 = i.next();
     				if(nf7.rhsD.getFeature() == fid) {
     					aCtx.addFeatureQueueEntry(nf7);
+    					affectedContexts.put(a, aCtx);
+    					if(aCtx.activate()) {
+    						todo.add(aCtx);
+    					}
     				}
     			}
     		}
@@ -974,6 +1021,52 @@ public class NormalisedOntology {
     		int key = it.next();
     		Context ctx = contextIndex.get(key);
     		res.put(key, ctx.getS().getSet());
+    	}
+    	return res;
+    }
+    
+    /**
+     * Returns the subsumptions for the new concepts added in an incremental
+     * classification.
+     * 
+     * @return
+     */
+    public IConceptMap<IConceptSet> getNewSubsumptions() {
+        IConceptMap<IConceptSet> res = new DenseConceptMap<IConceptSet>(
+        		newContexts.size());
+    	// Collect subsumptions from new contexts
+    	for(IntIterator it = newContexts.keyIterator(); it.hasNext(); ) {
+    		int key = it.next();
+    		Context ctx = newContexts.get(key);
+    		res.put(key, ctx.getS().getSet());
+    	}
+    	return res;
+    }
+    
+    /**
+     * Returns the subsumptions for the existing concepts that have additional
+     * subsumptions due to the axioms added in an incremental classification.
+     * 
+     * @return
+     */
+    public IConceptMap<IConceptSet> getAffectedSubsumptions() {
+    	int size = 0;
+    	for(IntIterator it = affectedContexts.keyIterator(); it.hasNext(); ) {
+    		int key = it.next();
+    		Context ctx = affectedContexts.get(key);
+    		if(ctx.hasNewSubsumptions()) {
+    			size++;
+    		}
+    	}
+    	
+        IConceptMap<IConceptSet> res = new DenseConceptMap<IConceptSet>(size);
+    	// Collect subsumptions from affected contexts
+    	for(IntIterator it = contextIndex.keyIterator(); it.hasNext(); ) {
+    		int key = it.next();
+    		Context ctx = contextIndex.get(key);
+    		if(ctx.hasNewSubsumptions()) {
+    			res.put(key, ctx.getS().getSet());
+    		}
     	}
     	return res;
     }
