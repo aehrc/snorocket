@@ -255,6 +255,7 @@ public class PostProcessedData {
 		
 		for(IntIterator it = conceptNodeIndex.keyIterator(); it.hasNext(); ) {
 			int key = it.next();
+			
 			if(key == Factory.BOTTOM_CONCEPT || key == Factory.TOP_CONCEPT)
 				continue;
 			

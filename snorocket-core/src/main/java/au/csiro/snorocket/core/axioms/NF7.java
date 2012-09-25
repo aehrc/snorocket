@@ -38,4 +38,9 @@ public final class NF7 extends NormalFormGCI implements IFeatureQueueEntry {
         		","+rhsD.getLiteral()+")";
     }
 
+	@Override
+	public int[] getConceptsInAxiom() {
+		return new int[]{lhsA};
+	}
+
 }

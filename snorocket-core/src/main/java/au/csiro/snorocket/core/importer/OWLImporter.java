@@ -32,6 +32,7 @@ import org.semanticweb.owlapi.model.OWLDataSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLEquivalentObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -433,6 +434,7 @@ public class OWLImporter {
 		final Set<Inclusion> axioms = new HashSet<>();
         
         int totalAxioms = 
+        	ont.getAxiomCount(AxiomType.DECLARATION, true) +
     		ont.getAxiomCount(AxiomType.SUB_OBJECT_PROPERTY, true) + 
     		ont.getAxiomCount(AxiomType.REFLEXIVE_OBJECT_PROPERTY, true) +
     		ont.getAxiomCount(AxiomType.TRANSITIVE_OBJECT_PROPERTY, true) +
@@ -444,6 +446,20 @@ public class OWLImporter {
     		ont.getAxiomCount(AxiomType.DATA_PROPERTY_RANGE, true);
         
         int workDone = 0;
+        
+        for(OWLDeclarationAxiom a : 
+        	ont.getAxioms(AxiomType.DECLARATION, true)) {
+        	OWLEntity ent = a.getEntity();
+        	if(ent.isOWLClass()) {
+        		factory.getConcept(ent.asOWLClass().toStringID());
+        	} else if(ent.isOWLObjectProperty()) {
+        		factory.getRole(ent.asOWLObjectProperty().toStringID());
+        	} else if(ent.isOWLDataProperty()) {
+        		factory.getFeature(ent.asOWLDataProperty().toStringID());
+        	}
+        	workDone++;
+        	monitor.reasonerTaskProgressChanged(workDone, totalAxioms);
+        }
         
         for(OWLDataPropertyRangeAxiom a : ont.getAxioms(
         		AxiomType.DATA_PROPERTY_RANGE, true)) {

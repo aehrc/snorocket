@@ -79,4 +79,9 @@ public final class NF3 extends NormalFormGCI {
         return new NF3(r, A, B);
     }
 
+	@Override
+	public int[] getConceptsInAxiom() {
+		return new int[]{lhsA, rhsB};
+	}
+
 }
