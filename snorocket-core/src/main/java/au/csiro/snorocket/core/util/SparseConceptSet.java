@@ -23,10 +23,11 @@ package au.csiro.snorocket.core.util;
 
 
 /**
- * Implementation of the IConceptSet API that does not support clear() or remove()/removeAll().
- * Set entries are stored in sorted order to allow for O(log n) lookup time.
- * Inserts require copying all larger values to make remove for the inserted value.
- * Worst-case insert performance happens when elements are added largest to smallest. 
+ * Implementation of the IConceptSet API that does not support clear() or 
+ * remove()/removeAll(). Set entries are stored in sorted order to allow for 
+ * O(log n) lookup time. Inserts require copying all larger values to make 
+ * remove for the inserted value. Worst-case insert performance happens when 
+ * elements are added largest to smallest. 
  * 
  * @author law223
  *
@@ -176,5 +177,15 @@ final public class SparseConceptSet implements IConceptSet {
         System.arraycopy(items, 0, newItems, 0, size);
         items = newItems;
     }
+
+	@Override
+	public int[] toArray() {
+		int[] res = new int[size];
+		for(int i = 0; i < size; i++) {
+			res[i] = items[i];
+		}
+		
+		return res;
+	}
 
 }

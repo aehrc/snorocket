@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -183,6 +184,11 @@ public class Context {
     private static FeatureMap<MonotonicCollection<NF8>> ontologyNF8;
     
     /**
+     * The map of global affected contexts used in incremental classification.
+     */
+    private static Set<Context> affectedContexts;
+    
+    /**
      * Initialises the static variables.
      * 
      * @param ont
@@ -200,6 +206,7 @@ public class Context {
     	ontologyNF8 = ont.getOntologyNF8();
     	roleClosureCache = ont.getRoleClosureCache();
     	factory = ont.getFactory();
+    	affectedContexts = ont.getAffectedContexts();
     }
     
     /**
@@ -217,6 +224,10 @@ public class Context {
 		primeQueue();
 	}
 	
+	public int getConcept() {
+		return concept;
+	}
+
 	private void addToConceptQueue(
 			MonotonicCollection<IConjunctionQueueEntry> entries) {
 		Iterator<IConjunctionQueueEntry> it = entries.iterator();
@@ -339,176 +350,26 @@ public class Context {
 		featureQueue.add(entry);
 	}
 	
-	private void processOntologyNoTracking() {
-		boolean done;
-        
-        do {
-            done = true;
-            
-            // Process concept queue
-            if (!conceptQueue.isEmpty()) {
-                do {
-                    done = false;
-                    final IConjunctionQueueEntry entry = conceptQueue.remove();
-                    final int b = entry.getB();
-
-                    final IConceptSet sa = s.getSet();
-                    if (!sa.contains(b)) {
-                        final int bi = entry.getBi();
-                        if (sa.contains(bi)) {
-                        	s.put(b);
-                            processNewSubsumption(b);
-                        }
-                    }
-                } while (!conceptQueue.isEmpty());
-            }
-            
-            // Process feature queue
-            if (!featureQueue.isEmpty()) {
-                do {
-                    done = false;
-                    final IFeatureQueueEntry entry = featureQueue.remove();
-                    
-                    Datatype d = entry.getD();
-                    
-                    // Get right hand sides from NF8 expressions that
-                    // match d on their left hand side
-                    MonotonicCollection<NF8> entries = 
-                    		ontologyNF8.get(d.getFeature());
-                    
-                    if(entries == null) continue;
-                    
-                    // Evaluate to determine the ones that match
-                    MonotonicCollection<IConjunctionQueueEntry> res = 
-                    		new MonotonicCollection<IConjunctionQueueEntry>(2);
-                    for(final NF8 e : entries) {
-                    	Datatype d2 = e.lhsD;
-                    	
-                    	// If they match add a conjunction queue entry
-                    	// to queueA
-                    	if(datatypeMatches(d, d2)) {
-                    		res.add(new IConjunctionQueueEntry() {
-								@Override
-								public int getBi() {
-									return Factory.TOP_CONCEPT;
-								}
-								
-								@Override
-								public int getB() {
-									return e.rhsB;
-								}
-							});
-                    	}
-                    }
-                    
-                    addToConceptQueue(res);
-                } while (!featureQueue.isEmpty());
-            }
-            
-            // Process role queue
-            if (!roleQueue.isEmpty()) {
-                done = false;
-                final IRoleQueueEntry entry = roleQueue.remove();
-                
-                if(!succ.lookupConcept(entry.getR()).contains(entry.getB())) {
-                	processNewEdge(entry.getR(), entry.getB());
-                }
-            }
-            
-            if(!externalQueue.isEmpty()) {
-            	done = false;
-            	final IRoleQueueEntry entry = externalQueue.remove();
-            	processNewEdge(entry.getR(), entry.getB());
-            }
-
-        } while (!done);
-	}
-	
-	private void processOntologyTracking() {
-		boolean done;
-        
-        do {
-            done = true;
-            
-            // Process concept queue
-            if (!conceptQueue.isEmpty()) {
-                do {
-                    done = false;
-                    final IConjunctionQueueEntry entry = conceptQueue.remove();
-                    final int b = entry.getB();
-
-                    final IConceptSet sa = s.getSet();
-                    if (!sa.contains(b)) {
-                        final int bi = entry.getBi();
-                        if (sa.contains(bi)) {
-                        	s.put(b);
-                        	changed = true;
-                            processNewSubsumption(b);
-                        }
-                    }
-                } while (!conceptQueue.isEmpty());
-            }
-            
-            // Process feature queue
-            if (!featureQueue.isEmpty()) {
-                do {
-                    done = false;
-                    final IFeatureQueueEntry entry = featureQueue.remove();
-                    
-                    Datatype d = entry.getD();
-                    
-                    // Get right hand sides from NF8 expressions that
-                    // match d on their left hand side
-                    MonotonicCollection<NF8> entries = 
-                    		ontologyNF8.get(d.getFeature());
-                    
-                    if(entries == null) continue;
-                    
-                    // Evaluate to determine the ones that match
-                    MonotonicCollection<IConjunctionQueueEntry> res = 
-                    		new MonotonicCollection<IConjunctionQueueEntry>(2);
-                    for(final NF8 e : entries) {
-                    	Datatype d2 = e.lhsD;
-                    	
-                    	// If they match add a conjunction queue entry
-                    	// to queueA
-                    	if(datatypeMatches(d, d2)) {
-                    		res.add(new IConjunctionQueueEntry() {
-								@Override
-								public int getBi() {
-									return Factory.TOP_CONCEPT;
-								}
-								
-								@Override
-								public int getB() {
-									return e.rhsB;
-								}
-							});
-                    	}
-                    }
-                    
-                    addToConceptQueue(res);
-                } while (!featureQueue.isEmpty());
-            }
-            
-            // Process role queue
-            if (!roleQueue.isEmpty()) {
-                done = false;
-                final IRoleQueueEntry entry = roleQueue.remove();
-                
-                if(!succ.lookupConcept(entry.getR()).contains(entry.getB())) {
-                	processNewEdge(entry.getR(), entry.getB());
-                }
-            }
-            
-            if(!externalQueue.isEmpty()) {
-            	done = false;
-            	final IRoleQueueEntry entry = externalQueue.remove();
-            	processNewEdge(entry.getR(), entry.getB());
-            }
-
-        } while (!done);
-	}
+	/**
+     * Triggers the processing of an edge based on events that happened in
+     * another {@link Context}.
+     * 
+     * @param role
+     * @param src
+     */
+    public void processExternalEdge(final int role, final int src) {
+    	externalQueue.add(new IRoleQueueEntry() {
+			@Override
+			public int getR() {
+				return role;
+			}
+			
+			@Override
+			public int getB() {
+				return src;
+			}
+		});
+    }
 	
 	/**
 	 * Starts the classification process.
@@ -520,11 +381,96 @@ public class Context {
         if(track) {
         	processOntologyTracking();
         } else {
-        	processOntologyNoTracking();
+        	processOntologyInternal();
         }
         
         deactivate();
     }
+	
+	private void processOntologyInternal() {
+		boolean done;
+        
+        do {
+            done = true;
+            
+            // Process concept queue
+            if (!conceptQueue.isEmpty()) {
+                do {
+                    done = false;
+                    final IConjunctionQueueEntry entry = conceptQueue.remove();
+                    final int b = entry.getB();
+
+                    final IConceptSet sa = s.getSet();
+                    if (!sa.contains(b)) {
+                        final int bi = entry.getBi();
+                        if (sa.contains(bi)) {
+                        	s.put(b);
+                            processNewSubsumption(b);
+                        }
+                    }
+                } while (!conceptQueue.isEmpty());
+            }
+            
+            // Process feature queue
+            if (!featureQueue.isEmpty()) {
+                do {
+                    done = false;
+                    final IFeatureQueueEntry entry = featureQueue.remove();
+                    
+                    Datatype d = entry.getD();
+                    
+                    // Get right hand sides from NF8 expressions that
+                    // match d on their left hand side
+                    MonotonicCollection<NF8> entries = 
+                    		ontologyNF8.get(d.getFeature());
+                    
+                    if(entries == null) continue;
+                    
+                    // Evaluate to determine the ones that match
+                    MonotonicCollection<IConjunctionQueueEntry> res = 
+                    		new MonotonicCollection<IConjunctionQueueEntry>(2);
+                    for(final NF8 e : entries) {
+                    	Datatype d2 = e.lhsD;
+                    	
+                    	// If they match add a conjunction queue entry
+                    	// to queueA
+                    	if(datatypeMatches(d, d2)) {
+                    		res.add(new IConjunctionQueueEntry() {
+								@Override
+								public int getBi() {
+									return Factory.TOP_CONCEPT;
+								}
+								
+								@Override
+								public int getB() {
+									return e.rhsB;
+								}
+							});
+                    	}
+                    }
+                    
+                    addToConceptQueue(res);
+                } while (!featureQueue.isEmpty());
+            }
+            
+            // Process role queue
+            if (!roleQueue.isEmpty()) {
+                done = false;
+                final IRoleQueueEntry entry = roleQueue.remove();
+                
+                if(!succ.lookupConcept(entry.getR()).contains(entry.getB())) {
+                	processNewEdge(entry.getR(), entry.getB());
+                }
+            }
+            
+            if(!externalQueue.isEmpty()) {
+            	done = false;
+            	final IRoleQueueEntry entry = externalQueue.remove();
+            	processNewEdge(entry.getR(), entry.getB());
+            }
+
+        } while (!done);
+	}
 	
 	private void processNewSubsumption(final int b) {
     	// Get the set of parent concepts of (b n x) in the ontology
@@ -699,27 +645,6 @@ public class Context {
     }
     
     /**
-     * Triggers the processing of an edge based on events that happened in
-     * another {@link Context}.
-     * 
-     * @param role
-     * @param src
-     */
-    public void processExternalEdge(final int role, final int src) {
-    	externalQueue.add(new IRoleQueueEntry() {
-			@Override
-			public int getR() {
-				return role;
-			}
-			
-			@Override
-			public int getB() {
-				return src;
-			}
-		});
-    }
-    
-    /**
      * Process new subsumption: a [ role.b
      * 
      * @param a
@@ -883,6 +808,263 @@ public class Context {
      */
     public boolean hasNewSubsumptions() {
     	return changed;
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////
+    // Tracking versions of the methods
+    ////////////////////////////////////////////////////////////////////////////
+    
+    private void processOntologyTracking() {
+		boolean done;
+        
+        do {
+            done = true;
+            
+            // Process concept queue
+            if (!conceptQueue.isEmpty()) {
+                do {
+                    done = false;
+                    final IConjunctionQueueEntry entry = conceptQueue.remove();
+                    final int b = entry.getB();
+
+                    final IConceptSet sa = s.getSet();
+                    if (!sa.contains(b)) {
+                        final int bi = entry.getBi();
+                        if (sa.contains(bi)) {
+                        	s.put(b);
+                        	changed = true;
+                            processNewSubsumptionTracking(b);
+                        }
+                    }
+                } while (!conceptQueue.isEmpty());
+            }
+            
+            // Process feature queue
+            if (!featureQueue.isEmpty()) {
+                do {
+                    done = false;
+                    final IFeatureQueueEntry entry = featureQueue.remove();
+                    
+                    Datatype d = entry.getD();
+                    
+                    // Get right hand sides from NF8 expressions that
+                    // match d on their left hand side
+                    MonotonicCollection<NF8> entries = 
+                    		ontologyNF8.get(d.getFeature());
+                    
+                    if(entries == null) continue;
+                    
+                    // Evaluate to determine the ones that match
+                    MonotonicCollection<IConjunctionQueueEntry> res = 
+                    		new MonotonicCollection<IConjunctionQueueEntry>(2);
+                    for(final NF8 e : entries) {
+                    	Datatype d2 = e.lhsD;
+                    	
+                    	// If they match add a conjunction queue entry
+                    	// to queueA
+                    	if(datatypeMatches(d, d2)) {
+                    		res.add(new IConjunctionQueueEntry() {
+								@Override
+								public int getBi() {
+									return Factory.TOP_CONCEPT;
+								}
+								
+								@Override
+								public int getB() {
+									return e.rhsB;
+								}
+							});
+                    	}
+                    }
+                    
+                    addToConceptQueue(res);
+                } while (!featureQueue.isEmpty());
+            }
+            
+            // Process role queue
+            if (!roleQueue.isEmpty()) {
+                done = false;
+                final IRoleQueueEntry entry = roleQueue.remove();
+                
+                if(!succ.lookupConcept(entry.getR()).contains(entry.getB())) {
+                	processNewEdgeTracking(entry.getR(), entry.getB());
+                }
+            }
+            
+            if(!externalQueue.isEmpty()) {
+            	done = false;
+            	final IRoleQueueEntry entry = externalQueue.remove();
+            	processNewEdgeTracking(entry.getR(), entry.getB());
+            }
+
+        } while (!done);
+	}
+    
+    private void processNewSubsumptionTracking(final int b) {
+    	// Get the set of parent concepts of (b n x) in the ontology
+        final MonotonicCollection<IConjunctionQueueEntry> bConceptEntries = 
+        		ontologyNF1.get(b);
+        if (null != bConceptEntries && bConceptEntries.size() > 0) {
+            // Add these to the queue of a
+        	addToConceptQueue(bConceptEntries);
+        }
+        final MonotonicCollection<NF2> bRoleEntries = ontologyNF2.get(b);
+        if (null != bRoleEntries) {
+            roleQueue.addAll(bRoleEntries);
+        }
+    
+        // inlined ontHat(conceptQueues.get(pairA(p)), r, b) in following
+        // to move test and fetch outside innermost loop
+        //
+        final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+        		ontologyNF3.get(b);
+        if (null != map) {
+            final RoleSet keySet = map.keySet();
+            for (int r = keySet.first(); r >= 0; r = keySet.next(r + 1)) {
+                final Collection<IConjunctionQueueEntry> entries = map.get(r);
+    
+                if (null != entries) {
+                    final IConceptSet aPrimes = pred.lookupConcept(r);
+                    for (final IntIterator itr = aPrimes.iterator(); 
+                    		itr.hasNext(); ) {
+                        final int aa = itr.next();
+                        // Add to queue aa
+                        if(concept == aa) {
+                        	conceptQueue.addAll(entries);
+                        } else {
+                        	// Add to external context concept queue and
+                        	// activate
+                        	Context oc = contextIndex.get(aa);
+                        	oc.addConceptQueueEntries(entries);
+                        	affectedContexts.add(oc);
+                        	oc.startTracking();
+                        	if(oc.activate()) parentTodo.add(oc);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private void processNewEdgeTracking(int role, int b) {
+        final RoleSet roleClosure = getRoleClosure(role);
+        processRoleTracking(role, b);
+        for (int s = roleClosure.first(); s >= 0; s = roleClosure.next(s + 1)) {
+            if(s == role) continue;
+            processRoleTracking(s, b);
+        }
+    }
+    
+    private void processRoleTracking(int s, int b) {
+    	// R(s) := R(s) u {(A,B)}
+        succ.store(s, b);
+        
+        // Add the predecessor to the the corresponding context
+        // Is this necessary?
+        Context bContext = contextIndex.get(b);
+        
+        bContext.getPred().store(s, concept);
+        
+        // queue(A) := queue(A) u U{B'|B' in S(B)}.O^(s.B')
+        final IConceptSet sb = contextIndex.get(b).getS().getSet();
+        
+        // Computes the minimal set of QueueEntries from s.a [ bb is in O
+        for (IntIterator itr = sb.iterator(); itr.hasNext(); ) {
+            final int bb = itr.next();
+            final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+            		ontologyNF3.get(bb);
+
+            if (null != map) {
+                final Collection<IConjunctionQueueEntry> entries = 
+                		map.get(s);
+                if (null != entries) {
+                	conceptQueue.addAll(entries);
+                }
+            }
+        }
+        
+        // Handle reflexive roles
+        if (reflexiveRoles.contains(s)) {
+            // check for (a,a) in R(s)
+            if (!pred.lookupConcept(s).contains(concept)) {
+                processNewEdgeTracking(s, concept);
+            }
+            
+            // check for (b,b) in R(s)
+            Context tc = contextIndex.get(b);
+            if (!tc.getPred().lookupConcept(s).contains(b)) {
+                tc.processExternalEdge(s, b);
+                affectedContexts.add(tc);
+                tc.startTracking();
+                if(tc.activate()) {
+                	parentTodo.add(tc);
+                }
+            }
+        }
+
+        final List<int[]> work = new ArrayList<int[]>();
+        for (final NF5 nf5: ontologyNF5) {
+            if (s == nf5.getS()) {
+                final int t = nf5.getR();
+                final int u = nf5.getT();
+                final IConceptSet aTPrimes = pred.lookupConcept(t);
+
+                // Again in this case there is a dependency with the
+                // predecessors of an external context.
+                final IConceptSet bUPrimes = 
+                		contextIndex.get(b).getPred().lookupConcept(u);
+
+                for (final IntIterator itr = aTPrimes.iterator(); 
+                		itr.hasNext(); ) {
+                    final int aa = itr.next();
+
+                    if (!bUPrimes.contains(aa)) {
+                        work.add(new int[] {aa, u});
+                    }
+
+                }
+            }
+        }
+        
+        for (final int[] pair: work) {
+        	if(pair[0] == concept) {
+        		processNewEdgeTracking(pair[1], b);
+        	} else {
+        		Context tc = contextIndex.get(pair[0]);
+        		tc.processExternalEdge(pair[1], b);
+        		affectedContexts.add(tc);
+        		tc.startTracking();
+        		if(tc.activate()) {
+                	parentTodo.add(tc);
+                }
+        	}
+        }
+        
+        work.clear();
+        for (final NF5 nf5: ontologyNF5) {
+            if (s == nf5.getR()) {
+                final int t = nf5.getS();
+                final int u = nf5.getT();
+                // In this case there is a dependency with the
+                // successors of an external context.
+                final IConceptSet bTPrimes = 
+                		contextIndex.get(b).getSucc().lookupConcept(t);
+                final IConceptSet aUPrimes = succ.lookupConcept(u);
+
+                for (final IntIterator itr = bTPrimes.iterator(); 
+                		itr.hasNext(); ) {
+                    final int bb = itr.next();
+
+                    if (!aUPrimes.contains(bb)) {
+                        work.add(new int[] {u, bb});
+                    }
+
+                }
+            }
+        }
+        for (final int[] pair: work) {
+        	processNewEdgeTracking(pair[0], pair[1]);
+        }
     }
 
 }

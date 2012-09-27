@@ -224,4 +224,9 @@ public final class SparseConceptHashSet implements IConceptSet {
         }
     }
 
+	@Override
+	public int[] toArray() {
+		throw new UnsupportedOperationException();
+	}
+
 }

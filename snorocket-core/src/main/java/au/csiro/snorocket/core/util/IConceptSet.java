@@ -75,6 +75,8 @@ public interface IConceptSet {
     public int size();
 
     public void grow(int newSize);
+    
+    public int[] toArray();
 }
 
 final class EmptyConceptSet implements IConceptSet {
@@ -139,4 +141,9 @@ final class EmptyConceptSet implements IConceptSet {
     public String toString() {
         return "{}";
     }
+
+	@Override
+	public int[] toArray() {
+		return new int[0];
+	}
 }
