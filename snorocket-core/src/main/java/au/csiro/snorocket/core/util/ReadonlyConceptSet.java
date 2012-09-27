@@ -57,4 +57,9 @@ public final class ReadonlyConceptSet implements IConceptSet {
     public String toString() {
         return String.valueOf(set);
     }
+
+	@Override
+	public int[] toArray() {
+		return set.toArray();
+	}
 }

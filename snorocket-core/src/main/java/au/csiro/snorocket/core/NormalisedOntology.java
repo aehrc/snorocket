@@ -23,11 +23,13 @@ package au.csiro.snorocket.core;
 
 import java.io.PrintWriter;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -154,15 +156,21 @@ public class NormalisedOntology {
  	private final RoleMap<RoleSet> roleClosureCache;
  	
  	/**
- 	 * A map of new contexts added in an incremental classification.
+ 	 * A set of new contexts added in an incremental classification.
  	 */
- 	private final IConceptMap<Context> newContexts = new SparseConceptMap<>(2);
+ 	private final Set<Context> newContexts = new HashSet<>();
  	
  	/**
- 	 * A map of contexts potentially affected by an incremental classification.
+ 	 * A set of contexts potentially affected by an incremental classification.
  	 */
- 	private final IConceptMap<Context> affectedContexts = 
- 			new SparseConceptMap<>(2);
+ 	private final Set<Context> affectedContexts = new ConcurrentSkipListSet<>(
+ 			new Comparator<Context>(){
+
+		@Override
+		public int compare(Context arg0, Context arg1) {
+			return Integer.compare(arg0.getConcept(), arg1.getConcept());
+		}
+	});
     
     public IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> 
     	getOntologyNF1() {
@@ -210,7 +218,16 @@ public class NormalisedOntology {
 		return roleClosureCache;
 	}
 
-    public NormalisedOntology(final IFactory factory, 
+    public Set<Context> getAffectedContexts() {
+		return affectedContexts;
+	}
+    
+    /**
+     * 
+     * @param factory
+     * @param inclusions
+     */
+	public NormalisedOntology(final IFactory factory, 
     		final Set<? extends Inclusion> inclusions) {
         this(factory);
         
@@ -525,8 +542,7 @@ public class NormalisedOntology {
         			}
         			
         			// Keep track of the newly added contexts
-        			newContexts.put(cid, c);
-            		
+        			newContexts.add(c);
             		numNewConcepts++;
             	}
             }
@@ -546,13 +562,13 @@ public class NormalisedOntology {
     	rePrimeNF8(as, subsumptions);
     	
     	// Track changes in reactivated contexts
-    	for(IntIterator i = affectedContexts.keyIterator(); i.hasNext(); ) {
+    	/*for(IntIterator i = affectedContexts.keyIterator(); i.hasNext(); ) {
 			Context ctx = affectedContexts.get(i.next());
 			ctx.startTracking();
-		}
+		}*/
     	
     	// Classify
-    	int numThreads = Runtime.getRuntime().availableProcessors();
+    	int numThreads = 1;//Runtime.getRuntime().availableProcessors();
 		LOGGER.log(Level.INFO, "Classifying incrementally with "+numThreads+
 				" threads");
 		
@@ -575,10 +591,11 @@ public class NormalisedOntology {
 		assert(todo.isEmpty());
 		
 		// Stop tracking changes in reactivated contexts
-		for(IntIterator i = affectedContexts.keyIterator(); i.hasNext(); ) {
-			Context ctx = affectedContexts.get(i.next());
+		for(Context ctx : affectedContexts) {
 			ctx.endTracking();
 		}
+		
+		affectedContexts.removeAll(newContexts);
 		
 		if(LOGGER.isLoggable(Level.FINE)) {
 			LOGGER.fine("Processed "+contextIndex.size()+" contexts");
@@ -644,7 +661,8 @@ public class NormalisedOntology {
                     	// Add to corresponding context and activate
                     	Context ctx = contextIndex.get(a); 
                     	ctx.addConceptQueueEntry(entry);
-                    	affectedContexts.put(a, ctx);
+                    	affectedContexts.add(ctx);
+                    	ctx.startTracking();
                     	if(ctx.activate()) {
                     		todo.add(ctx);
                     	}	
@@ -681,7 +699,8 @@ public class NormalisedOntology {
                     final IMonotonicCollection<NF2> set = deltaNF2.get(x);
                     for (NF2 entry: set) {
                     	ctx.addRoleQueueEntry(entry);
-                    	affectedContexts.put(a, ctx);
+                    	affectedContexts.add(ctx);
+                    	ctx.startTracking();
                     	if(ctx.activate()) {
                     		todo.add(ctx);
                     	}
@@ -734,7 +753,8 @@ public class NormalisedOntology {
 
                         if (addIt) {
                         	aCtx.addConceptQueueEntry(entry);
-                        	affectedContexts.put(a, aCtx);
+                        	affectedContexts.add(aCtx);
+                        	aCtx.startTracking();
                         	if(aCtx.activate()) {
                         		todo.add(aCtx);
                         	}
@@ -781,7 +801,8 @@ public class NormalisedOntology {
                     	
                     };
                     aCtx.addRoleQueueEntry(entry);
-                    affectedContexts.put(a, aCtx);
+                    affectedContexts.add(aCtx);
+                    aCtx.startTracking();
                     if(aCtx.activate()) {
                 		todo.add(aCtx);
                 	}       
@@ -838,7 +859,8 @@ public class NormalisedOntology {
 									}
                             };
                             aCtx.addRoleQueueEntry(entry);
-                            affectedContexts.put(a, aCtx);
+                            affectedContexts.add(aCtx);
+                            aCtx.startTracking();
                             if(aCtx.activate()) {
                         		todo.add(aCtx);
                         	}
@@ -874,7 +896,8 @@ public class NormalisedOntology {
     			if(ctx.getSucc().containsRole(role) && 
     					!ctx.getSucc().lookupConcept(role).contains(concept)) {
     				ctx.processExternalEdge(role, concept);
-    				affectedContexts.put(concept, ctx);
+    				affectedContexts.add(ctx);
+    				ctx.startTracking();
     				if(ctx.activate()) {
     					todo.add(ctx);
     				}
@@ -920,7 +943,8 @@ public class NormalisedOntology {
                     	// Add to corresponding context and activate
                     	Context ctx = contextIndex.get(a); 
                     	ctx.addFeatureQueueEntry(entry);
-                    	affectedContexts.put(a, ctx);
+                    	affectedContexts.add(ctx);
+                    	ctx.startTracking();
                     	if(ctx.activate()) {
                     		todo.add(ctx);
                     	}
@@ -958,7 +982,8 @@ public class NormalisedOntology {
     				NF7 nf7 = i.next();
     				if(nf7.rhsD.getFeature() == fid) {
     					aCtx.addFeatureQueueEntry(nf7);
-    					affectedContexts.put(a, aCtx);
+    					affectedContexts.add(aCtx);
+    					aCtx.startTracking();
     					if(aCtx.activate()) {
     						todo.add(aCtx);
     					}
@@ -1035,10 +1060,8 @@ public class NormalisedOntology {
         IConceptMap<IConceptSet> res = new DenseConceptMap<IConceptSet>(
         		newContexts.size());
     	// Collect subsumptions from new contexts
-    	for(IntIterator it = newContexts.keyIterator(); it.hasNext(); ) {
-    		int key = it.next();
-    		Context ctx = newContexts.get(key);
-    		res.put(key, ctx.getS().getSet());
+    	for(Context ctx : newContexts) {
+    		res.put(ctx.getConcept(), ctx.getS().getSet());
     	}
     	return res;
     }
@@ -1051,9 +1074,7 @@ public class NormalisedOntology {
      */
     public IConceptMap<IConceptSet> getAffectedSubsumptions() {
     	int size = 0;
-    	for(IntIterator it = affectedContexts.keyIterator(); it.hasNext(); ) {
-    		int key = it.next();
-    		Context ctx = affectedContexts.get(key);
+    	for(Context ctx : affectedContexts) {
     		if(ctx.hasNewSubsumptions()) {
     			size++;
     		}

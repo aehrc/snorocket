@@ -22,6 +22,8 @@
 package au.csiro.snorocket.core;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 //import java.util.logging.Logger;
 
@@ -50,6 +52,58 @@ public class PostProcessedData {
     
     public PostProcessedData() {
     	
+    }
+    
+    /**
+     * Indicates if cn2 is a parent of cn.
+     * 
+     * @param cn
+     * @param cn2
+     * @return
+     */
+    private boolean isParent(ClassNode cn, ClassNode cn2) {
+    	Set<ClassNode> allParents = new HashSet<>();
+    	Queue<ClassNode> queue = new LinkedList<>();
+    	queue.addAll(cn.getParents());
+    	while(!queue.isEmpty()) {
+    		ClassNode tcn = queue.poll();
+    		allParents.add(tcn);
+    		Set<ClassNode> parents = tcn.getParents();
+    		if(parents != null) queue.addAll(tcn.getParents());
+    	}
+    	if(allParents.contains(cn2))
+    		return true;
+    	else
+    		return false;
+    }
+    
+    /**
+     * Removes indirect parents based on current taxonomy.
+     * 
+     * @param set
+     */
+    private void filterIndirect(IConceptSet set) {
+    	Set<Integer> toRemove = new HashSet<>();
+    	
+    	int[] ids = set.toArray();
+    	for(int i = 0; i < ids.length; i++) {
+    		if(toRemove.contains(ids[i])) continue;
+    		for(int j = i+1; j < ids.length; j++) {
+    			if(toRemove.contains(ids[j])) continue;
+    			ClassNode cn1 = conceptNodeIndex.get(ids[i]);
+    			ClassNode cn2 = conceptNodeIndex.get(ids[j]);
+    			// if cn2 is parent of cn1 then we remove cn2
+    			if(isParent(cn1,  cn2)) {
+    				toRemove.add(ids[j]);
+    			} else if(isParent(cn2, cn1)) {
+    				toRemove.add(ids[i]);
+    			}
+    		}
+    	}
+    	
+    	for(Integer i : toRemove) {
+    		set.remove(i.intValue());
+    	}
     }
     
     /**
@@ -171,6 +225,15 @@ public class PostProcessedData {
 			}
 			cns.add(n);
 		}
+		
+		// Remove indirect parents from direct parents set using current
+		// taxonomy
+		for(IntIterator it = direc.keyIterator(); it.hasNext(); ) {
+			int key = it.next();
+			filterIndirect(direc.get(key));
+		}
+		
+		// TODO: run and try this
 		
 		ClassNode top = conceptNodeIndex.get(Factory.TOP_CONCEPT);
 		ClassNode bottom = conceptNodeIndex.get(Factory.BOTTOM_CONCEPT);
