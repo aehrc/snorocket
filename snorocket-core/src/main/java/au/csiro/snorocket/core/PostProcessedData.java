@@ -21,8 +21,11 @@
 
 package au.csiro.snorocket.core;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 //import java.util.logging.Logger;
@@ -106,6 +109,15 @@ public class PostProcessedData {
     	}
     }
     
+    private boolean contains(Collection<ClassNode> cns, int id) {
+    	for(ClassNode cn : cns) {
+    		if(cn.getEquivalentConcepts().contains(id)) 
+    			return true;
+    	}
+    	
+    	return false;
+    }
+    
     /**
      * Computes and incremental DAG based on the subsumptions for concepts in
      * the new axioms.
@@ -120,14 +132,14 @@ public class PostProcessedData {
     		final IConceptMap<IConceptSet> affectedConceptSubs,
     		ReasonerProgressMonitor monitor) {
     	// Keep only the subsumptions that involve real atomic concepts
-    	IConceptMap<IConceptSet> cis = new SparseConceptMap<IConceptSet>(
+    	IConceptMap<IConceptSet> all = new SparseConceptMap<IConceptSet>(
 				newConceptSubs.size());
 		
 		for(IntIterator itr = newConceptSubs.keyIterator(); itr.hasNext(); ) {
 			final int X = itr.next();
             if(!factory.isVirtualConcept(X)) {
             	IConceptSet set = new SparseConceptHashSet();
-            	cis.put(X, set);
+            	all.put(X, set);
 				for(IntIterator it = newConceptSubs.get(X).iterator(); 
 						it.hasNext() ; ) {
 					int next = it.next();
@@ -143,7 +155,7 @@ public class PostProcessedData {
 			final int X = itr.next();
             if(!factory.isVirtualConcept(X)) {
             	IConceptSet set = new SparseConceptHashSet();
-            	cis.put(X, set);
+            	all.put(X, set);
 				for(IntIterator it = affectedConceptSubs.get(X).iterator(); 
 						it.hasNext() ; ) {
 					int next = it.next();
@@ -154,32 +166,57 @@ public class PostProcessedData {
             }
 		}
 		
-		// Build equivalent and direct concept sets
-    	IConceptMap<IConceptSet> equiv = new SparseConceptMap<IConceptSet>(
+		// Look for equivalents between new concepts and affected concepts 
+		// (unaffected concepts cannot be equivalent to new concepts but
+		// could be equivalent to affected concepts if the affected concept has 
+		// the unaffected concept as a parent and the unaffected concept was 
+		// already its child)
+		IConceptMap<IConceptSet> equiv = new SparseConceptMap<IConceptSet>(
     			factory.getTotalConcepts());
+        
+        for(IntIterator itr = all.keyIterator(); itr.hasNext(); ) {
+			final int a = itr.next();
+            
+            for(IntIterator itr2 = all.get(a).iterator(); itr2.hasNext(); ) {
+            	int c = itr2.next();
+            	IConceptSet cs = all.get(c);
+            	
+            	if(cs != null && cs.contains(a)) {
+            		addToSet(equiv, a, c);
+            	}
+            	
+            	// Look for a possible equivalence in the existing taxonomy
+            	ClassNode parentNode = conceptNodeIndex.get(c);
+            	if(parentNode != null && contains(parentNode.getParents(), a)) {
+            		addToSet(equiv, a, c);
+            	}
+            }
+        }
+		
+        // Look for direct parents for both new concepts and affected concepts
         IConceptMap<IConceptSet> direc = new SparseConceptMap<IConceptSet>(
     			factory.getTotalConcepts());
         
-		for(IntIterator itr = cis.keyIterator(); itr.hasNext(); ) {
-			final int a = itr.next();
+        for(IntIterator itr = all.keyIterator(); itr.hasNext(); ) {
+			final int child = itr.next();
+			List<Integer> unaffectedParents = new ArrayList<>();
             
-            for(IntIterator itr2 = cis.get(a).iterator(); itr2.hasNext(); ) {
-            	int c = itr2.next();
-            	IConceptSet cs = cis.get(c);
+            for(IntIterator itr2 = all.get(child).iterator(); itr2.hasNext(); 
+            		) {
+            	int parent = itr2.next();
+            	IConceptSet cs = all.get(parent);
             	
-            	if(c == IFactory.BOTTOM_CONCEPT) {
-            		addToSet(equiv, a, c);
-            	} else if(cs != null && cs.contains(a)) {
-            		addToSet(equiv, a, c);
+            	if(all.get(parent) == null) {
+            		unaffectedParents.add(parent);
             	} else {
             		boolean isDirect = true;
-            		IConceptSet d = direc.get(a);
+            		IConceptSet d = direc.get(child);
 					if(d != null) {
 						IConceptSet toRemove = new SparseConceptHashSet();
 						for(IntIterator itr3 = d.iterator(); itr3.hasNext(); ) {
 							int b = itr3.next();
-							IConceptSet bs = cis.get(b);
-							if(bs != null && bs.contains(c)) {
+							IConceptSet bs = all.get(b);
+							if(bs != null && bs.contains(parent)) {
 								isDirect = false;
 								break;
 							}
@@ -190,12 +227,36 @@ public class PostProcessedData {
 						d.removeAll(toRemove);
 					}
 					if(isDirect) {
-						addToSet(direc, a, c);
+						addToSet(direc, child, parent);
 					}
             	}
             }
-		}
+            
+            // Deal with unaffected parents. The information is already in the
+            // taxonomy
+            // TODO: finish this
+        }
 		
+		
+		// Create class nodes for the identified equivalent concepts that do
+		// not belong to an existing class node
+		
+		// Connect the new class nodes to the existing taxonomy and analyse 
+		// impact
+		
+		
+		// Build equivalent and direct concept sets considering that existing
+		// taxonomy should be used for the concepts that have not changed
+		
+		
+        
+		
+		
+		
+		
+		
+
+		/*
 		Set<ClassNode> cns = new HashSet<>();
 		
 		// Introduce one taxonomy node for each distinct class of equivalent
@@ -225,15 +286,6 @@ public class PostProcessedData {
 			}
 			cns.add(n);
 		}
-		
-		// Remove indirect parents from direct parents set using current
-		// taxonomy
-		for(IntIterator it = direc.keyIterator(); it.hasNext(); ) {
-			int key = it.next();
-			filterIndirect(direc.get(key));
-		}
-		
-		// TODO: run and try this
 		
 		ClassNode top = conceptNodeIndex.get(Factory.TOP_CONCEPT);
 		ClassNode bottom = conceptNodeIndex.get(Factory.BOTTOM_CONCEPT);
@@ -282,6 +334,7 @@ public class PostProcessedData {
 		
 		equiv = null;
 		direc = null;
+		*/
     }
     
     public void computeDag(final IFactory factory, 
