@@ -21,6 +21,8 @@
 
 package au.csiro.snorocket.core.util;
 
+import java.util.ArrayList;
+
 
 /**
  * Concepts are integers >= 0
@@ -226,7 +228,15 @@ public final class SparseConceptHashSet implements IConceptSet {
 
 	@Override
 	public int[] toArray() {
-		throw new UnsupportedOperationException();
-	}
+		ArrayList<Integer> res = new ArrayList<>();
+		for(IntIterator i = iterator(); i.hasNext(); ) {
+			res.add(i.next());
+		}
+		int[] arr = new int[res.size()];
+		for(int i = 0; i < res.size(); i++) {
+			arr[i] = res.get(i);
+		}
+		return arr;
+ 	}
 
 }
