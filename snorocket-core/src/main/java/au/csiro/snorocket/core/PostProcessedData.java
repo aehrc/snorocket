@@ -119,7 +119,7 @@ public class PostProcessedData {
     }
     
     /**
-     * Computes and incremental DAG based on the subsumptions for concepts in
+     * Computes an incremental DAG based on the subsumptions for concepts in
      * the new axioms.
      * 
      * @param factory The factory.
@@ -131,16 +131,20 @@ public class PostProcessedData {
     		final IConceptMap<IConceptSet> newConceptSubs,
     		final IConceptMap<IConceptSet> affectedConceptSubs,
     		ReasonerProgressMonitor monitor) {
-    	// Keep only the subsumptions that involve real atomic concepts
-    	IConceptMap<IConceptSet> all = new SparseConceptMap<IConceptSet>(
+    	
+    	// 1. Keep only the subsumptions that involve real atomic concepts
+    	IConceptMap<IConceptSet> allNew = new SparseConceptMap<IConceptSet>(
 				newConceptSubs.size());
+    	
+    	IConceptMap<IConceptSet> allAffected = 
+    			new SparseConceptMap<IConceptSet>(newConceptSubs.size());
 		
 		for(IntIterator itr = newConceptSubs.keyIterator(); itr.hasNext(); ) {
-			final int X = itr.next();
-            if(!factory.isVirtualConcept(X)) {
+			final int x = itr.next();
+            if(!factory.isVirtualConcept(x)) {
             	IConceptSet set = new SparseConceptHashSet();
-            	all.put(X, set);
-				for(IntIterator it = newConceptSubs.get(X).iterator(); 
+            	allNew.put(x, set);
+				for(IntIterator it = newConceptSubs.get(x).iterator(); 
 						it.hasNext() ; ) {
 					int next = it.next();
 					if(!factory.isVirtualConcept(next)) {
@@ -152,11 +156,11 @@ public class PostProcessedData {
 		
 		for(IntIterator itr = affectedConceptSubs.keyIterator(); 
 				itr.hasNext(); ) {
-			final int X = itr.next();
-            if(!factory.isVirtualConcept(X)) {
+			final int x = itr.next();
+            if(!factory.isVirtualConcept(x)) {
             	IConceptSet set = new SparseConceptHashSet();
-            	all.put(X, set);
-				for(IntIterator it = affectedConceptSubs.get(X).iterator(); 
+            	allAffected.put(x, set);
+				for(IntIterator it = affectedConceptSubs.get(x).iterator(); 
 						it.hasNext() ; ) {
 					int next = it.next();
 					if(!factory.isVirtualConcept(next)) {
@@ -165,176 +169,106 @@ public class PostProcessedData {
 				}
             }
 		}
+    	
+    	// 2. Create nodes for new concepts and connect to node hierarchy
+		//    a. First create the nodes and add to index
+		for(IntIterator itr = allNew.keyIterator(); itr.hasNext(); ) {
+			final int key = itr.next();
+			ClassNode cn = new ClassNode();
+			cn.getEquivalentConcepts().add(key);
+			conceptNodeIndex.put(key, cn);
+		}
+		//    b. Now connect the nodes disregarding redundant connections
+		for(IntIterator itr = allNew.keyIterator(); itr.hasNext(); ) {
+			final int key = itr.next();
+			ClassNode cn = conceptNodeIndex.get(key);
+			IConceptSet parents = allNew.get(key);
+			for(IntIterator itr2 = parents.iterator(); itr2.hasNext(); ) {
+				// Create a connection to each parent
+				int parentId = itr2.next();
+				if(parentId == key) continue;
+				cn.getParents().add(conceptNodeIndex.get(parentId));
+			}
+		}
 		
-		// Look for equivalents between new concepts and affected concepts 
-		// (unaffected concepts cannot be equivalent to new concepts but
-		// could be equivalent to affected concepts if the affected concept has 
-		// the unaffected concept as a parent and the unaffected concept was 
-		// already its child)
-		IConceptMap<IConceptSet> equiv = new SparseConceptMap<IConceptSet>(
-    			factory.getTotalConcepts());
-        
-        for(IntIterator itr = all.keyIterator(); itr.hasNext(); ) {
-			final int a = itr.next();
-            
-            for(IntIterator itr2 = all.get(a).iterator(); itr2.hasNext(); ) {
-            	int c = itr2.next();
-            	IConceptSet cs = all.get(c);
-            	
-            	if(cs != null && cs.contains(a)) {
-            		addToSet(equiv, a, c);
-            	}
-            	
-            	// Look for a possible equivalence in the existing taxonomy
-            	ClassNode parentNode = conceptNodeIndex.get(c);
-            	if(parentNode != null && contains(parentNode.getParents(), a)) {
-            		addToSet(equiv, a, c);
-            	}
-            }
-        }
+		for(IntIterator itr = allAffected.keyIterator(); itr.hasNext(); ) {
+			final int key = itr.next();
+			ClassNode cn = conceptNodeIndex.get(key);
+			IConceptSet parents = allAffected.get(key);
+			for(IntIterator itr2 = parents.iterator(); itr2.hasNext(); ) {
+				// Create a connection to each parent
+				int parentId = itr2.next();
+				if(parentId == key) continue;
+				cn.getParents().add(conceptNodeIndex.get(parentId));
+			}
+		}
 		
-        // Look for direct parents for both new concepts and affected concepts
-        IConceptMap<IConceptSet> direc = new SparseConceptMap<IConceptSet>(
-    			factory.getTotalConcepts());
-        
-        for(IntIterator itr = all.keyIterator(); itr.hasNext(); ) {
-			final int child = itr.next();
-			List<Integer> unaffectedParents = new ArrayList<>();
-            
-            for(IntIterator itr2 = all.get(child).iterator(); itr2.hasNext(); 
-            		) {
-            	int parent = itr2.next();
-            	IConceptSet cs = all.get(parent);
-            	
-            	if(all.get(parent) == null) {
-            		unaffectedParents.add(parent);
-            	} else {
-            		boolean isDirect = true;
-            		IConceptSet d = direc.get(child);
-					if(d != null) {
-						IConceptSet toRemove = new SparseConceptHashSet();
-						for(IntIterator itr3 = d.iterator(); itr3.hasNext(); ) {
-							int b = itr3.next();
-							IConceptSet bs = all.get(b);
-							if(bs != null && bs.contains(parent)) {
-								isDirect = false;
-								break;
-							}
-							if(cs != null && cs.contains(b)) {
-								toRemove.add(b);
-							}
-						}
-						d.removeAll(toRemove);
-					}
-					if(isDirect) {
-						addToSet(direc, child, parent);
-					}
-            	}
-            }
-            
-            // Deal with unaffected parents. The information is already in the
-            // taxonomy
-            // TODO: finish this
-        }
-		
-		
-		// Create class nodes for the identified equivalent concepts that do
-		// not belong to an existing class node
-		
-		// Connect the new class nodes to the existing taxonomy and analyse 
-		// impact
-		
-		
-		// Build equivalent and direct concept sets considering that existing
-		// taxonomy should be used for the concepts that have not changed
-		
-		
-        
-		
-		
-		
-		
-		
-
-		/*
-		Set<ClassNode> cns = new HashSet<>();
-		
-		// Introduce one taxonomy node for each distinct class of equivalent
-		// concepts
-		for(IntIterator it = equiv.keyIterator(); it.hasNext(); ) {
-			int key = it.next();
-			IConceptSet equivs = equiv.get(key);
-			// Check if any of the equivalent classes is already part of an
-			// equivalent node
-			ClassNode n = null;
-			for(IntIterator it2 = equivs.iterator(); it2.hasNext(); ) {
-				int e = it2.next();
-				if(conceptNodeIndex.containsKey(e)) {
-					n = conceptNodeIndex.get(e);
-					break;
+    	// 3. Disconnect affected concepts from TOP (if connected)
+		ClassNode topNode = conceptNodeIndex.get(IFactory.TOP_CONCEPT);
+		for(IntIterator itr = allAffected.keyIterator(); itr.hasNext(); ) {
+			final int key = itr.next();
+			ClassNode cn = conceptNodeIndex.get(key);
+			if(cn.getParents().contains(topNode)) {
+				cn.getParents().remove(topNode);
+			}
+		}
+    	
+    	// 4. Fix connections for new and affected concepts
+    	//    a. Check for equivalents
+		Set<Pair> pairsToMerge = new HashSet<>();
+		for(IntIterator itr = allNew.keyIterator(); itr.hasNext(); ) {
+			final int key = itr.next();
+			ClassNode cn = conceptNodeIndex.get(key);
+			for(ClassNode parent : cn.getParents()) {
+				if(parent.getParents().contains(cn)) {
+					pairsToMerge.add(new Pair(cn, parent));
 				}
+			}
+		}
+		for(IntIterator itr = allAffected.keyIterator(); itr.hasNext(); ) {
+			final int key = itr.next();
+			ClassNode cn = conceptNodeIndex.get(key);
+			for(ClassNode parent : cn.getParents()) {
+				if(parent.getParents().contains(cn)) {
+					pairsToMerge.add(new Pair(cn, parent));
+				}
+			}
+		}
+		
+		// Merge equivalents
+		for(Pair p : pairsToMerge) {
+			ClassNode cn1 = p.getA();
+			ClassNode cn2 = p.getB();
+			
+			// Merge into cn1
+			
+			// Remove cn2 from index and replace with cn1
+			for(IntIterator it = cn2.getEquivalentConcepts().iterator(); 
+					it.hasNext(); ) {
+				conceptNodeIndex.put(it.next(), cn1);
 			}
 			
-			if(n == null) {
-				n = new ClassNode();
-			}
-			n.getEquivalentConcepts().add(key);
-			n.getEquivalentConcepts().addAll(equivs);
-			for(IntIterator it2 = equivs.iterator(); it2.hasNext(); ) {
-				int e = it2.next();
-				conceptNodeIndex.put(e, n);
-			}
-			cns.add(n);
+			// Taxonomy is bidirectional
+			
+			// TODO: fix connections
+			
+			cn1.getEquivalentConcepts().addAll(cn2.getEquivalentConcepts());
+			cn1.getParents().addAll(cn2.getParents());
+			cn1.getChildren().addAll(cn2.getChildren());
+			
+			cn2 = null; // nothing should reference cn2 now
 		}
-		
-		ClassNode top = conceptNodeIndex.get(Factory.TOP_CONCEPT);
-		ClassNode bottom = conceptNodeIndex.get(Factory.BOTTOM_CONCEPT);
-		
-		// Connect the nodes according to the direct super-concept relationships
-		Set<ClassNode> processed = new HashSet<>();
-		for(ClassNode node : cns) {
-			if(processed.contains(node) || node == top || node == bottom) 
-				continue;
-			processed.add(node);
-			for(IntIterator it2 = node.getEquivalentConcepts().iterator(); 
-					it2.hasNext(); ) {
-				int c = it2.next();
-				// Get direct superconcepts
-				IConceptSet dc = direc.get(c);
-				if(dc != null) {
-					for(IntIterator it3 = dc.iterator(); it3.hasNext(); ) {
-						int d = it3.next();
-						ClassNode parent = (ClassNode)conceptNodeIndex.get(d);
-						if(parent != null) {
-							node.getParents().add(parent);
-							parent.getChildren().add(node);
-						}
-					}
-				}
+    	
+    	// 5. Connect bottom to new concepts with no children
+		ClassNode bottomNode = conceptNodeIndex.get(IFactory.BOTTOM_CONCEPT);
+		for(IntIterator itr = allNew.keyIterator(); itr.hasNext(); ) {
+			final int key = itr.next();
+			ClassNode cn = conceptNodeIndex.get(key);
+			if(cn.getChildren().isEmpty()) {
+				cn.getChildren().add(bottomNode);
+				bottomNode.getParents().add(cn);
 			}
 		}
-		
-		// Add bottom
-		for(ClassNode node : cns) {
-			if(node.getEquivalentConcepts().contains(Factory.BOTTOM_CONCEPT)) 
-				continue;
-			if(node.getChildren().isEmpty()) {
-				bottom.getParents().add(node);
-				node.getChildren().add(bottom);
-			}
-		}
-		
-		// Add top
-		for(ClassNode node : cns) {
-			if(node.getParents().isEmpty()) {
-				node.getParents().add(top);
-				top.getChildren().add(node);
-			}
-		}
-		
-		equiv = null;
-		direc = null;
-		*/
     }
     
     public void computeDag(final IFactory factory, 
@@ -499,7 +433,8 @@ public class PostProcessedData {
 		
 		for(IntIterator it = conceptNodeIndex.keyIterator(); it.hasNext(); ) {
 			int key = it.next();
-			if(key == Factory.BOTTOM_CONCEPT) continue;
+			if(key == Factory.BOTTOM_CONCEPT || key == Factory.TOP_CONCEPT) 
+				continue;
 			ClassNode node = (ClassNode)conceptNodeIndex.get(key);
 			if(node.getEquivalentConcepts().contains(Factory.BOTTOM_CONCEPT)) 
 				continue;
@@ -520,10 +455,8 @@ public class PostProcessedData {
 		
 		for(IntIterator it = conceptNodeIndex.keyIterator(); it.hasNext(); ) {
 			int key = it.next();
-			
 			if(key == Factory.BOTTOM_CONCEPT || key == Factory.TOP_CONCEPT)
 				continue;
-			
 			ClassNode node = (ClassNode)conceptNodeIndex.get(key);
 			if(node.getParents().isEmpty()) {
 				node.getParents().add(top);
@@ -535,6 +468,9 @@ public class PostProcessedData {
 		
 		equiv = null;
 		direc = null;
+		
+		// TODO: deal with special case where only top and bottom are present.
+		
 		monitor.reasonerTaskStopped();
     }
     
@@ -581,4 +517,116 @@ public class PostProcessedData {
     public boolean hasData() {
     	return conceptNodeIndex != null;
     }
+    
+    class Pair {
+    	
+    	private final ClassNode a;
+    	private final ClassNode b;
+    	
+    	/**
+    	 * Creates a new pair.
+    	 * 
+    	 * @param a
+    	 * @param b
+    	 */
+    	public Pair(ClassNode a, ClassNode b) {
+    		int[] aa = new int[a.getEquivalentConcepts().size()];
+    		int[] bb = new int[b.getEquivalentConcepts().size()];
+    		
+    		if(aa.length < bb.length) {
+    			this.a = a;
+    			this.b = b;
+    		} else if(aa.length > bb.length) {
+    			this.a = b;
+    			this.b = a;
+    		} else {
+    			int i = 0;
+    			for(IntIterator it = a.getEquivalentConcepts().iterator(); 
+        				it.hasNext(); ) {
+        			aa[i++] = it.next();
+        		}
+    			i = 0;
+    			for(IntIterator it = b.getEquivalentConcepts().iterator(); 
+        				it.hasNext(); ) {
+        			bb[i++] = it.next();
+        		}
+    			
+    			int res = 0; // 0 equal, 1 a <, 2 a >
+    			
+    			for(i = 0; i < aa.length; i++) {
+    				if(aa[i] < bb[i]) {
+    					res = 1;
+    					break;
+    				} else if(aa[i] > bb[i]) {
+    					res = 2;
+    					break;
+    				}
+    			}
+    			
+    			if(res == 1) {
+    				this.a = a;
+    				this.b = b;
+    			} else if(res == 2) {
+    				this.a = b;
+    				this.b = a;
+    			} else {
+    				this.a = a;
+    				this.b = b;
+    			}
+    		}
+    	}
+
+		/**
+		 * @return the a
+		 */
+		public ClassNode getA() {
+			return a;
+		}
+
+		/**
+		 * @return the b
+		 */
+		public ClassNode getB() {
+			return b;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + ((a == null) ? 0 : a.hashCode());
+			result = prime * result + ((b == null) ? 0 : b.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Pair other = (Pair) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (a == null) {
+				if (other.a != null)
+					return false;
+			} else if (!a.equals(other.a))
+				return false;
+			if (b == null) {
+				if (other.b != null)
+					return false;
+			} else if (!b.equals(other.b))
+				return false;
+			return true;
+		}
+
+		private PostProcessedData getOuterType() {
+			return PostProcessedData.this;
+		}
+    }
+    
 }
