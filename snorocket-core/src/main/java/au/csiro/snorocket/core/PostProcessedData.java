@@ -21,14 +21,10 @@
 
 package au.csiro.snorocket.core;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-//import java.util.logging.Logger;
 
 import org.semanticweb.owlapi.reasoner.NullReasonerProgressMonitor;
 import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
@@ -39,6 +35,7 @@ import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
 import au.csiro.snorocket.core.util.SparseConceptHashSet;
 import au.csiro.snorocket.core.util.SparseConceptMap;
+//import java.util.logging.Logger;
 
 /**
  * Builds the taxonomy based on the result of the classification process.
@@ -58,64 +55,26 @@ public class PostProcessedData {
     }
     
     /**
-     * Indicates if cn2 is a parent of cn.
+     * Indicates if cn is a child of cn2.
      * 
      * @param cn
      * @param cn2
      * @return
      */
-    private boolean isParent(ClassNode cn, ClassNode cn2) {
-    	Set<ClassNode> allParents = new HashSet<>();
+    private boolean isChild(ClassNode cn, ClassNode cn2) {
+    	Set<ClassNode> allChildren = new HashSet<>();
     	Queue<ClassNode> queue = new LinkedList<>();
-    	queue.addAll(cn.getParents());
+    	queue.addAll(cn2.getChildren());
     	while(!queue.isEmpty()) {
     		ClassNode tcn = queue.poll();
-    		allParents.add(tcn);
-    		Set<ClassNode> parents = tcn.getParents();
-    		if(parents != null) queue.addAll(tcn.getParents());
+    		allChildren.add(tcn);
+    		Set<ClassNode> children = tcn.getChildren();
+    		if(children != null) queue.addAll(children);
     	}
-    	if(allParents.contains(cn2))
+    	if(allChildren.contains(cn))
     		return true;
     	else
     		return false;
-    }
-    
-    /**
-     * Removes indirect parents based on current taxonomy.
-     * 
-     * @param set
-     */
-    private void filterIndirect(IConceptSet set) {
-    	Set<Integer> toRemove = new HashSet<>();
-    	
-    	int[] ids = set.toArray();
-    	for(int i = 0; i < ids.length; i++) {
-    		if(toRemove.contains(ids[i])) continue;
-    		for(int j = i+1; j < ids.length; j++) {
-    			if(toRemove.contains(ids[j])) continue;
-    			ClassNode cn1 = conceptNodeIndex.get(ids[i]);
-    			ClassNode cn2 = conceptNodeIndex.get(ids[j]);
-    			// if cn2 is parent of cn1 then we remove cn2
-    			if(isParent(cn1,  cn2)) {
-    				toRemove.add(ids[j]);
-    			} else if(isParent(cn2, cn1)) {
-    				toRemove.add(ids[i]);
-    			}
-    		}
-    	}
-    	
-    	for(Integer i : toRemove) {
-    		set.remove(i.intValue());
-    	}
-    }
-    
-    private boolean contains(Collection<ClassNode> cns, int id) {
-    	for(ClassNode cn : cns) {
-    		if(cn.getEquivalentConcepts().contains(id)) 
-    			return true;
-    	}
-    	
-    	return false;
     }
     
     /**
@@ -178,7 +137,9 @@ public class PostProcessedData {
 			cn.getEquivalentConcepts().add(key);
 			conceptNodeIndex.put(key, cn);
 		}
+		
 		//    b. Now connect the nodes disregarding redundant connections
+		ClassNode bottomNode = conceptNodeIndex.get(IFactory.BOTTOM_CONCEPT);
 		for(IntIterator itr = allNew.keyIterator(); itr.hasNext(); ) {
 			final int key = itr.next();
 			ClassNode cn = conceptNodeIndex.get(key);
@@ -187,7 +148,16 @@ public class PostProcessedData {
 				// Create a connection to each parent
 				int parentId = itr2.next();
 				if(parentId == key) continue;
-				cn.getParents().add(conceptNodeIndex.get(parentId));
+				ClassNode parent = conceptNodeIndex.get(parentId);
+				cn.getParents().add(parent);
+				parent.getChildren().add(cn);
+				// All nodes that get new children and are connected to BOTTOM
+				// must be disconnected
+				if(parent.getChildren().contains(bottomNode)) {
+					parent.getChildren().remove(bottomNode);
+					bottomNode.getParents().remove(parent);
+				}
+				
 			}
 		}
 		
@@ -199,7 +169,15 @@ public class PostProcessedData {
 				// Create a connection to each parent
 				int parentId = itr2.next();
 				if(parentId == key) continue;
-				cn.getParents().add(conceptNodeIndex.get(parentId));
+				ClassNode parent = conceptNodeIndex.get(parentId);
+				cn.getParents().add(parent);
+				parent.getChildren().add(cn);
+				// All nodes that get new children and are connected to BOTTOM
+				// must be disconnected
+				if(parent.getChildren().contains(bottomNode)) {
+					parent.getChildren().remove(bottomNode);
+					bottomNode.getParents().remove(parent);
+				}
 			}
 		}
 		
@@ -210,6 +188,7 @@ public class PostProcessedData {
 			ClassNode cn = conceptNodeIndex.get(key);
 			if(cn.getParents().contains(topNode)) {
 				cn.getParents().remove(topNode);
+				topNode.getChildren().remove(cn);
 			}
 		}
     	
@@ -235,38 +214,115 @@ public class PostProcessedData {
 			}
 		}
 		
+		Set<ClassNode> affectedByMerge = new HashSet<>();
+		
 		// Merge equivalents
 		for(Pair p : pairsToMerge) {
 			ClassNode cn1 = p.getA();
 			ClassNode cn2 = p.getB();
 			
-			// Merge into cn1
+			affectedByMerge.addAll(cn1.getChildren());
+			affectedByMerge.addAll(cn2.getChildren());
 			
-			// Remove cn2 from index and replace with cn1
+			// Merge into cn1 - remove cn2 from index and replace with cn1
 			for(IntIterator it = cn2.getEquivalentConcepts().iterator(); 
 					it.hasNext(); ) {
 				conceptNodeIndex.put(it.next(), cn1);
 			}
 			
-			// Taxonomy is bidirectional
-			
-			// TODO: fix connections
-			
 			cn1.getEquivalentConcepts().addAll(cn2.getEquivalentConcepts());
+			
+			// Remove relationships between merged concepts
+			cn1.getParents().remove(cn2);
+			cn2.getChildren().remove(cn1);
+			cn2.getParents().remove(cn1);
+			cn1.getChildren().remove(cn2);
+			
+			// Taxonomy is bidirectional
 			cn1.getParents().addAll(cn2.getParents());
+			for(ClassNode parent : cn2.getParents()) {
+				parent.getChildren().remove(cn2);
+				parent.getChildren().add(cn1);
+			}
 			cn1.getChildren().addAll(cn2.getChildren());
+			for(ClassNode child : cn2.getChildren()) {
+				child.getParents().remove(cn2);
+				child.getParents().add(cn1);
+			}
 			
 			cn2 = null; // nothing should reference cn2 now
 		}
+		
+		//	    b. Fix all new and affected nodes
+		Set<ClassNode> all = new HashSet<>();
+		for(IntIterator it = allNew.keyIterator(); it.hasNext(); ) {
+			all.add(conceptNodeIndex.get(it.next()));
+		}
     	
-    	// 5. Connect bottom to new concepts with no children
-		ClassNode bottomNode = conceptNodeIndex.get(IFactory.BOTTOM_CONCEPT);
+		for(IntIterator it = allAffected.keyIterator(); it.hasNext(); ) {
+			all.add(conceptNodeIndex.get(it.next()));
+		}
+		
+		for(ClassNode cn : affectedByMerge) {
+			all.add(cn);
+		}
+		
+		// Find redundant relationships
+		for(ClassNode cn : all) {
+			Set<ClassNode> ps = cn.getParents();
+			ClassNode[] parents = ps.toArray(new ClassNode[ps.size()]);
+			Set<ClassNode> toRemove = new HashSet<>();
+			for(int i = 0; i < parents.length; i++) {
+				for(int j = i+1; j < parents.length; j++) {
+					if(isChild(parents[j], parents[i])) {
+						toRemove.add(parents[i]);
+						continue;
+					}
+					if(isChild(parents[i], parents[j])) {
+						toRemove.add(parents[j]);
+						continue;
+					}
+				}
+			}
+			for(ClassNode tr : toRemove) {
+				cn.getParents().remove(tr);
+				tr.getChildren().remove(cn);
+			}
+		}
+		
+    	// 5. Connect bottom to new and affected concepts with no children
 		for(IntIterator itr = allNew.keyIterator(); itr.hasNext(); ) {
 			final int key = itr.next();
 			ClassNode cn = conceptNodeIndex.get(key);
 			if(cn.getChildren().isEmpty()) {
 				cn.getChildren().add(bottomNode);
 				bottomNode.getParents().add(cn);
+			}
+		}
+		for(IntIterator itr = allAffected.keyIterator(); itr.hasNext(); ) {
+			final int key = itr.next();
+			ClassNode cn = conceptNodeIndex.get(key);
+			if(cn.getChildren().isEmpty()) {
+				cn.getChildren().add(bottomNode);
+				bottomNode.getParents().add(cn);
+			}
+		}
+		
+		// 6. Connect the top node to new and affected concepts with no parents
+		for(IntIterator itr = allNew.keyIterator(); itr.hasNext(); ) {
+			final int key = itr.next();
+			ClassNode cn = conceptNodeIndex.get(key);
+			if(cn.getParents().isEmpty()) {
+				cn.getParents().add(topNode);
+				topNode.getChildren().add(cn);
+			}
+		}
+		for(IntIterator itr = allAffected.keyIterator(); itr.hasNext(); ) {
+			final int key = itr.next();
+			ClassNode cn = conceptNodeIndex.get(key);
+			if(cn.getParents().isEmpty()) {
+				cn.getParents().add(topNode);
+				topNode.getChildren().add(cn);
 			}
 		}
     }

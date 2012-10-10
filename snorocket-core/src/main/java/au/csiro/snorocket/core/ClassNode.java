@@ -48,10 +48,12 @@ public class ClassNode {
 		StringBuilder sb = new StringBuilder();
 		int size = equivalentConcepts.size();
 		int i = 0;
+		sb.append("{");
 		for(IntIterator it = equivalentConcepts.iterator(); it.hasNext(); ) {
 			sb.append(it.next());
 			if(++i < size) sb.append(", ");
 		}
+		sb.append("}");
 		return sb.toString();
 	}
 	

@@ -177,9 +177,6 @@ public class TestPostProcessedData {
 	 *   BOTTOM
 	 * 
 	 * Incremental sets:
-	 * A: {A}
-	 * B: {B, A}
-	 * C: {C, A}
 	 * D: {D, B, C}
 	 * E: {E, D}
 	 * 
@@ -335,7 +332,6 @@ public class TestPostProcessedData {
 	 * 
 	 * Incremental sets:
 	 * A: {A, C}
-	 * B: {B, A}
 	 * C: {C}
 	 * D: {D, A, C}
 	 * 
@@ -398,7 +394,7 @@ public class TestPostProcessedData {
 		affectedConceptSubs.put(a, aSet);
 		
 		// Compute DAG incrementally
-		ppd.computeDagIncremental(factory, newSubsumptions, affectedConceptSubs, 
+		ppd.computeDagIncremental(factory, newSubsumptions, affectedConceptSubs,
 				new NullReasonerProgressMonitor());
 		
 		ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
@@ -458,7 +454,7 @@ public class TestPostProcessedData {
 	
 	/**
 	 * Test case for incremental DAG computation including the addition of a
-	 * noed that is equivalent to an existing node.
+	 * node that is equivalent to an existing node.
 	 * 
 	 * Original sets:
 	 * A: {A}
@@ -491,13 +487,14 @@ public class TestPostProcessedData {
 	 *     A
 	 *     |  
 	 *     B
-	 *     |_____
-	 *     |     |
-	 *     |   _C,F
-	 *     |_ |  |
-	 *       D   E
-	 *       |   |
-	 *      BOTTOM
+	 *     |
+	 *    C,F
+	 *    _|_
+	 *   |   |
+	 *   D   E
+	 *   |_ _|
+	 *     |
+	 *   BOTTOM
 	 */
 	@Test
 	public void testComputeDagIncremental3() {
@@ -541,7 +538,7 @@ public class TestPostProcessedData {
 		// Add additional subsumptions
 		int f = factory.getConcept("F");
 		
-		IConceptMap<IConceptSet> newSubsumptions = new SparseConceptMap<>(2);
+		IConceptMap<IConceptSet> newSubsumptions = new SparseConceptMap<>(1);
 		
 		IConceptSet fSet = new SparseConceptSet();
 		fSet.add(f);
@@ -582,9 +579,9 @@ public class TestPostProcessedData {
 		// Check node contains a single concept
 		Assert.assertEquals(1, bNode.getEquivalentConcepts().size());
 		// Check concept is B
-		Assert.assertEquals(b, aNode.getEquivalentConcepts().iterator().next());
-		// Check number of children is 2
-		Assert.assertEquals(2, aNode.getChildren().size());
+		Assert.assertEquals(b, bNode.getEquivalentConcepts().iterator().next());
+		// Check number of children is 1
+		Assert.assertEquals(1, bNode.getChildren().size());
 
 		ClassNode cfNode = ppd.getEquivalents(c);
 		// Check node contains two concepts
@@ -631,6 +628,85 @@ public class TestPostProcessedData {
 		Assert.assertEquals(1, eNode.getChildren().size());
 		// Check child is BOTTOM
 		Assert.assertEquals(Factory.BOTTOM_CONCEPT, eNode.getChildren().
+				iterator().next().getEquivalentConcepts().iterator().next());
+	}
+	
+	/**
+	 * Test case for incremental DAG computation including the case where an
+	 * existing node becomes equivalent to another existing node.
+	 * 
+	 * Original sets:
+	 * A: {A}
+	 * B: {B, A}
+	 * 
+	 * Original taxonomy:
+	 * 
+	 *    TOP
+	 *     |
+	 *     A
+	 *     |
+	 *     B
+	 *     |
+	 *    BOTTOM
+	 * 
+	 * Incremental sets:
+	 * A: {A, B}
+	 * 
+	 * New expected taxonomy:
+	 * 
+	 *    TOP
+	 *     |
+	 *    A,B
+	 *     |  
+	 *   BOTTOM
+	 */
+	@Test
+	public void testComputeDagIncremental4() {
+		PostProcessedData ppd = new PostProcessedData();
+		IFactory factory = new Factory();
+		int a = factory.getConcept("A");
+		int b = factory.getConcept("B");
+		
+		IConceptMap<IConceptSet> subsumptions = new SparseConceptMap<>(3);
+		IConceptSet aSet = new SparseConceptSet();
+		aSet.add(a);
+		subsumptions.put(a, aSet);
+		
+		IConceptSet bSet = new SparseConceptSet();
+		bSet.add(b);
+		bSet.add(a);
+		subsumptions.put(b, bSet);
+		
+		ppd.computeDag(factory, subsumptions, 
+				new NullReasonerProgressMonitor());
+		
+		// Add additional subsumptions
+		IConceptMap<IConceptSet> newSubsumptions = new SparseConceptMap<>(1);
+		
+		IConceptMap<IConceptSet> affectedConceptSubs = 
+				new SparseConceptMap<>(1);
+				
+		aSet = new SparseConceptSet();
+		aSet.add(a);
+		aSet.add(b);
+		affectedConceptSubs.put(a, aSet);
+		
+		// Compute DAG incrementally
+		ppd.computeDagIncremental(factory, newSubsumptions, affectedConceptSubs, 
+				new NullReasonerProgressMonitor());
+		
+		// Verify taxonomy
+		ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
+		Assert.assertEquals(true, top.getParents().isEmpty());
+		Assert.assertEquals(1, top.getChildren().size());
+		
+		ClassNode aNode = ppd.getEquivalents(a);
+		// Check node contains two concepts
+		Assert.assertEquals(2, aNode.getEquivalentConcepts().size());
+		// Check number of children is 1
+		Assert.assertEquals(1, aNode.getChildren().size());
+		// Check child is BOTTOM
+		Assert.assertEquals(Factory.BOTTOM_CONCEPT, aNode.getChildren().
 				iterator().next().getEquivalentConcepts().iterator().next());
 	}
 
