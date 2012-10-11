@@ -550,6 +550,7 @@ public class NormalisedOntology {
     	
     	LOGGER.info("Added "+numNewConcepts+" new concepts to the ontology.");
     	
+    	// TODO: this is potentially slow
     	IConceptMap<IConceptSet> subsumptions = getSubsumptions();
     	
     	rePrimeNF1(as, subsumptions);
@@ -568,6 +569,7 @@ public class NormalisedOntology {
 		}*/
     	
     	// Classify
+    	// TODO: change back after debugging
     	int numThreads = 1;//Runtime.getRuntime().availableProcessors();
 		LOGGER.log(Level.INFO, "Classifying incrementally with "+numThreads+
 				" threads");
