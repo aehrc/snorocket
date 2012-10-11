@@ -181,14 +181,16 @@ public class PostProcessedData {
 			}
 		}
 		
-    	// 3. Disconnect affected concepts from TOP (if connected)
+		// 3. Connect new nodes without parents to TOP
+		
 		ClassNode topNode = conceptNodeIndex.get(IFactory.TOP_CONCEPT);
-		for(IntIterator itr = allAffected.keyIterator(); itr.hasNext(); ) {
+		
+		for(IntIterator itr = allNew.keyIterator(); itr.hasNext(); ) {
 			final int key = itr.next();
 			ClassNode cn = conceptNodeIndex.get(key);
-			if(cn.getParents().contains(topNode)) {
-				cn.getParents().remove(topNode);
-				topNode.getChildren().remove(cn);
+			if(cn.getParents().isEmpty()) {
+				cn.getParents().add(topNode);
+				topNode.getChildren().add(cn);
 			}
 		}
     	
@@ -266,6 +268,13 @@ public class PostProcessedData {
 		for(ClassNode cn : affectedByMerge) {
 			all.add(cn);
 		}
+		
+		// Add also the children of the affected nodes
+		Set<ClassNode> childrenToAdd = new HashSet<>();
+		for(ClassNode cn : all) {
+			childrenToAdd.addAll(cn.getChildren());
+		}
+		all.addAll(childrenToAdd);
 		
 		// Find redundant relationships
 		for(ClassNode cn : all) {

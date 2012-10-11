@@ -37,7 +37,7 @@ public class TestNormalisedOntology {
 	/**
 	 * Tests the simple example found in the paper "Efficient Reasoning in EL+".
 	 */
-	//@Test
+	@Test
 	public void testEndocarditis() {
 		IFactory factory = new Factory();
         
@@ -224,7 +224,7 @@ public class TestNormalisedOntology {
 	 *     -Panadol_500mg
 	 *   -Paracetamol
 	 */
-	//@Test
+	@Test
 	public void testConcreteDomainsEqualityInts() {
 		IFactory factory = new Factory();
 		
@@ -347,7 +347,7 @@ public class TestNormalisedOntology {
 	 *     -Panadol_500mg
 	 *   -Paracetamol
 	 */
-	//@Test
+	@Test
 	public void testConcreteDomainsEqualityFloats() {
 		IFactory factory = new Factory();
 		
@@ -470,7 +470,7 @@ public class TestNormalisedOntology {
 	 *     -Panadol_500mg
 	 *   -Paracetamol
 	 */
-	//@Test
+	@Test
 	public void testConcreteDomainsEqualityStrings() {
 		IFactory factory = new Factory();
 		
@@ -586,7 +586,7 @@ public class TestNormalisedOntology {
 	 * the Description Logic EL with Numerical Datatypes". It uses integer
 	 * values and the operators less than, equals, and greater than.
 	 */
-	//@Test
+	@Test
 	public void testConcreteDomainsOperators() {
 		IFactory factory = new Factory();
 		
@@ -691,7 +691,7 @@ public class TestNormalisedOntology {
         assertTrue(bottomRes.contains(ppd.getEquivalents(patient)));
 	}
 	
-	//@Test
+	@Test
 	public void testNormalise() {
 		IFactory factory = new Factory();
 		
