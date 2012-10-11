@@ -62,19 +62,19 @@ public class PostProcessedData {
      * @return
      */
     private boolean isChild(ClassNode cn, ClassNode cn2) {
-    	Set<ClassNode> allChildren = new HashSet<>();
-    	Queue<ClassNode> queue = new LinkedList<>();
-    	queue.addAll(cn2.getChildren());
-    	while(!queue.isEmpty()) {
-    		ClassNode tcn = queue.poll();
-    		allChildren.add(tcn);
-    		Set<ClassNode> children = tcn.getChildren();
-    		if(children != null) queue.addAll(children);
+    	if(cn == cn2) return false;
+    	
+    	Queue<ClassNode> toProcess = new LinkedList<>();
+    	toProcess.addAll(cn.getParents());
+    	
+    	while(!toProcess.isEmpty()) {
+    		ClassNode tcn = toProcess.poll();
+    		if(tcn.equals(cn2)) return true;
+    		Set<ClassNode> parents = tcn.getParents();
+    		if(parents != null && !parents.isEmpty()) toProcess.addAll(parents);
     	}
-    	if(allChildren.contains(cn))
-    		return true;
-    	else
-    		return false;
+    	
+    	return false;
     }
     
     /**
@@ -272,13 +272,17 @@ public class PostProcessedData {
 		// Add also the children of the affected nodes
 		Set<ClassNode> childrenToAdd = new HashSet<>();
 		for(ClassNode cn : all) {
-			childrenToAdd.addAll(cn.getChildren());
+			for(ClassNode ccn : cn.getChildren()) {
+				if(ccn.equals(bottomNode)) continue;
+				childrenToAdd.add(ccn);
+			}
 		}
 		all.addAll(childrenToAdd);
 		
 		// Find redundant relationships
 		for(ClassNode cn : all) {
 			Set<ClassNode> ps = cn.getParents();
+			
 			ClassNode[] parents = ps.toArray(new ClassNode[ps.size()]);
 			Set<ClassNode> toRemove = new HashSet<>();
 			for(int i = 0; i < parents.length; i++) {
