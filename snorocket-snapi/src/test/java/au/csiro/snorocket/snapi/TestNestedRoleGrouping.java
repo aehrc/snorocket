@@ -60,7 +60,8 @@ public class TestNestedRoleGrouping {
         }
         return factory;
     }
-
+	
+	@Ignore
     @Test
     public void testSimpleNesting() {
         rocket.setIsa("isa");

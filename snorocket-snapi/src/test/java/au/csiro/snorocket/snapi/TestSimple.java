@@ -27,6 +27,7 @@ import java.lang.reflect.Field;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 import au.csiro.snorocket.core.Factory;
 import au.csiro.snorocket.snapi.I_Snorocket.I_Callback;
@@ -74,6 +75,7 @@ public class TestSimple {
     /**
      * Test method for {@link au.csiro.snorocket.snapi.Snorocket#addConcept(java.lang.String, boolean)}.
      */
+	@Ignore
     @Test
     public void testAddConceptStringBoolean() {
         rocket.addConcept(CONCEPT0, true);
@@ -142,7 +144,8 @@ public class TestSimple {
         final Factory factory = fX;
         return factory;
     }
-
+	
+	@Ignore
     @Test
     public void subsumptionInProperties() {
         rocket.addConcept("sick_animal", true);

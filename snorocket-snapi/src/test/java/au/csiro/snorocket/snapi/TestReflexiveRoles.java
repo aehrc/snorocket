@@ -18,6 +18,7 @@
 package au.csiro.snorocket.snapi;
 
 import org.junit.Test;
+import org.junit.Ignore;
 
 import au.csiro.snorocket.core.IFactory;
 
@@ -74,6 +75,7 @@ public class TestReflexiveRoles extends AbstractTest {
      * Thus, AA [ partOf.AA and YY [ partOf.YY but not XX [ partOf.XX
      * 
      */
+	 @Ignore
     @Test
     public void simpleTest() {
         final I_Snorocket rocket = new Snorocket();
@@ -96,6 +98,7 @@ public class TestReflexiveRoles extends AbstractTest {
         
     }
     
+	@Ignore
     @Test
     public void simpleSubroleTest() {
         final I_Snorocket rocket = new Snorocket();
@@ -126,6 +129,7 @@ public class TestReflexiveRoles extends AbstractTest {
      * 
      * @see http://lat.inf.tu-dresden.de/research/papers/2007/SunBaaSchSpa-AIME-07.pdf
      */
+	@Ignore
     @Test
     public void spackmanSEPTest() {
         final I_Snorocket rocket = new Snorocket();
