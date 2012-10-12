@@ -16,12 +16,7 @@
  */
 package au.csiro.snorocket.snapi;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestEquivalents extends AbstractTest {
@@ -33,7 +28,7 @@ public class TestEquivalents extends AbstractTest {
     private static final String CONCEPT3 = "D";
     private static final String HAS_PROPERTY = "hasProperty";
 
-
+	@Ignore
     @Test
     public void testSimpleEquivalency() {
         final I_Snorocket rocket = new Snorocket();
@@ -51,7 +46,8 @@ public class TestEquivalents extends AbstractTest {
         checkExpectedDistributionRelationshipCount(rocket, 0);
         checkExpectedEquivalenceCount(rocket, 1);
     }
-
+	
+	@Ignore
     @Test
     public void testNonincrementalEquivalency() {
         final I_Snorocket rocket = new Snorocket();
@@ -68,8 +64,9 @@ public class TestEquivalents extends AbstractTest {
         checkExpectedDistributionRelationshipCount(rocket, 3);
         checkExpectedEquivalenceCount(rocket, 1);
     }
-    
-    /*
+	
+	/*
+	@Ignore
     @Test
     public void testIncrementalEquivalency() {
         final I_Snorocket rocket = getExtensionRocket();
@@ -87,7 +84,7 @@ public class TestEquivalents extends AbstractTest {
     }
     */
     
-    /*
+	/*
     private I_Snorocket getExtensionRocket() {
         I_Snorocket rocket1 = getInitialClassifiedRocket();
         System.out.println("----------------------------------");
@@ -106,7 +103,8 @@ public class TestEquivalents extends AbstractTest {
     }
     */
 
-    private I_Snorocket getInitialClassifiedRocket() {
+    @SuppressWarnings("unused")
+	private I_Snorocket getInitialClassifiedRocket() {
         final I_Snorocket rocket = new Snorocket();
         rocket.setIsa(ISA);
         initRocket(rocket);

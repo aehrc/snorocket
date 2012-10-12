@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.Ignore;
 
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.ParseException;
@@ -141,6 +142,7 @@ public class TestSnorocket {
      * Non-redundant defining relationships == distribution form
      * 
      */
+	@Ignore
     @Test
     public void definingNonRedundantRelationships() throws FileNotFoundException, ParseException {
         Snorocket.DEBUGGING = true;

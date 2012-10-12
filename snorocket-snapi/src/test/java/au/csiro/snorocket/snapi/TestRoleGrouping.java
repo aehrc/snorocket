@@ -23,6 +23,7 @@ package au.csiro.snorocket.snapi;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 public class TestRoleGrouping extends AbstractTest {
 
@@ -38,7 +39,8 @@ public class TestRoleGrouping extends AbstractTest {
     public void setUp() throws Exception {
         au.csiro.snorocket.core.Snorocket.DEBUGGING = true;
     }
-
+	
+	@Ignore
     @Test
     public void testOneGroup() {
         I_Snorocket rocket = new Snorocket();
@@ -60,7 +62,8 @@ public class TestRoleGrouping extends AbstractTest {
         
         expectRelationship(rocket, BROKEN_BONE, ISA, FINDING_BY_SITE, 0);
     }
- 
+	
+	@Ignore
     @Test
     public void testRoleGroupMerging() {
         I_Snorocket rocket = new Snorocket();

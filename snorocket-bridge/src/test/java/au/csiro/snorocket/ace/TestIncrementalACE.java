@@ -33,6 +33,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 import au.csiro.snorocket.core.Snorocket;
 
@@ -71,7 +72,8 @@ public class TestIncrementalACE {
     public void setUp() throws Exception {
         Snorocket.DEBUGGING = true;
     }
-
+	
+	@Ignore
     @Test
     public void createEmptyInitialState() throws IOException {
         I_SnorocketFactory rocket = new SnorocketFactory();
@@ -80,7 +82,8 @@ public class TestIncrementalACE {
         InputStream out = rocket.getStream();
         assertNotNull(out);
     }
-
+	
+	@Ignore
     @Test
     public void createAndRestoreEmptyInitialState() throws IOException {
         I_SnorocketFactory rocket1 = new SnorocketFactory();
@@ -97,7 +100,8 @@ public class TestIncrementalACE {
             }
         });
     }
-
+	
+	@Ignore
     @Test
     public void createEmptyLocalExtension() {
         I_SnorocketFactory rocket1 = new SnorocketFactory();
@@ -114,7 +118,8 @@ public class TestIncrementalACE {
         I_SnorocketFactory rocket2 = rocket1.createExtension();
         assertNotNull(rocket2);
     }
-
+	
+	@Ignore
     @Test
     public void createNonEmptyLocalExtension() {
         System.err.println("---------------------------------- createNonEmptyLocalExtension");
@@ -124,7 +129,8 @@ public class TestIncrementalACE {
         final I_SnorocketFactory rocket2 = rocket1.createExtension();
         classifyExtraConcepts(rocket2);
     }
-
+	
+	@Ignore
     @Test
     public void createNonEmptySerialisedExtension() throws IOException {
         System.err.println("---------------------------------- createNonEmptySerialisedExtension");
@@ -230,7 +236,8 @@ public class TestIncrementalACE {
         map.put(ASSOCIATED_MORPHOLOGY_ID, ASSOCIATED_MORPHOLOGY);
         map.put(FRACTURED_BONE_ID, FRACTURED_BONE);
     }
-
+	
+	@Ignore
     @Test
     public void testIncremental() {
         I_SnorocketFactory rocket = new SnorocketFactory();
@@ -263,7 +270,8 @@ public class TestIncrementalACE {
 
         checkExpectedDistributionRelationshipCount(rocket2, 3);
     }
-
+	
+	@Ignore
     @Test
     public void testIncrementalPostGrouped() {
         I_SnorocketFactory rocket = new SnorocketFactory();
@@ -318,7 +326,8 @@ public class TestIncrementalACE {
 
         checkExpectedDistributionRelationshipCount(rocket2, 4);
     }
-
+	
+	@Ignore
     @Test
     public void testIncrementalPreGrouped() {
         I_SnorocketFactory rocket = new SnorocketFactory();

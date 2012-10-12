@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 import au.csiro.snorocket.snapi.I_Snorocket.I_Callback;
 
@@ -49,7 +50,8 @@ public class TestFindingBySite extends AbstractTest {
     public void setUp() throws Exception {
         au.csiro.snorocket.core.Snorocket.DEBUGGING = true;
     }
-
+	
+	@Ignore
     @Test
     public void testSimple() {
         I_Snorocket rocket = new Snorocket();
@@ -103,6 +105,7 @@ public class TestFindingBySite extends AbstractTest {
      * This was a manifestation of a *documented* (!) limitation of ExtensionOntology (documented in a FIXME in the source code)
      * that resulted in a corruption of the base state's *NF structures.
      */
+	@Ignore
     @Test
     public void testIncrementalNCCHBug2() {
         au.csiro.snorocket.core.Snorocket.DEBUGGING = false;
@@ -148,7 +151,8 @@ public class TestFindingBySite extends AbstractTest {
         expectRelationship(ext, newConcept, FINDING_SITE, LEG_STRUCTURE, 1);
         expectRelationship(ext, newConcept, ASSOCIATED_MORPHOLOGY, FRACTURE, 1);
     }
-
+	
+	@Ignore
     @Test
     public void testIncrementalNCCHBug() {
         I_Snorocket rocket = new Snorocket();
@@ -193,7 +197,8 @@ public class TestFindingBySite extends AbstractTest {
         expectRelationship(ext, newConcept, FINDING_SITE, BODY_STRUCTURE, 0);
         expectRelationship(ext, FINDING_BY_SITE, ISA, newConcept, 0);
     }
-
+	
+	@Ignore
     @Test
     public void testIncremental() {
         I_Snorocket rocket = new Snorocket();
@@ -253,7 +258,8 @@ public class TestFindingBySite extends AbstractTest {
 
         checkExpectedRelationshipCount(rocket2, 5);
     }
-
+	
+	@Ignore
     @Test
     public void testSimpleGrouped() {
         I_Snorocket rocket = new Snorocket();
@@ -301,7 +307,8 @@ public class TestFindingBySite extends AbstractTest {
 
         checkExpectedRelationshipCount(rocket, 12);
     }
-
+	
+	@Ignore
     @Test
     public void testIncrementalPostGrouped() {
         I_Snorocket rocket = new Snorocket();
@@ -357,7 +364,8 @@ public class TestFindingBySite extends AbstractTest {
 
         checkExpectedRelationshipCount(rocket2, 5);
     }
-
+	
+	@Ignore
     @Test
     public void testIncrementalPreGrouped() {
         I_Snorocket rocket = new Snorocket();
@@ -429,7 +437,8 @@ public class TestFindingBySite extends AbstractTest {
 
         checkExpectedRelationshipCount(rocket2, relCount);
     }
-
+	
+	@Ignore
     @Test
     public void testIncrementalPreGroupedDistribution() {
         I_Snorocket rocket = new Snorocket();
@@ -522,7 +531,8 @@ public class TestFindingBySite extends AbstractTest {
         rocket.addRelationship(LIMB_STRUCTURE, ISA, BODY_STRUCTURE, 0);
         rocket.addRelationship(LEG_STRUCTURE, ISA, LIMB_STRUCTURE, 0);
     }
-
+	
+	@Ignore
     @Test
     public void testGrouping() {
         I_Snorocket rocket = new Snorocket();

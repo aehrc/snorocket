@@ -23,6 +23,7 @@ package au.csiro.snorocket.snapi;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 public class TestRoleInclusion extends AbstractTest {
 
@@ -47,6 +48,7 @@ public class TestRoleInclusion extends AbstractTest {
      * Input:  X [ r1.Y + r2.Y + r2.Z
      * Output: X [ r2.Y
      */
+	@Ignore
     @Test
     public void testSimpleRoleInclusionRedundancy() {
         I_Snorocket rocket = new Snorocket();
@@ -81,6 +83,7 @@ public class TestRoleInclusion extends AbstractTest {
      * Input:  A [ rg.(r.B + r1.Z) + rg.(r.B + r2.Y)
      * Output: A [ rg.(r.B + r2.Y)
      */
+	@Ignore
     @Test
     public void testGroupedRoleInclusionRedundancy() {
         I_Snorocket rocket = new Snorocket();
@@ -118,6 +121,7 @@ public class TestRoleInclusion extends AbstractTest {
      * Input:  A [ rg.(r.B + r1.Y) + rg.(r.B + r2.Z)
      * Output: A [ rg.(r.B + r1.Y) + rg.(r.B + r2.Z)
      */
+	@Ignore
     @Test
     public void testGroupedRoleInclusionNoRedundancy() {
         I_Snorocket rocket = new Snorocket();
@@ -150,6 +154,7 @@ public class TestRoleInclusion extends AbstractTest {
         checkExpectedDistributionRelationshipCount(rocket, 6);
     }
     
+	@Ignore
     @Test
     public void testOneGroup() {
         I_Snorocket rocket = new Snorocket();
