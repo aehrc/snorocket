@@ -86,16 +86,19 @@ public class Benchmark {
 					sdf.format(Calendar.getInstance().getTime())+".csv";
 			
 			StringBuilder sb = new StringBuilder();
-			sb.append("Date,VM Parameters,Concepts File,Relationships File," +
-					"Snorocket Version,Axiom Transformation Time (ms)," +
-					"Axiom Loading Time (ms),Classification Time(ms)," +
-					"Taxonomy Construction Time(ms), Total Time(ms), " +
-					"Used Memory(bytes), Max Memory (bytes)\n");
+			sb.append("Date,Threads,VM Parameters,Concepts File," +
+					"Relationships File,Snorocket Version,Axiom " +
+					"Transformation Time (ms),Axiom Loading Time (ms)," +
+					"Classification Time(ms),Taxonomy Construction " +
+					"Time(ms), Total Time(ms), Used Memory(bytes), " +
+					"Max Memory (bytes)\n");
 			
 			for(int j = 0; j < numRuns; j++) {
 				Stats stats = Benchmark.runBechmarkRF1(concepts, relations);
 
 				sb.append(sdf.format(Calendar.getInstance().getTime()));
+				sb.append(",");
+				sb.append(Runtime.getRuntime().availableProcessors());
 				sb.append(",");
 				
 				RuntimeMXBean RuntimemxBean = 

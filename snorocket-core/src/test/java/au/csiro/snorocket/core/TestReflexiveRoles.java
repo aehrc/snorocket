@@ -19,6 +19,7 @@ package au.csiro.snorocket.core;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import au.csiro.snorocket.core.axioms.NF1a;
@@ -85,6 +86,7 @@ public class TestReflexiveRoles {
         
     }
     
+    @Ignore
     @Test
     public void simpleReflexive() {
         IFactory factory = new Factory();
