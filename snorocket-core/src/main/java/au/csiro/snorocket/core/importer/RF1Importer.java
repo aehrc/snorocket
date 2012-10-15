@@ -187,7 +187,9 @@ public class RF1Importer {
                 }
             }
 			
-			populateRoles(children.get(conceptModelAttId), "");
+			Set<String> conceptModelChildren = children.get(conceptModelAttId);
+			if(conceptModelChildren != null)
+				populateRoles(conceptModelChildren, "");
 			
 			SortedSet<String> classes = new TreeSet<String>();
 			SortedSet<String> props = new TreeSet<String>();
