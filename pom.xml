@@ -22,9 +22,9 @@
 	<version>1.1.22-SNAPSHOT</version>
 	<name>IHTSDO Classifier (based on Snorocket) Parent POM</name>
 	<scm>
-		<connection>scm:svn:https://csfe.aceworkspace.net/svn/repos/classifier/trunk</connection>
-		<developerConnection>scm:svn:https://csfe.aceworkspace.net/svn/repos/classifier/trunk</developerConnection>
-		<url>https://csfe.aceworkspace.net/svn/repos/classifier</url>
+		<connection>scm:svn:https://csfe.aceworkspace.net/svn/repos/sim-classifier/trunk/sim-classifier</connection>
+		<developerConnection>scm:svn:https://csfe.aceworkspace.net/svn/repos/sim-classifier/trunk/sim-classifier</developerConnection>
+		<url>https://csfe.aceworkspace.net/svn/repos/sim-classifier/trunk/sim-classifier</url>
 	</scm>
 	<modules>
 		<module>snorocket-core</module>
@@ -66,4 +66,12 @@
 	  </plugin>
 	</plugins>
   </build>
+
+  <!-- Temporary until we set up a parent POM -->
+  <distributionManagement>
+    <repository>
+      <id>sim-releases</id>
+      <url>https://localhost:8082/archiva/repository/sim-releases</url>
+    </repository>
+  </distributionManagement>
 </project>
