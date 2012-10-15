@@ -569,8 +569,7 @@ public class NormalisedOntology {
 		}*/
     	
     	// Classify
-    	// TODO: change back after debugging
-    	int numThreads = 1;//Runtime.getRuntime().availableProcessors();
+    	int numThreads = Runtime.getRuntime().availableProcessors();
 		LOGGER.log(Level.INFO, "Classifying incrementally with "+numThreads+
 				" threads");
 		
