@@ -790,9 +790,11 @@ public class Context {
      * incremental classification to detect which contexts have been affected by
      * the new axioms. 
      */
-    public void startTracking() {
-    	changed = false;
-    	track = true;
+    public synchronized void startTracking() {
+    	if(!track) {
+    		track = true;
+    		changed = false;
+    	}
     }
     
     /**
