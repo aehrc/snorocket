@@ -98,10 +98,10 @@ public class Context {
     private final CR succ;
     
     /**
-     * Flag to indicate if chenges to the subsumptions of this context should be
+     * Flag to indicate if changes to the subsumptions of this context should be
      * tracked.
      */
-    private boolean track = false;
+    private AtomicBoolean track = new AtomicBoolean(false);
     
     /**
      * Flag used to indicate if this context has generated new subsumptions
@@ -378,7 +378,7 @@ public class Context {
 		// This code is duplicated for performance reasons. When not running in
 		// incremental mode the evaluation of the track flag is only done once
 		// for each time the context is activated.
-        if(track) {
+        if(track.get()) {
         	processOntologyTracking();
         } else {
         	processOntologyInternal();
@@ -790,9 +790,8 @@ public class Context {
      * incremental classification to detect which contexts have been affected by
      * the new axioms. 
      */
-    public synchronized void startTracking() {
-    	if(!track) {
-    		track = true;
+    public void startTracking() {
+    	if(track.compareAndSet(false, true)) {
     		changed = false;
     	}
     }
@@ -801,7 +800,7 @@ public class Context {
      * Stops tracking changes to the context's subsumptions.
      */
     public void endTracking() {
-    	track = false;
+    	track.set(false);
     }
     
     /**

@@ -562,12 +562,6 @@ public class NormalisedOntology {
     	rePrimeNF7(as, subsumptions);
     	rePrimeNF8(as, subsumptions);
     	
-    	// Track changes in reactivated contexts
-    	/*for(IntIterator i = affectedContexts.keyIterator(); i.hasNext(); ) {
-			Context ctx = affectedContexts.get(i.next());
-			ctx.startTracking();
-		}*/
-    	
     	// Classify
     	int numThreads = Runtime.getRuntime().availableProcessors();
 		LOGGER.log(Level.INFO, "Classifying incrementally with "+numThreads+
