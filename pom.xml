@@ -30,7 +30,6 @@
 		<module>snorocket-core</module>
 		<module>snorocket-snapi</module>
 		<module>snorocket</module>
-		<module>snorocket-tests</module>
 		<module>snorocket-bridge</module>
 	</modules>
 	<dependencies>
@@ -53,6 +52,12 @@
 				</os>
 			</activation>
 		</profile>
+    <profile>
+      <id>run-its</id>
+      <modules>
+        <module>snorocket-tests</module>
+      </modules>
+    </profile>
 	</profiles>
 	<build>
     <plugins>
