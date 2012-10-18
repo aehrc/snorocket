@@ -35,55 +35,59 @@ final class S {
 
     private IConceptMap<IConceptSet> set;
     private int size = 0;
-    
+
     S(final int capacity) {
-    	set = new DenseConceptMap<IConceptSet>(capacity);
-      for (int i = 0; i < capacity; i++) {
-    	  final SparseConceptSet subsumes = new SparseConceptSet();
-          subsumes.add(i);
-          subsumes.add(IFactory.TOP_CONCEPT);
-          set.put(i, subsumes);
-      }
-      size = capacity;
+        set = new DenseConceptMap<IConceptSet>(capacity);
+        for (int i = 0; i < capacity; i++) {
+            final SparseConceptSet subsumes = new SparseConceptSet();
+            subsumes.add(i);
+            subsumes.add(IFactory.TOP_CONCEPT);
+            set.put(i, subsumes);
+        }
+        size = capacity;
     }
-    
+
     IConceptMap<IConceptSet> getSet() {
         return set;
     }
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see au.csiro.snorocket.Subsumptions#get(int)
      */
     IConceptSet get(int concept) {
         IConceptSet subsumes = set.get(concept);
-        
+
         if (null == subsumes) {
-        	// A Concept always subsumes itself and TOP
+            // A Concept always subsumes itself and TOP
             subsumes = new SparseConceptSet();
             subsumes.add(concept);
             subsumes.add(IFactory.TOP_CONCEPT);
             set.put(concept, subsumes);
             size++;
         }
-        
+
         return subsumes;
     }
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see au.csiro.snorocket.Subsumptions#containsKey(int)
      */
     boolean containsKey(int concept) {
         return set.containsKey(concept);
     }
-    
+
     /**
-     * Returns an iterator over the keys of this map.
-     * The keys are returned in no particular order.
+     * Returns an iterator over the keys of this map. The keys are returned in
+     * no particular order.
      * 
      * @return an iterator over the keys of this map.
      */
     IntIterator keyIterator() {
-    	return new IntIterator() {
+        return new IntIterator() {
 
             final IntIterator setitr = set.keyIterator();
 
@@ -97,14 +101,14 @@ final class S {
 
         };
     }
-    
+
     int keyCount() {
         return size;
     }
 
     void put(int child, int parent) {
         IConceptSet subsumes = set.get(child);
-        
+
         if (null == subsumes) {
             subsumes = new SparseConceptSet();
             set.put(child, subsumes);
@@ -116,11 +120,11 @@ final class S {
 
         subsumes.add(parent);
     }
-    
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        for (IntIterator itr = keyIterator(); itr.hasNext(); ) {
+        for (IntIterator itr = keyIterator(); itr.hasNext();) {
             int key = itr.next();
             sb.append(key);
             sb.append(": ");
@@ -133,11 +137,13 @@ final class S {
         return sb.toString();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see au.csiro.snorocket.Subsumptions#grow(int)
      */
     void grow(int newSize) {
         set.grow(newSize);
     }
-    
+
 }

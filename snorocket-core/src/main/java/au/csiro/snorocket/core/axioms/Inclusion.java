@@ -27,38 +27,41 @@ import au.csiro.snorocket.core.IFactory;
  * This class represents an abstract axiom that is not (necessarily) normalised.
  * 
  * @author Alejandro Metke
- *
+ * 
  */
 abstract public class Inclusion {
-	/**
-	 * Runs the first phase in the normalisation process (see Pushing the EL
-	 * Envelope).
-	 * 
-	 * @param factory
-	 * @return
-	 */
-    abstract public Inclusion[] normalise1(IFactory factory);
-    
     /**
-	 * Runs the second phase in the normalisation process (see Pushing the EL
-	 * Envelope).
-	 * 
-	 * @param factory
-	 * @return
-	 */
+     * Runs the first phase in the normalisation process (see Pushing the EL
+     * Envelope).
+     * 
+     * @param factory
+     * @return
+     */
+    abstract public Inclusion[] normalise1(IFactory factory);
+
+    /**
+     * Runs the second phase in the normalisation process (see Pushing the EL
+     * Envelope).
+     * 
+     * @param factory
+     * @return
+     */
     abstract public Inclusion[] normalise2(IFactory factory);
 
     @Override
     abstract public int hashCode();
+
     @Override
     abstract public boolean equals(Object o);
+
     @Override
     abstract public String toString();
-    
+
     /**
-     * Returns this axiom in normal form. Note that this 
+     * Returns this axiom in normal form. Note that this
+     * 
      * @return
      */
     abstract public NormalFormGCI getNormalForm();
-    
+
 }

@@ -24,12 +24,11 @@ package au.csiro.snorocket.core.axioms;
 import au.csiro.snorocket.core.IFactory;
 
 /**
- * Normal form 3:       &#8707;r.A &#8851; B
- * <br>
+ * Normal form 3: &#8707;r.A &#8851; B <br>
  * role r with value A subsumes B
  * 
  * @author law223
- *
+ * 
  */
 public final class NF3 extends NormalFormGCI {
 
@@ -64,7 +63,7 @@ public final class NF3 extends NormalFormGCI {
 
             public String toString() {
                 return "ConjunctionQueueEntry[" + rhsB + ", []] r=" + lhsR
-                    + ", a=" + lhsA;
+                        + ", a=" + lhsA;
             }
 
         };
@@ -79,9 +78,9 @@ public final class NF3 extends NormalFormGCI {
         return new NF3(r, A, B);
     }
 
-	@Override
-	public int[] getConceptsInAxiom() {
-		return new int[]{lhsA, rhsB};
-	}
+    @Override
+    public int[] getConceptsInAxiom() {
+        return new int[] { lhsA, rhsB };
+    }
 
 }

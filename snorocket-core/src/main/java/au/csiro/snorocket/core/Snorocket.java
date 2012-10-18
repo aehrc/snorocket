@@ -30,8 +30,8 @@ import java.util.logging.Logger;
 
 final public class Snorocket {
 
-    private final static Logger LOGGER =
-            Logger.getLogger("au.csiro.snorocket.Logger");
+    private final static Logger LOGGER = Logger
+            .getLogger("au.csiro.snorocket.Logger");
 
     private static Handler rootHandler = null;
 
@@ -58,14 +58,14 @@ final public class Snorocket {
     public static void installLoggingHander() {
         // first check if it's already installed
         if (!Arrays.asList(getLogger().getHandlers())
-            .contains(snorocketHandler)) {
+                .contains(snorocketHandler)) {
             getLogger().addHandler(snorocketHandler);
 
             if (null == rootHandler) {
                 Logger rootLogger = Logger.getLogger("");
                 Handler[] handlers = rootLogger.getHandlers();
                 if (handlers.length > 0
-                    && handlers[0] instanceof ConsoleHandler) {
+                        && handlers[0] instanceof ConsoleHandler) {
                     rootHandler = handlers[0];
                     rootLogger.removeHandler(rootHandler);
                 }

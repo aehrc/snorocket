@@ -23,7 +23,6 @@ package au.csiro.snorocket.core.util;
 
 import java.util.ArrayList;
 
-
 /**
  * Concepts are integers >= 0
  * 
@@ -60,7 +59,7 @@ public final class SparseConceptHashSet implements IConceptSet {
     }
 
     private int hash2(final int concept, final int base) {
-//      System.err.println(base + " " + items.length);
+        // System.err.println(base + " " + items.length);
         return (base + 1) % _items.length;
     }
 
@@ -76,7 +75,7 @@ public final class SparseConceptHashSet implements IConceptSet {
         // (we did a resize above to ensure this), then we must
         // find an empty (or tombstoned) spot or the concept is
         // already there.
-        
+
         while (_items[h] >= 0 && _items[h] != concept) {
             h = hash2(concept, h);
         }
@@ -85,18 +84,19 @@ public final class SparseConceptHashSet implements IConceptSet {
             // Note, we can get here if the slot is a TOMBSTONE and we will
             // re-use the slot (unlike Cliff Click's lock-free hashtable),
             // but this may result in the same value being stored more than
-            // once.  We compensate for this in remove(), ensuring that all
-            // values are deleted.  Another consequence is that size() returns
-            // the number of stored values, not the number of unique stored values.
+            // once. We compensate for this in remove(), ensuring that all
+            // values are deleted. Another consequence is that size() returns
+            // the number of stored values, not the number of unique stored
+            // values.
             _items[h] = concept;
             _size++;
         }
-        
+
         assert _items[h] == concept;
     }
 
     public void addAll(final IConceptSet set) {
-        for (final IntIterator itr = set.iterator(); itr.hasNext(); ) {
+        for (final IntIterator itr = set.iterator(); itr.hasNext();) {
             add(itr.next());
         }
     }
@@ -148,7 +148,7 @@ public final class SparseConceptHashSet implements IConceptSet {
                 }
             }
         } else {
-            for (final IntIterator itr = set.iterator(); itr.hasNext(); ) {
+            for (final IntIterator itr = set.iterator(); itr.hasNext();) {
                 final int concept = itr.next();
                 remove(concept);
             }
@@ -163,8 +163,9 @@ public final class SparseConceptHashSet implements IConceptSet {
         // shrink table to reduce iterator cost when suitable
         //
         if (_items.length > 1000 && _size < (_items.length >> 3)) {
-//            final double emptySpace = _items.length-_size;
-//            System.err.println("OH: " + emptySpace + "\t" + (emptySpace/_items.length));
+            // final double emptySpace = _items.length-_size;
+            // System.err.println("OH: " + emptySpace + "\t" +
+            // (emptySpace/_items.length));
             resize(_items.length >> 2);
         }
         return new IntIterator() {
@@ -186,8 +187,8 @@ public final class SparseConceptHashSet implements IConceptSet {
     }
 
     /**
-     * The number of values stored in the set's backing store.
-     * Note that this may be larger than the number of unique values in the set.
+     * The number of values stored in the set's backing store. Note that this
+     * may be larger than the number of unique values in the set.
      */
     public int size() {
         return _size;
@@ -197,7 +198,7 @@ public final class SparseConceptHashSet implements IConceptSet {
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append("{");
-        for (final IntIterator itr = iterator(); itr.hasNext(); ) {
+        for (final IntIterator itr = iterator(); itr.hasNext();) {
             final int c = itr.next();
             sb.append(c);
             if (itr.hasNext()) {
@@ -211,10 +212,9 @@ public final class SparseConceptHashSet implements IConceptSet {
     public void grow(int newSize) {
         resize(newSize);
     }
-    
 
     private void resize(final int newSize) {
-//      System.err.println(hashCode() + " resize from " + items.length);
+        // System.err.println(hashCode() + " resize from " + items.length);
         final int[] oldItems = _items;
         reallocate(newSize);
 
@@ -226,17 +226,17 @@ public final class SparseConceptHashSet implements IConceptSet {
         }
     }
 
-	@Override
-	public int[] toArray() {
-		ArrayList<Integer> res = new ArrayList<>();
-		for(IntIterator i = iterator(); i.hasNext(); ) {
-			res.add(i.next());
-		}
-		int[] arr = new int[res.size()];
-		for(int i = 0; i < res.size(); i++) {
-			arr[i] = res.get(i);
-		}
-		return arr;
- 	}
+    @Override
+    public int[] toArray() {
+        ArrayList<Integer> res = new ArrayList<>();
+        for (IntIterator i = iterator(); i.hasNext();) {
+            res.add(i.next());
+        }
+        int[] arr = new int[res.size()];
+        for (int i = 0; i < res.size(); i++) {
+            arr[i] = res.get(i);
+        }
+        return arr;
+    }
 
 }

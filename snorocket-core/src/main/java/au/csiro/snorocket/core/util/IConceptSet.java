@@ -75,7 +75,7 @@ public interface IConceptSet {
     public int size();
 
     public void grow(int newSize);
-    
+
     public int[] toArray();
 }
 
@@ -135,15 +135,15 @@ final class EmptyConceptSet implements IConceptSet {
 
     public void grow(int increment) {
         throw new UnsupportedOperationException(
-            "Cannot grow the EmptyConceptSet!");
+                "Cannot grow the EmptyConceptSet!");
     }
 
     public String toString() {
         return "{}";
     }
 
-	@Override
-	public int[] toArray() {
-		return new int[0];
-	}
+    @Override
+    public int[] toArray() {
+        return new int[0];
+    }
 }

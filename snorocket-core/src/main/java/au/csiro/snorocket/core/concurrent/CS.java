@@ -33,13 +33,13 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
 public final class CS {
 
     private IConceptSet set;
-    
+
     CS(final int cid) {
-    	set = new SparseConceptSet();
-    	set.add(cid);
-    	set.add(IFactory.TOP_CONCEPT);
+        set = new SparseConceptSet();
+        set.add(cid);
+        set.add(IFactory.TOP_CONCEPT);
     }
-    
+
     public IConceptSet getSet() {
         return set;
     }
@@ -47,7 +47,7 @@ public final class CS {
     void put(int parent) {
         set.add(parent);
     }
-    
+
     public String toString() {
         return set.toString();
     }

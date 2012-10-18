@@ -21,8 +21,6 @@
 
 package au.csiro.snorocket.core.util;
 
-
-public abstract class AbstractConceptMap<T>
-    implements IConceptMap<T> {
+public abstract class AbstractConceptMap<T> implements IConceptMap<T> {
 
 }

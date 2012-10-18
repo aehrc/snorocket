@@ -23,7 +23,6 @@ package au.csiro.snorocket.core.util;
 
 import java.util.Arrays;
 
-
 public final class FastConceptMap<V> implements IConceptMap<V> {
 
     private final static int EMPTY = -1;
@@ -60,7 +59,7 @@ public final class FastConceptMap<V> implements IConceptMap<V> {
     }
 
     @SuppressWarnings("unchecked")
-	public V get(int key) {
+    public V get(int key) {
         final int len = _keys.length;
         final int mask = len - 1;
         int reprobe_count = 0;
@@ -74,10 +73,10 @@ public final class FastConceptMap<V> implements IConceptMap<V> {
                 final Object val = _values[idx];
                 return TOMBSTOMB == val ? null : (V) val;
             }
-            if (++reprobe_count > (REPROBE_LIMIT+(len>>2))) {
+            if (++reprobe_count > (REPROBE_LIMIT + (len >> 2))) {
                 break;
             }
-            idx = (idx+1) & mask;
+            idx = (idx + 1) & mask;
         }
         resize();
         return get(key);
@@ -93,7 +92,8 @@ public final class FastConceptMap<V> implements IConceptMap<V> {
             int next = 0;
 
             public boolean hasNext() {
-                while (next < _keys.length && (EMPTY == _keys[next] || TOMBSTOMB == _values[next])) {
+                while (next < _keys.length
+                        && (EMPTY == _keys[next] || TOMBSTOMB == _values[next])) {
                     next++;
                 }
                 return next < _keys.length;
@@ -126,10 +126,10 @@ public final class FastConceptMap<V> implements IConceptMap<V> {
                 _values[idx] = value;
                 return;
             }
-            if (++reprobe_count > (REPROBE_LIMIT+(len>>2))) {
+            if (++reprobe_count > (REPROBE_LIMIT + (len >> 2))) {
                 break;
             }
-            idx = (idx+1) & mask;
+            idx = (idx + 1) & mask;
         }
         resize();
         put(key, value);
@@ -150,7 +150,7 @@ public final class FastConceptMap<V> implements IConceptMap<V> {
                 }
                 return;
             }
-            idx = (idx+1) & mask;
+            idx = (idx + 1) & mask;
         }
     }
 
@@ -159,14 +159,14 @@ public final class FastConceptMap<V> implements IConceptMap<V> {
     }
 
     @SuppressWarnings("unchecked")
-	public void grow(final int newSize) {
+    public void grow(final int newSize) {
         final int[] oldKeys = _keys;
         final Object[] oldValues = _values;
 
         reallocate(newSize);
 
-//      System.err.println("resize from " + oldSize + " to " + newSize);
-//      new Exception().printStackTrace();
+        // System.err.println("resize from " + oldSize + " to " + newSize);
+        // new Exception().printStackTrace();
 
         for (int i = 0; i < oldKeys.length; i++) {
             final int key = oldKeys[i];
@@ -176,5 +176,5 @@ public final class FastConceptMap<V> implements IConceptMap<V> {
             }
         }
     }
-    
+
 }

@@ -10,30 +10,31 @@ import java.util.Queue;
  * Represents a worker in charge of deriving axioms in a {@link Context}.
  * 
  * @author Alejandro Metke
- *
+ * 
  */
 public class Worker implements Runnable {
-	
-	private final Queue<Context> todo;
-	
-	/**
+
+    private final Queue<Context> todo;
+
+    /**
 	 * 
 	 */
-	public Worker(Queue<Context> todo) {
-		this.todo = todo;
-	}
+    public Worker(Queue<Context> todo) {
+        this.todo = todo;
+    }
 
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	@Override
-	public void run() {
-		// Process contexts until there are no more left in the queue
-		while(true) {
-			Context ctx = todo.poll();
-			if(ctx == null) break;
-			ctx.processOntology();
-		}
-	}
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    @Override
+    public void run() {
+        // Process contexts until there are no more left in the queue
+        while (true) {
+            Context ctx = todo.poll();
+            if (ctx == null)
+                break;
+            ctx.processOntology();
+        }
+    }
 
 }

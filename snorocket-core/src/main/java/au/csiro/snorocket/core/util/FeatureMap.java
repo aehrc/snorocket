@@ -23,23 +23,23 @@ package au.csiro.snorocket.core.util;
 
 import java.util.Arrays;
 
-
 public class FeatureMap<V> {
     final private FeatureSet keySet;
     private V[] members;
-    
+
     @SuppressWarnings("unchecked")
-	public FeatureMap(final int size) {
+    public FeatureMap(final int size) {
         keySet = new FeatureSet();
         members = (V[]) new Object[size];
     }
-    
+
     public boolean containsKey(int key) {
         return keySet.contains(key);
     }
 
     public V get(int key) {
-        if (key >= members.length) return null;
+        if (key >= members.length)
+            return null;
         return members[key];
     }
 
@@ -48,7 +48,7 @@ public class FeatureMap<V> {
     }
 
     @SuppressWarnings("unchecked")
-	public void put(int key, V value) {
+    public void put(int key, V value) {
         keySet.add(key);
         final int len = members.length;
         if (key >= len) {
@@ -63,5 +63,5 @@ public class FeatureMap<V> {
         keySet.clear();
         Arrays.fill(members, null);
     }
-    
+
 }

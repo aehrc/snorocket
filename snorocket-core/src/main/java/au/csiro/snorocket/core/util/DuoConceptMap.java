@@ -1,20 +1,19 @@
 package au.csiro.snorocket.core.util;
 
-
 public final class DuoConceptMap<V> implements IConceptMap<V> {
 
     final private IConceptMap<V> base;
     final private IConceptMap<V> overlay;
-    
+
     public DuoConceptMap(final IConceptMap<V> base, final IConceptMap<V> overlay) {
         this.base = base;
         this.overlay = overlay;
     }
-    
+
     public IConceptMap<V> getOverlay() {
         return overlay;
     }
-    
+
     public void clear() {
         throw new UnsupportedOperationException();
     }
@@ -24,9 +23,7 @@ public final class DuoConceptMap<V> implements IConceptMap<V> {
     }
 
     public V get(int key) {
-        return base.containsKey(key)
-                ? base.get(key)
-                : overlay.get(key);
+        return base.containsKey(key) ? base.get(key) : overlay.get(key);
     }
 
     public void grow(int newSize) {
@@ -67,7 +64,7 @@ public final class DuoConceptMap<V> implements IConceptMap<V> {
     public int size() {
         return base.size() + overlay.size();
     }
-    
+
     @Override
     public String toString() {
         return overlay + " ==> " + base;

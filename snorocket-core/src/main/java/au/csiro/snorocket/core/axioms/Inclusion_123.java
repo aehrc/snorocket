@@ -26,15 +26,18 @@ import au.csiro.snorocket.core.IFactory_123;
 abstract public class Inclusion_123 {
 
     abstract public Inclusion_123[] normalise1(IFactory_123 factory);
+
     abstract public Inclusion_123[] normalise2(IFactory_123 factory);
 
     @Override
     abstract public int hashCode();
+
     @Override
     abstract public boolean equals(Object o);
+
     @Override
     abstract public String toString();
-    
+
     abstract public NormalFormGCI getNormalForm();
-    
+
 }

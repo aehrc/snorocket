@@ -27,8 +27,9 @@ import au.csiro.snorocket.core.IFactory;
 
 /**
  * 
- * @param lhs lhs.length == 0 -> reflexive; == 1 -> role subtyping; >= 2 -> role
- * composition
+ * @param lhs
+ *            lhs.length == 0 -> reflexive; == 1 -> role subtyping; >= 2 -> role
+ *            composition
  * 
  * @param rhs
  */
@@ -39,7 +40,7 @@ public class RI extends Inclusion {
     final private int[] lhs;
     final private int rhs;
     final private int hashCode;
-    
+
     public RI(final int[] lhs, final int rhs) {
         assert null != lhs;
         assert -1 < rhs;
@@ -47,9 +48,9 @@ public class RI extends Inclusion {
         this.rhs = rhs;
         hashCode = PRIME * (PRIME + Arrays.hashCode(this.lhs)) + this.rhs;
     }
-    
+
     public RI(int lhs, int rhs) {
-    	this(new int[]{lhs}, rhs);
+        this(new int[] { lhs }, rhs);
     }
 
     public int[] getLhs() {
@@ -62,14 +63,14 @@ public class RI extends Inclusion {
 
     @Override
     public Inclusion[] normalise1(final IFactory factory) {
-        Inclusion[] result = {null, null};
-        
+        Inclusion[] result = { null, null };
+
         if (rule1(factory, result)) {
-        	
+
         } else {
             result = null;
         }
-        
+
         return result;
     }
 
@@ -79,52 +80,57 @@ public class RI extends Inclusion {
     }
 
     /**
-     * r<sub>1</sub> &#8728; &#133; &#8728; r<sub>k</sub> &#8849; s
-     * &rarr; {r<sub>1</sub> &#8728; &#133; &#8728; r<sub>k-1</sub> &#8849; u, u &#8728; r<sub>k</sub> &#8849; s}
+     * r<sub>1</sub> &#8728; &#133; &#8728; r<sub>k</sub> &#8849; s &rarr;
+     * {r<sub>1</sub> &#8728; &#133; &#8728; r<sub>k-1</sub> &#8849; u, u
+     * &#8728; r<sub>k</sub> &#8849; s}
      * 
      * @param gcis
      * @return
      */
     boolean rule1(final IFactory factory, final Inclusion[] gcis) {
         boolean result = false;
-        
-        // TODO make this "binarisation" more efficient by doing it for all elements
-        // rather than relying on multiple calls to this rule and stripping off one
+
+        // TODO make this "binarisation" more efficient by doing it for all
+        // elements
+        // rather than relying on multiple calls to this rule and stripping off
+        // one
         // Role for each call.
         if (lhs.length > 2) {
             result = true;
-            
+
             final int k = lhs.length - 1;
             int[] newLhs1 = new int[k];
             System.arraycopy(lhs, 0, newLhs1, 0, newLhs1.length);
             int u = factory.getRole("* " + getKey(newLhs1));
             factory.setVirtualRole(u, true);
 
-            int[] newLhs2 = {u, lhs[k]};
+            int[] newLhs2 = { u, lhs[k] };
 
             gcis[0] = new RI(newLhs1, u);
             gcis[1] = new RI(newLhs2, rhs);
         }
-        
+
         return result;
     }
-    
+
     private String getKey(final int[] roles) {
         final StringBuilder sb = new StringBuilder("[");
-        
+
         for (int i = 0; i < roles.length; i++) {
             if (i > 0) {
                 sb.append(",");
             }
             sb.append(roles[i]);
         }
-        
+
         sb.append("]");
-        
+
         return sb.toString();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -132,7 +138,9 @@ public class RI extends Inclusion {
         return hashCode;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -150,12 +158,12 @@ public class RI extends Inclusion {
             return false;
         return true;
     }
-    
+
     @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();
         if (lhs.length > 0) {
-        	sb.append(lhs[0]);
+            sb.append(lhs[0]);
         }
         for (int i = 1; i < lhs.length; i++) {
             sb.append(" ");
@@ -163,7 +171,7 @@ public class RI extends Inclusion {
         }
         sb.append(" [ ");
         sb.append(rhs);
-        
+
         return sb.toString();
     }
 

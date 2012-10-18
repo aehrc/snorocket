@@ -8,63 +8,63 @@ package au.csiro.snorocket.core.benchmark;
  * Contains statistics gathered in the benchmarking process.
  * 
  * @author Alejandro Metke
- *
+ * 
  */
 public class Stats {
-	
-	private long axiomTransformationTimeMs = 0;
-	private long axiomLoadingTimeMs = 0;
-	private long classificationTimeMs = 0;
-	private long taxonomyBuildingTimeMs = 0;
-	
-	public Stats() {
-		
-	}
 
-	public Stats(long axiomTransformationTimeMs, long axiomLoadingTimeMs,
-			long classificationTimeMs, long taxonomyBuildingTimeMs) {
-		super();
-		this.axiomTransformationTimeMs = axiomTransformationTimeMs;
-		this.axiomLoadingTimeMs = axiomLoadingTimeMs;
-		this.classificationTimeMs = classificationTimeMs;
-		this.taxonomyBuildingTimeMs = taxonomyBuildingTimeMs;
-	}
+    private long axiomTransformationTimeMs = 0;
+    private long axiomLoadingTimeMs = 0;
+    private long classificationTimeMs = 0;
+    private long taxonomyBuildingTimeMs = 0;
 
-	public long getAxiomTransformationTimeMs() {
-		return axiomTransformationTimeMs;
-	}
+    public Stats() {
 
-	public void setAxiomTransformationTimeMs(long axiomTransformationTimeMs) {
-		this.axiomTransformationTimeMs = axiomTransformationTimeMs;
-	}
+    }
 
-	public long getAxiomLoadingTimeMs() {
-		return axiomLoadingTimeMs;
-	}
+    public Stats(long axiomTransformationTimeMs, long axiomLoadingTimeMs,
+            long classificationTimeMs, long taxonomyBuildingTimeMs) {
+        super();
+        this.axiomTransformationTimeMs = axiomTransformationTimeMs;
+        this.axiomLoadingTimeMs = axiomLoadingTimeMs;
+        this.classificationTimeMs = classificationTimeMs;
+        this.taxonomyBuildingTimeMs = taxonomyBuildingTimeMs;
+    }
 
-	public void setAxiomLoadingTimeMs(long axiomLoadingTimeMs) {
-		this.axiomLoadingTimeMs = axiomLoadingTimeMs;
-	}
+    public long getAxiomTransformationTimeMs() {
+        return axiomTransformationTimeMs;
+    }
 
-	public long getClassificationTimeMs() {
-		return classificationTimeMs;
-	}
+    public void setAxiomTransformationTimeMs(long axiomTransformationTimeMs) {
+        this.axiomTransformationTimeMs = axiomTransformationTimeMs;
+    }
 
-	public void setClassificationTimeMs(long classificationTimeMs) {
-		this.classificationTimeMs = classificationTimeMs;
-	}
+    public long getAxiomLoadingTimeMs() {
+        return axiomLoadingTimeMs;
+    }
 
-	public long getTaxonomyBuildingTimeMs() {
-		return taxonomyBuildingTimeMs;
-	}
+    public void setAxiomLoadingTimeMs(long axiomLoadingTimeMs) {
+        this.axiomLoadingTimeMs = axiomLoadingTimeMs;
+    }
 
-	public void setTaxonomyBuildingTimeMs(long taxonomyBuildingTimeMs) {
-		this.taxonomyBuildingTimeMs = taxonomyBuildingTimeMs;
-	}
-	
-	public long getTotalTime() {
-		return axiomTransformationTimeMs + axiomLoadingTimeMs + 
-				classificationTimeMs + taxonomyBuildingTimeMs;
-	}
+    public long getClassificationTimeMs() {
+        return classificationTimeMs;
+    }
+
+    public void setClassificationTimeMs(long classificationTimeMs) {
+        this.classificationTimeMs = classificationTimeMs;
+    }
+
+    public long getTaxonomyBuildingTimeMs() {
+        return taxonomyBuildingTimeMs;
+    }
+
+    public void setTaxonomyBuildingTimeMs(long taxonomyBuildingTimeMs) {
+        this.taxonomyBuildingTimeMs = taxonomyBuildingTimeMs;
+    }
+
+    public long getTotalTime() {
+        return axiomTransformationTimeMs + axiomLoadingTimeMs
+                + classificationTimeMs + taxonomyBuildingTimeMs;
+    }
 
 }

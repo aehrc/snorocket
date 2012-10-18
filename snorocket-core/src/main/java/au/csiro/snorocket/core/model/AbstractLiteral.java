@@ -8,8 +8,8 @@ package au.csiro.snorocket.core.model;
  * Represents a literal in a data property expression.
  * 
  * @author Alejandro Metke
- *
+ * 
  */
 public abstract class AbstractLiteral implements Comparable<AbstractLiteral> {
-	
+
 }

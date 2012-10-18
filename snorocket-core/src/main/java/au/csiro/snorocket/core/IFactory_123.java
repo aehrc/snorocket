@@ -35,9 +35,11 @@ public interface IFactory_123 {
     public static final int BOTTOM_CONCEPT = 1; // 1 index
 
     boolean conceptExists(final String key);
+
     boolean conceptExists(final int key);
 
     boolean roleExists(final String key);
+
     boolean roleExists(final int key);
 
     int findConceptIdx(final int key);
@@ -45,24 +47,28 @@ public interface IFactory_123 {
     int findRoleIdx(final int key);
 
     int getConceptIdx(final String key);
+
     int getConceptIdx(final int key);
-    
+
     int[] getConceptArray();
 
     int getRoleIdx(final String key);
+
     int getRoleIdx(final int key);
 
-    int[] getRoleArray();    
-    
+    int[] getRoleArray();
+
     int getTotalConcepts();
 
     int getTotalRoles();
 
     int lookupConceptId(final int id);
+
     String lookupConceptStrId(final int id);
 
-    // IN: id is idx; OUT: NID 
+    // IN: id is idx; OUT: NID
     int lookupRoleId(final int id);
+
     String lookupRoleStrId(final int id);
 
     boolean isBaseConcept(int id);
@@ -78,7 +84,7 @@ public interface IFactory_123 {
     boolean isVirtualRole(int id);
 
     void printAll(PrintWriter writer);
-        
+
     String toStringStats();
 
 }

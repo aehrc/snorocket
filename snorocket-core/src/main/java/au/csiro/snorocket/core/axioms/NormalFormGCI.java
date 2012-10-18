@@ -25,14 +25,14 @@ package au.csiro.snorocket.core.axioms;
  * Base class for normalised axioms.
  * 
  * @author law223
- *
+ * 
  */
 public abstract class NormalFormGCI {
-	
-	/**
-	 * Returns an array with all the concept ids in the axiom.
-	 * 
-	 * @return int[]
-	 */
-	public abstract int[] getConceptsInAxiom();
+
+    /**
+     * Returns an array with all the concept ids in the axiom.
+     * 
+     * @return int[]
+     */
+    public abstract int[] getConceptsInAxiom();
 }

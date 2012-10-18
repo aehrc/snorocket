@@ -1,6 +1,5 @@
 package au.csiro.snorocket.core.util;
 
-
 public final class ReadonlyConceptSet implements IConceptSet {
 
     private IConceptSet set;
@@ -51,15 +50,15 @@ public final class ReadonlyConceptSet implements IConceptSet {
 
     public void grow(int increment) {
         throw new UnsupportedOperationException(
-            "Cannot grow the EmptyConceptSet!");
+                "Cannot grow the EmptyConceptSet!");
     }
 
     public String toString() {
         return String.valueOf(set);
     }
 
-	@Override
-	public int[] toArray() {
-		return set.toArray();
-	}
+    @Override
+    public int[] toArray() {
+        return set.toArray();
+    }
 }

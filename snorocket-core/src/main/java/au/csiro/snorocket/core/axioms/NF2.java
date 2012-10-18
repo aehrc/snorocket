@@ -21,14 +21,12 @@
 
 package au.csiro.snorocket.core.axioms;
 
-
 /**
- * Normal form 2:       A &#8849; &#8707;r.B
- * <br>
+ * Normal form 2: A &#8849; &#8707;r.B <br>
  * A subsumes role r with value B
  * 
  * @author law223
- *
+ * 
  */
 public final class NF2 extends NormalFormGCI implements IRoleQueueEntry {
 
@@ -70,9 +68,9 @@ public final class NF2 extends NormalFormGCI implements IRoleQueueEntry {
         return rhsR;
     }
 
-	@Override
-	public int[] getConceptsInAxiom() {
-		return new int[]{lhsA, rhsB};
-	}
+    @Override
+    public int[] getConceptsInAxiom() {
+        return new int[] { lhsA, rhsB };
+    }
 
 }

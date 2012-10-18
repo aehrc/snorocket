@@ -42,7 +42,7 @@ final public class DuoFactory_123 implements IFactory_123 {
     public boolean conceptExists(String key) {
         return base.conceptExists(key) || overlay.conceptExists(key);
     }
-    
+
     public boolean conceptExists(int key) {
         return base.conceptExists(key) || overlay.conceptExists(key);
     }
@@ -57,11 +57,12 @@ final public class DuoFactory_123 implements IFactory_123 {
 
     public int getConceptIdx(int key) {
         return base.conceptExists(key) ? base.getConceptIdx(key) : overlay
-            .getConceptIdx(key);
+                .getConceptIdx(key);
     }
 
     public int getRoleIdx(int key) {
-        return base.roleExists(key) ? base.getRoleIdx(key) : overlay.getRoleIdx(key);
+        return base.roleExists(key) ? base.getRoleIdx(key) : overlay
+                .getRoleIdx(key);
     }
 
     public int getTotalConcepts() {
@@ -82,17 +83,17 @@ final public class DuoFactory_123 implements IFactory_123 {
 
     public boolean isVirtualConcept(int id) {
         return id < conceptThreshold ? base.isVirtualConcept(id) : overlay
-            .isVirtualConcept(id);
+                .isVirtualConcept(id);
     }
 
     public boolean isVirtualRole(int id) {
         return id < roleThreshold ? base.isVirtualRole(id) : overlay
-            .isVirtualRole(id);
+                .isVirtualRole(id);
     }
 
     public int lookupConceptId(int id) {
         return id < conceptThreshold ? base.lookupConceptId(id) : overlay
-            .lookupConceptId(id);
+                .lookupConceptId(id);
     }
 
     public String lookupConceptStrId(int id) {
@@ -102,7 +103,7 @@ final public class DuoFactory_123 implements IFactory_123 {
 
     public int lookupRoleId(int id) {
         return id < roleThreshold ? base.lookupRoleId(id) : overlay
-            .lookupRoleId(id);
+                .lookupRoleId(id);
     }
 
     public String lookupRoleStrId(int id) {
@@ -118,8 +119,8 @@ final public class DuoFactory_123 implements IFactory_123 {
     public void setVirtualConceptCIdx(int id, boolean isVirtual) {
         if (id < conceptThreshold) {
             throw new IllegalArgumentException(
-                "Cannot change status of base Concept: (" + id + ") "
-                    + lookupConceptId(id));
+                    "Cannot change status of base Concept: (" + id + ") "
+                            + lookupConceptId(id));
         } else {
             overlay.setVirtualConceptCIdx(id, isVirtual);
         }
@@ -128,8 +129,8 @@ final public class DuoFactory_123 implements IFactory_123 {
     public void setVirtualRole(int id, boolean isVirtual) {
         if (id < roleThreshold) {
             throw new IllegalArgumentException(
-                "Cannot change status of base Role: (" + id + ") "
-                    + lookupRoleId(id));
+                    "Cannot change status of base Role: (" + id + ") "
+                            + lookupRoleId(id));
         } else {
             overlay.setVirtualRole(id, isVirtual);
         }

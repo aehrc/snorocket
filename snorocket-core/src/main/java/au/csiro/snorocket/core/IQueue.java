@@ -25,8 +25,12 @@ import au.csiro.snorocket.core.util.MonotonicCollection;
 
 public interface IQueue<QueueEntry> {
     void add(QueueEntry o);
+
     QueueEntry remove();
+
     int size();
+
     boolean isEmpty();
+
     void addAll(MonotonicCollection<? extends QueueEntry> queue);
 }

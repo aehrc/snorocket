@@ -22,12 +22,11 @@
 package au.csiro.snorocket.core.axioms;
 
 /**
- * Normal form 6:       &#949; &#8849; r
- * <br>
+ * Normal form 6: &#949; &#8849; r <br>
  * role r is reflexive (epsilon represents the empty composition)
  * 
  * @author law223
- *
+ * 
  */
 public final class NF6 extends NormalFormGCI {
 
@@ -41,9 +40,9 @@ public final class NF6 extends NormalFormGCI {
         return lhsR;
     }
 
-	@Override
-	public int[] getConceptsInAxiom() {
-		return new int[]{};
-	}
+    @Override
+    public int[] getConceptsInAxiom() {
+        return new int[] {};
+    }
 
 }

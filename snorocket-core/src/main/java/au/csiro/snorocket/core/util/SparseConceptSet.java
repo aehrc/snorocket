@@ -21,16 +21,15 @@
 
 package au.csiro.snorocket.core.util;
 
-
 /**
- * Implementation of the IConceptSet API that does not support clear() or 
- * remove()/removeAll(). Set entries are stored in sorted order to allow for 
- * O(log n) lookup time. Inserts require copying all larger values to make 
- * remove for the inserted value. Worst-case insert performance happens when 
- * elements are added largest to smallest. 
+ * Implementation of the IConceptSet API that does not support clear() or
+ * remove()/removeAll(). Set entries are stored in sorted order to allow for
+ * O(log n) lookup time. Inserts require copying all larger values to make
+ * remove for the inserted value. Worst-case insert performance happens when
+ * elements are added largest to smallest.
  * 
  * @author law223
- *
+ * 
  */
 final public class SparseConceptSet implements IConceptSet {
     private int[] items;
@@ -38,7 +37,8 @@ final public class SparseConceptSet implements IConceptSet {
 
     /**
      * 
-     * @param capacity initial size of underlying array
+     * @param capacity
+     *            initial size of underlying array
      */
     public SparseConceptSet(final int capacity) {
         items = new int[capacity];
@@ -79,7 +79,8 @@ final public class SparseConceptSet implements IConceptSet {
                 System.arraycopy(items, 0, newItems, 0, low);
                 System.arraycopy(items, low, newItems, low + 1, size - low);
                 items = newItems;
-                //                System.err.println(size + ", " + i + ", " + items.length + ", " + (size-i));
+                // System.err.println(size + ", " + i + ", " + items.length +
+                // ", " + (size-i));
             } else {
                 System.arraycopy(items, low, items, low + 1, size - low);
             }
@@ -87,9 +88,9 @@ final public class SparseConceptSet implements IConceptSet {
         } // else items[i] == concept, so do nothing
         else if (concept != items[low]) {
             throw new AssertionError(
-                "Internal error detected, expecting items[i] == concept where i = "
-                    + low + ", items[i] = " + items[low] + ", and concept = "
-                    + concept);
+                    "Internal error detected, expecting items[i] == concept where i = "
+                            + low + ", items[i] = " + items[low]
+                            + ", and concept = " + concept);
         }
     }
 
@@ -133,7 +134,7 @@ final public class SparseConceptSet implements IConceptSet {
         final IConceptSet s = IConceptSet.FACTORY.createConceptSet(concepts);
         s.removeAll(this);
         return s.isEmpty();
-        //        return false;
+        // return false;
     }
 
     public boolean isEmpty() {
@@ -141,7 +142,7 @@ final public class SparseConceptSet implements IConceptSet {
     }
 
     public synchronized IntIterator iterator() {
-    	return new SparseConceptSetIntIterator(items, size);
+        return new SparseConceptSetIntIterator(items, size);
     }
 
     public void remove(int concept) {
@@ -163,7 +164,7 @@ final public class SparseConceptSet implements IConceptSet {
         }
         sb.append("}");
         return sb.toString();
-        //        return size + ":" +Arrays.toString(items);
+        // return size + ":" +Arrays.toString(items);
     }
 
     public int size() {
@@ -171,21 +172,21 @@ final public class SparseConceptSet implements IConceptSet {
     }
 
     public synchronized void grow(int newSize) {
-    	assert newSize >= size;
-    	
+        assert newSize >= size;
+
         final int[] newItems = new int[newSize];
         System.arraycopy(items, 0, newItems, 0, size);
         items = newItems;
     }
 
-	@Override
-	public int[] toArray() {
-		int[] res = new int[size];
-		for(int i = 0; i < size; i++) {
-			res[i] = items[i];
-		}
-		
-		return res;
-	}
+    @Override
+    public int[] toArray() {
+        int[] res = new int[size];
+        for (int i = 0; i < size; i++) {
+            res[i] = items[i];
+        }
+
+        return res;
+    }
 
 }

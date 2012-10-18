@@ -26,7 +26,7 @@ import java.util.Arrays;
 public class SparseArray<T> {
 
     private static final int M = 16;
-    
+
     private int _capacity = 0;
     int counter = 0;
     T[][] groups;
@@ -47,28 +47,29 @@ public class SparseArray<T> {
                 }
             }
         }
-        System.err.println("SparseArray: " + total + ", " + unused + ", " + 100.0*unused/total);
+        System.err.println("SparseArray: " + total + ", " + unused + ", "
+                + 100.0 * unused / total);
     }
 
     @SuppressWarnings("unchecked")
-	SparseArray(final int size) {
+    SparseArray(final int size) {
         _capacity = size;
-        groups = (T[][]) new Object[((_capacity-1)/M) + 1][];
+        groups = (T[][]) new Object[((_capacity - 1) / M) + 1][];
     }
-    
+
     T get(int index) {
-    	if(index == -1) {
-    		return null;
-    	} else if ((index / M) < groups.length) {
+        if (index == -1) {
+            return null;
+        } else if ((index / M) < groups.length) {
             final T[] group = groups[index / M];
             return null == group ? null : group[index % M];
         } else {
             return null;
         }
     }
-    
+
     @SuppressWarnings("unchecked")
-	void set(int index, T value) {
+    void set(int index, T value) {
         if ((index / M) >= groups.length) {
             resize(index + 1);
         }
@@ -76,19 +77,20 @@ public class SparseArray<T> {
         if (null == group) {
             group = groups[index / M] = (T[]) new Object[M];
         }
-        if (null == group[index % M]) counter++;
+        if (null == group[index % M])
+            counter++;
         group[index % M] = value;
     }
 
     public void clear() {
         Arrays.fill(groups, null);
     }
-    
+
     @SuppressWarnings("unchecked")
-	private void resize(final int newCapacity) {
+    private void resize(final int newCapacity) {
         _capacity = newCapacity;
         final T[][] oldGroup = groups;
-        final int newSize = ((_capacity-1)/M) + 1;
+        final int newSize = ((_capacity - 1) / M) + 1;
         groups = (T[][]) new Object[newSize][];
         System.arraycopy(oldGroup, 0, groups, 0, oldGroup.length);
     }
