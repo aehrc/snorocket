@@ -54,6 +54,12 @@
 		<groupId>org.jacoco</groupId>
 		<artifactId>jacoco-maven-plugin</artifactId>
 		<version>0.6.0.201210061924</version>
+		<configuration>
+		  <destFile>${basedir}/../target/jacoco-all.exec</destFile>
+		  <append>true</append>
+		  <dataFile>${basedir}/../target/jacoco-all.exec</dataFile>
+		  <outputDirectory>${basedir}/../target/jacoco_core</outputDirectory>
+		</configuration>
 		<executions>
 		  <execution>
 		    <goals>
