@@ -31,11 +31,11 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  * Concurrent version of R.
  * 
  * @author Alejandro Metke
- *
+ * 
  */
 public final class CR {
     private IConceptSet[] data;
-    
+
     public CR(final int roles) {
         this.data = new IConceptSet[roles];
     }
@@ -43,7 +43,7 @@ public final class CR {
     public boolean containsRole(int role) {
         return data[role] != null;
     }
-    
+
     /**
      * 
      * @param r
@@ -51,7 +51,7 @@ public final class CR {
      */
     protected IConceptSet getConcept(int r) {
         if (r >= data.length) {
-            resizeRoles(r+1);
+            resizeRoles(r + 1);
         }
         if (null == data[r]) {
             data[r] = new SparseConceptSet();
@@ -60,48 +60,42 @@ public final class CR {
     }
 
     /**
-     * Returns the set of concepts associated to the concept in a 
+     * Returns the set of concepts associated to the concept in a
      * {@link Context} by role r.
      * 
-     * @param r The role
+     * @param r
+     *            The role
      * @return The set of concepts associated to the concept in the context.
      */
     public IConceptSet lookupConcept(int r) {
         if (r >= data.length) {
             return IConceptSet.EMPTY_SET;
         }
-        
+
         if (null == data[r]) {
-        	return IConceptSet.EMPTY_SET;
+            return IConceptSet.EMPTY_SET;
         } else {
             return new ReadonlyConceptSet(data[r]);
         }
     }
-    
+
     /**
-     * Returns the set of concepts associated to the concept in a 
+     * Returns the set of concepts associated to the concept in a
      * {@link Context} by role r.
      * 
-     * @param r The role
+     * @param r
+     *            The role
      * @return The set of concepts associated to the concept in the context.
      */
-    /*public IConceptSet lookupConceptCopy(int r) {
-    	if (r >= data.length) {
-            return IConceptSet.EMPTY_SET;
-        }
-        
-        if (null == data[r]) {
-        	return IConceptSet.EMPTY_SET;
-        } else {
-        	try {
-        		// Awful double cast!
-        		return new ReadonlyConceptSet((SparseConceptSet)
-        				((SparseConceptSet)data[r]).clone());
-			} catch (CloneNotSupportedException e) {
-				throw new RuntimeException(e);
-			}
-        }
-    }*/
+    /*
+     * public IConceptSet lookupConceptCopy(int r) { if (r >= data.length) {
+     * return IConceptSet.EMPTY_SET; }
+     * 
+     * if (null == data[r]) { return IConceptSet.EMPTY_SET; } else { try { //
+     * Awful double cast! return new ReadonlyConceptSet((SparseConceptSet)
+     * ((SparseConceptSet)data[r]).clone()); } catch (CloneNotSupportedException
+     * e) { throw new RuntimeException(e); } } }
+     */
 
     public void clear() {
         Arrays.fill(data, null);
@@ -109,26 +103,26 @@ public final class CR {
 
     private void resizeRoles(int maxRole) {
         final IConceptSet[] oldData = data;
-        
+
         data = new IConceptSet[maxRole];
-        System.arraycopy(oldData, 0, data, 0, oldData.length);    
+        System.arraycopy(oldData, 0, data, 0, oldData.length);
     }
 
     public String toString() {
-    	final StringBuilder sb = new StringBuilder();
-    	
-    	for (int index = 0; index < data.length; index ++) {
-    		IConceptSet cs = data[index];
-    		if (null != cs) {
-    			sb.append(index + "."+cs.toString());
-    		}
-    	}
-    	
-    	return sb.toString();
+        final StringBuilder sb = new StringBuilder();
+
+        for (int index = 0; index < data.length; index++) {
+            IConceptSet cs = data[index];
+            if (null != cs) {
+                sb.append(index + "." + cs.toString());
+            }
+        }
+
+        return sb.toString();
     }
 
     /**
-     * Record C [ r.B, where C is implicit (the concept in a context). 
+     * Record C [ r.B, where C is implicit (the concept in a context).
      * 
      * @param r
      * @param B
@@ -136,5 +130,5 @@ public final class CR {
     synchronized void store(int r, int B) {
         getConcept(r).add(B);
     }
-    
+
 }

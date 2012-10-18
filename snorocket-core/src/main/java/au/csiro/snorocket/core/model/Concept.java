@@ -21,16 +21,14 @@
 
 package au.csiro.snorocket.core.model;
 
-
-
 /**
  * Represents a simple concept.
  * 
  * @author law223
- *
+ * 
  */
 final public class Concept extends AbstractConcept {
-    
+
     final private int _hashcode;
 
     public Concept(final int id) {
@@ -49,13 +47,13 @@ final public class Concept extends AbstractConcept {
 
     @Override
     public boolean equals(Object obj) {
-        return this == obj ||
-                (obj instanceof Concept && _hashcode == ((Concept) obj)._hashcode);
+        return this == obj
+                || (obj instanceof Concept && _hashcode == ((Concept) obj)._hashcode);
     }
 
     @Override
     int compareToWhenHashCodesEqual(AbstractConcept other) {
         return hashCode() - other.hashCode();
     }
-    
+
 }

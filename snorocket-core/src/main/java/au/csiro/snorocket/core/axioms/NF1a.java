@@ -24,12 +24,11 @@ package au.csiro.snorocket.core.axioms;
 import au.csiro.snorocket.core.IFactory;
 
 /**
- * Normal form 1: A<sub>1</sub>&nbsp;&#8849;&nbsp;B
- * <br>
+ * Normal form 1: A<sub>1</sub>&nbsp;&#8849;&nbsp;B <br>
  * A<sub>1</sub> subsumes B
  * 
  * @author Michael Lawley
- *
+ * 
  */
 public final class NF1a extends NormalFormGCI {
 
@@ -69,7 +68,7 @@ public final class NF1a extends NormalFormGCI {
     public String toString() {
         StringBuffer sb = new StringBuffer();
         sb.append(lhsA);
-        //      sb.append(" \u2291 ");
+        // sb.append(" \u2291 ");
         sb.append(" [ ");
         sb.append(rhsB);
 
@@ -84,9 +83,9 @@ public final class NF1a extends NormalFormGCI {
         return rhsB;
     }
 
-	@Override
-	public int[] getConceptsInAxiom() {
-		return new int[]{lhsA, rhsB};
-	}
+    @Override
+    public int[] getConceptsInAxiom() {
+        return new int[] { lhsA, rhsB };
+    }
 
 }

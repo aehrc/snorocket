@@ -34,9 +34,9 @@ final public class RoleSet extends java.util.BitSet {
     /**
 	 * 
 	 */
-	private static final long serialVersionUID = 3307286235156743593L;
+    private static final long serialVersionUID = 3307286235156743593L;
 
-	public RoleSet() {
+    public RoleSet() {
     }
 
     public RoleSet(final RoleSet initial) {

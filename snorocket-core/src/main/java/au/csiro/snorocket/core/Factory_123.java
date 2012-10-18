@@ -44,9 +44,9 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
 final public class Factory_123 implements IFactory_123 {
 
     @SuppressWarnings("unused")
-	private static final int CSIZE_ESTIMATE = 1000000; // :OLD: 3000
+    private static final int CSIZE_ESTIMATE = 1000000; // :OLD: 3000
     @SuppressWarnings("unused")
-	private static final int RSIZE_ESTIMATE = 128; // :OLD: 128
+    private static final int RSIZE_ESTIMATE = 128; // :OLD: 128
 
     // Increment 3rd place for upwards/backwards compatible change
     // Increment 2nd place for upwards compatible change
@@ -66,7 +66,8 @@ final public class Factory_123 implements IFactory_123 {
     final private HashMap<String, Integer> conceptMoreNameMap = new HashMap<String, Integer>();
     final private ArrayList<String> conceptMoreNames = new ArrayList<String>();
 
-    final private IConceptSet virtualConcepts = new SparseConceptSet(1000 + 517249 + 1423);
+    final private IConceptSet virtualConcepts = new SparseConceptSet(
+            1000 + 517249 + 1423);
 
     // roleNidArray must be provided in sorted order.
     private int roleNidArray[] = null;
@@ -90,7 +91,8 @@ final public class Factory_123 implements IFactory_123 {
      */
     private int nextRoleIdx = 0;
 
-    public Factory_123(int[] conceptArray, int nextCIdx, int[] roleArray, int nextRIdx) {
+    public Factory_123(int[] conceptArray, int nextCIdx, int[] roleArray,
+            int nextRIdx) {
         this(0, 0);
 
         conceptNidArray = conceptArray;
@@ -164,14 +166,19 @@ final public class Factory_123 implements IFactory_123 {
         int idx = Integer.MAX_VALUE;
         Integer nid = conceptMoreNameMap.get(key);
         if (null == nid) {
-            // 
+            //
             if (nextConceptIdx == conceptNidArray.length) {
-                final int[] newConcepts = new int[nextConceptIdx + firstConceptMoreIdx];
-                System.arraycopy(conceptNidArray, 0, newConcepts, 0, nextConceptIdx);
+                final int[] newConcepts = new int[nextConceptIdx
+                        + firstConceptMoreIdx];
+                System.arraycopy(conceptNidArray, 0, newConcepts, 0,
+                        nextConceptIdx);
                 // Fill array to make binary search work correctly.
-                Arrays.fill(newConcepts, nextConceptIdx, newConcepts.length, Integer.MAX_VALUE);
+                Arrays.fill(newConcepts, nextConceptIdx, newConcepts.length,
+                        Integer.MAX_VALUE);
                 conceptNidArray = newConcepts;
-                Snorocket.getLogger().info("::: conceptNidArray (Str) resized to: " + conceptNidArray.length);
+                Snorocket.getLogger().info(
+                        "::: conceptNidArray (Str) resized to: "
+                                + conceptNidArray.length);
             }
 
             conceptNidArray[nextConceptIdx] = nextConceptNid;
@@ -185,8 +192,10 @@ final public class Factory_123 implements IFactory_123 {
         } else {
             idx = findConceptIdx(nid);
             if (idx < 0)
-                Snorocket.getLogger().info(
-                        String.format("ERROR, getConceptIdx(%s) key not found ", key));
+                Snorocket
+                        .getLogger()
+                        .info(String.format(
+                                "ERROR, getConceptIdx(%s) key not found ", key));
         }
 
         return idx + conceptBase;
@@ -203,8 +212,8 @@ final public class Factory_123 implements IFactory_123 {
             // If fits into the array....
             if (nextConceptIdx < conceptNidArray.length) {
                 // Copy after insertion point (src.., dest.., length)
-                System.arraycopy(conceptNidArray, idx, conceptNidArray, idx + 1, nextConceptIdx
-                        - idx);
+                System.arraycopy(conceptNidArray, idx, conceptNidArray,
+                        idx + 1, nextConceptIdx - idx);
 
                 // Insert value
                 conceptNidArray[idx] = key;
@@ -221,14 +230,17 @@ final public class Factory_123 implements IFactory_123 {
 
                 // Copy after insertion index
                 // :!!!: v v v v
-                System.arraycopy(conceptNidArray, idx, newConcepts, idx + 1, nextConceptIdx - idx);
+                System.arraycopy(conceptNidArray, idx, newConcepts, idx + 1,
+                        nextConceptIdx - idx);
 
                 // Fill remaining values
-                Arrays.fill(newConcepts, nextConceptIdx, newConcepts.length, Integer.MAX_VALUE);
+                Arrays.fill(newConcepts, nextConceptIdx, newConcepts.length,
+                        Integer.MAX_VALUE);
 
                 conceptNidArray = newConcepts;
-				Snorocket.getLogger().info(
-						"::: ConceptNidArray (int) resized to: " + conceptNidArray.length);
+                Snorocket.getLogger().info(
+                        "::: ConceptNidArray (int) resized to: "
+                                + conceptNidArray.length);
             }
             nextConceptIdx++;
         }
@@ -239,23 +251,24 @@ final public class Factory_123 implements IFactory_123 {
 
     /**
      * 1. Find in Map&lt;K/String, V/Integer&gt;<br>
-     * 2. If not found get next available nextRIdx++, nextCIdx++; and ADD
-     * 3. Get nextXIDx, resize array if needed.
-     * 4. ADD... resize map if needed. 
+     * 2. If not found get next available nextRIdx++, nextCIdx++; and ADD 3. Get
+     * nextXIDx, resize array if needed. 4. ADD... resize map if needed.
      */
     public int getRoleIdx(final String key) {
         int idx = Integer.MAX_VALUE;
         Integer nid = roleMoreNameMap.get(key);
         if (null == nid) {
-            // 
+            //
             if (nextRoleIdx == roleNidArray.length) {
                 final int[] newRoles = new int[nextRoleIdx + 128];
                 System.arraycopy(roleNidArray, 0, newRoles, 0, nextRoleIdx);
                 // Fill array to make binary search work correctly.
-                Arrays.fill(newRoles, nextRoleIdx, newRoles.length, Integer.MAX_VALUE);
+                Arrays.fill(newRoles, nextRoleIdx, newRoles.length,
+                        Integer.MAX_VALUE);
                 roleNidArray = newRoles;
                 if (Snorocket.DEBUGGING)
-                    Snorocket.getLogger().info("role resize to: " + roleNidArray.length);
+                    Snorocket.getLogger().info(
+                            "role resize to: " + roleNidArray.length);
             }
 
             roleNidArray[nextRoleIdx] = nextRoleNid;
@@ -270,7 +283,8 @@ final public class Factory_123 implements IFactory_123 {
             idx = findRoleIdx(nid);
             if (idx < 0)
                 Snorocket.getLogger().info(
-                        String.format("ERROR, getRoleIdx(%s) key not found ", key));
+                        String.format("ERROR, getRoleIdx(%s) key not found ",
+                                key));
         }
 
         return idx + roleBase;
@@ -287,7 +301,8 @@ final public class Factory_123 implements IFactory_123 {
             // If needed, grow the array size.
             if (nextRoleIdx < roleNidArray.length) {
                 // Copy after insertion point (src.., dest.., length)
-                System.arraycopy(roleNidArray, idx, roleNidArray, idx + 1, nextRoleIdx - idx);
+                System.arraycopy(roleNidArray, idx, roleNidArray, idx + 1,
+                        nextRoleIdx - idx);
 
                 // Insert value
                 roleNidArray[idx] = key;
@@ -304,14 +319,17 @@ final public class Factory_123 implements IFactory_123 {
 
                 // Copy after insertion index
                 // :!!!: v v v v
-                System.arraycopy(roleNidArray, idx, newRoles, idx + 1, nextRoleIdx - idx);
+                System.arraycopy(roleNidArray, idx, newRoles, idx + 1,
+                        nextRoleIdx - idx);
 
                 // Fill remaining values
-                Arrays.fill(newRoles, nextRoleIdx, newRoles.length, Integer.MAX_VALUE);
+                Arrays.fill(newRoles, nextRoleIdx, newRoles.length,
+                        Integer.MAX_VALUE);
 
                 roleNidArray = newRoles;
                 if (Snorocket.DEBUGGING)
-                    Snorocket.getLogger().info("Role array resize to: " + roleNidArray.length);
+                    Snorocket.getLogger().info(
+                            "Role array resize to: " + roleNidArray.length);
             }
             nextRoleIdx++;
         }
@@ -403,7 +421,8 @@ final public class Factory_123 implements IFactory_123 {
         if (isVirtual) {
             virtualRoles.add(id - roleBase);
         } else if (virtualRoles.contains(id - roleBase)) {
-            throw new IllegalStateException("Cannot convert virtual role into a non-virtual role.");
+            throw new IllegalStateException(
+                    "Cannot convert virtual role into a non-virtual role.");
         }
     }
 
@@ -422,7 +441,8 @@ final public class Factory_123 implements IFactory_123 {
         writer.println(roleBase);
         writer.println(getTotalConcepts());
         for (int i = 0; i < nextConceptIdx; i++) {
-            writer.println(i + "\t" + conceptNidArray[i] + "\t" + isVirtualConcept(i));
+            writer.println(i + "\t" + conceptNidArray[i] + "\t"
+                    + isVirtualConcept(i));
         }
         writer.println(getTotalRoles());
         for (int i = 0; i < nextRoleIdx; i++) {
@@ -430,11 +450,13 @@ final public class Factory_123 implements IFactory_123 {
         }
     }
 
-    static public Factory_123 loadAll(final BufferedReader br) throws IOException, ParseException {
+    static public Factory_123 loadAll(final BufferedReader br)
+            throws IOException, ParseException {
         return loadAll(new LineReader(br));
     }
 
-    static Factory_123 loadAll(final LineReader reader) throws IOException, ParseException {
+    static Factory_123 loadAll(final LineReader reader) throws IOException,
+            ParseException {
         checkVersion(reader);
 
         // Read in offsets
@@ -454,21 +476,23 @@ final public class Factory_123 implements IFactory_123 {
         for (int i = 0; i < numConcepts; i++) {
             final String line = reader.readLine();
             if (null == line) {
-                throw new AssertionError("EOF reached unexpectedly.  " + (numConcepts - i)
-                        + " more concepts expected.");
+                throw new AssertionError("EOF reached unexpectedly.  "
+                        + (numConcepts - i) + " more concepts expected.");
             }
             final int idx1 = line.indexOf('\t');
             final int idx2 = line.indexOf('\t', idx1 + 1);
             final int id = Integer.parseInt(line.substring(0, idx1));
             if (id != factory.nextConceptIdx) {
-                throw new AssertionError("Out of sequence error.  Expected id = "
-                        + factory.nextConceptIdx + " got " + id);
+                throw new AssertionError(
+                        "Out of sequence error.  Expected id = "
+                                + factory.nextConceptIdx + " got " + id);
             }
             // :NYI: line reader NIDs input not yet implemented & tests.
             String key = line.substring(idx1 + 1, idx2);
             int nid = Integer.parseInt(key);
             final int c = factory.getConceptIdx(nid);
-            final boolean isVirtual = Boolean.parseBoolean(line.substring(idx2 + 1));
+            final boolean isVirtual = Boolean.parseBoolean(line
+                    .substring(idx2 + 1));
             // yes, we could just pass isVirtual to the call and avoid this test
             // but there
             // is a not insignificant cost to calling setVirtualConcept
@@ -485,36 +509,41 @@ final public class Factory_123 implements IFactory_123 {
         for (int i = 0; i < numRoles; i++) {
             final String line = reader.readLine();
             if (null == line) {
-                throw new AssertionError("EOF reached unexpectedly.  " + (numConcepts - i)
-                        + " more concepts expected.");
+                throw new AssertionError("EOF reached unexpectedly.  "
+                        + (numConcepts - i) + " more concepts expected.");
             }
             final int idx1 = line.indexOf('\t');
             final int idx2 = line.indexOf('\t', idx1 + 1);
             final int id = Integer.parseInt(line.substring(0, idx1));
             if (id != factory.nextRoleIdx) {
-                throw new IllegalStateException("Out of sequence error.  Expected id = "
-                        + factory.nextRoleIdx + " got " + id);
+                throw new IllegalStateException(
+                        "Out of sequence error.  Expected id = "
+                                + factory.nextRoleIdx + " got " + id);
             }
             // :NYI: line reader NIDs input not yet implemented & tests.
             String key = line.substring(idx1 + 1, idx2);
             int nid = Integer.parseInt(key);
             final int r = factory.getRoleIdx(nid);
-            factory.setVirtualRole(r, Boolean.parseBoolean(line.substring(idx2 + 1)));
+            factory.setVirtualRole(r,
+                    Boolean.parseBoolean(line.substring(idx2 + 1)));
         }
 
         return factory;
     }
 
-    private static void checkVersion(LineReader reader) throws IOException, ParseException {
+    private static void checkVersion(LineReader reader) throws IOException,
+            ParseException {
         String line = reader.readLine(); // Read file version
         if (!FILE_VERSION.equals(line)) {
-            throw new ParseException("Unsupported file format version, found " + line
-                    + ", expected " + FILE_VERSION + " or compatible.", reader);
+            throw new ParseException("Unsupported file format version, found "
+                    + line + ", expected " + FILE_VERSION + " or compatible.",
+                    reader);
         }
     }
 
     public String toStringStats() {
-        return " ++concepts=" + conceptMoreNames.size() + " ++roles=" + roleMoreNames.size();
+        return " ++concepts=" + conceptMoreNames.size() + " ++roles="
+                + roleMoreNames.size();
     }
 
     public int[] getConceptArray() {

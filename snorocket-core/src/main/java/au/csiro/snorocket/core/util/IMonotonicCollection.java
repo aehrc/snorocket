@@ -21,11 +21,10 @@
 
 package au.csiro.snorocket.core.util;
 
-
 public interface IMonotonicCollection<T> extends Iterable<T> {
 
     public void add(T element);
-    
+
     public int size();
 
 }

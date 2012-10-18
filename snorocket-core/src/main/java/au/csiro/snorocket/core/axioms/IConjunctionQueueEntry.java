@@ -26,7 +26,7 @@ package au.csiro.snorocket.core.axioms;
  * explicitly in the entry but rather in the queue it belongs to.
  * 
  * @author Michael Lawley
- *
+ * 
  */
 public interface IConjunctionQueueEntry {
     /**
@@ -34,12 +34,12 @@ public interface IConjunctionQueueEntry {
      * 
      * @return
      */
-	int getB();
-	
-	/**
-	 * The second conjunct of the entry.
-	 * 
-	 * @return
-	 */
+    int getB();
+
+    /**
+     * The second conjunct of the entry.
+     * 
+     * @return
+     */
     int getBi();
 }

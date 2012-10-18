@@ -32,22 +32,21 @@ import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
 
-
 public class TestReflexiveRoles {
 
     @Test
     public void testPartWhole() {
         IFactory factory = new Factory();
         NormalisedOntology o = new NormalisedOntology(factory);
-        
+
         // roles
         int partOf = factory.getRole("part-of");
         int partOrWholeOf = factory.getRole("part-whole-of");
-        
+
         o.addTerm(new NF4(partOf, partOrWholeOf));
-        o.addTerm(new NF5(partOf, partOf, partOf));     // transitive
-        o.addTerm(new NF6(partOrWholeOf));                // reflexive
-        
+        o.addTerm(new NF5(partOf, partOf, partOf)); // transitive
+        o.addTerm(new NF6(partOrWholeOf)); // reflexive
+
         // concepts
         int gastroTract = factory.getConcept("Gastrointestinal-Tract");
         int stomach = factory.getConcept("Stomach");
@@ -55,76 +54,82 @@ public class TestReflexiveRoles {
         int smallIntestine = factory.getConcept("Small-Intestine");
         int largeIntestine = factory.getConcept("Large-Intestine");
         int appendix = factory.getConcept("Appendix");
-        
+
         o.addTerm(NF2.getInstance(appendix, partOf, largeIntestine));
         o.addTerm(NF2.getInstance(largeIntestine, partOf, intestine));
         o.addTerm(NF2.getInstance(smallIntestine, partOf, intestine));
         o.addTerm(NF2.getInstance(intestine, partOf, gastroTract));
         o.addTerm(NF2.getInstance(stomach, partOf, gastroTract));
-        
-        int allParts = factory.getConcept("|All anatomical parts of the gastrointestinal tract|");
-        int allPartsOrWhole = factory.getConcept("|All anatomical parts or whole of the gastrointestinal tract|");
-        
+
+        int allParts = factory
+                .getConcept("|All anatomical parts of the gastrointestinal tract|");
+        int allPartsOrWhole = factory
+                .getConcept("|All anatomical parts or whole of the gastrointestinal tract|");
+
         // allParts == partOf.gastroTract
         o.addTerm(NF2.getInstance(allParts, partOf, gastroTract));
         o.addTerm(NF3.getInstance(partOf, gastroTract, allParts));
-        
+
         // allPartsOrWhole == partOrWholeOf.gastroTract
         o.addTerm(NF2.getInstance(allPartsOrWhole, partOrWholeOf, gastroTract));
         o.addTerm(NF3.getInstance(partOrWholeOf, gastroTract, allPartsOrWhole));
-        
+
         o.classify();
         final IConceptMap<IConceptSet> s = o.getSubsumptions();
-        
+
         final int count = printAll(factory, s);
-        
+
         final IConceptSet gtParents = s.get(gastroTract);
-        assertTrue("Gastro Tract should be all partsOrWhole of itself", gtParents.contains(allPartsOrWhole));
-        assertEquals("Wrong number of ancestors for Gastro Tract", 3, gtParents.size());
+        assertTrue("Gastro Tract should be all partsOrWhole of itself",
+                gtParents.contains(allPartsOrWhole));
+        assertEquals("Wrong number of ancestors for Gastro Tract", 3,
+                gtParents.size());
 
         assertEquals("Incorrect number of subsumption edges", 31, count);
-        
+
     }
-    
+
     @Ignore
     @Test
     public void simpleReflexive() {
         IFactory factory = new Factory();
         NormalisedOntology o = new NormalisedOntology(factory);
-        
+
         // roles
         int partOf = factory.getRole("partOf");
         int subPart = factory.getRole("subPart");
-        
+
         o.addTerm(new NF4(subPart, partOf));
-        o.addTerm(new NF6(partOf));                // reflexive
-        
+        o.addTerm(new NF6(partOf)); // reflexive
+
         // concepts
         int foot = factory.getConcept("Foot");
         int lowerLeg = factory.getConcept("Lower_Leg");
         int bodyPart = factory.getConcept("Body_Part");
         int xx = factory.getConcept("XX");
         int yy = factory.getConcept("YY");
-        
+
         // relationships
-        
+
         o.addTerm(NF2.getInstance(foot, subPart, lowerLeg));
         o.addTerm(NF2.getInstance(xx, partOf, yy));
         o.addTerm(NF1a.getInstance(lowerLeg, bodyPart));
         o.addTerm(NF1a.getInstance(foot, bodyPart));
-        
+
         final IConceptMap<IConceptSet> s = o.getSubsumptions();
-        
+
         printAll(factory, s);
 
         final R r = o.getRelationships();
-        
+
         for (int concept = 0; concept < factory.getTotalConcepts(); concept++) {
             for (int role = 0; role < factory.getTotalRoles(); role++) {
                 final IConceptSet Bs = r.lookupB(concept, role);
-                for (final IntIterator itr = Bs.iterator(); itr.hasNext(); ) {
+                for (final IntIterator itr = Bs.iterator(); itr.hasNext();) {
                     final int b = itr.next();
-                    System.out.println(factory.lookupConceptId(concept) + " [ " + factory.lookupRoleId(role) + "." + factory.lookupConceptId(b));
+                    System.out.println(factory.lookupConceptId(concept) + " [ "
+                            + factory.lookupRoleId(role) + "."
+                            + factory.lookupConceptId(b));
                 }
             }
         }
@@ -132,21 +137,21 @@ public class TestReflexiveRoles {
 
     private int printAll(IFactory factory, final IConceptMap<IConceptSet> s) {
         int count = 0;
-        for (final IntIterator keyItr = s.keyIterator(); keyItr.hasNext(); ) {
+        for (final IntIterator keyItr = s.keyIterator(); keyItr.hasNext();) {
             final int key = keyItr.next();
-            
+
             System.out.print(factory.lookupConceptId(key) + " :");
-            for (final IntIterator valItr = s.get(key).iterator(); valItr.hasNext(); ) {
+            for (final IntIterator valItr = s.get(key).iterator(); valItr
+                    .hasNext();) {
                 final int val = valItr.next();
 
                 System.out.print(" " + factory.lookupConceptId(val));
                 count++;
             }
-            
+
             System.out.println();
         }
-        
+
         return count;
     }
 }
-

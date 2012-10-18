@@ -23,9 +23,8 @@ package au.csiro.snorocket.core;
 
 import au.csiro.snorocket.core.util.MonotonicCollection;
 
-
 /**
- * A LIFO queue.  Used to be a LIFO set to avoid duplicate entries but,
+ * A LIFO queue. Used to be a LIFO set to avoid duplicate entries but,
  * <ol>
  * <li>this has huge space overheads, and</li>
  * <li>empirical evidence indicates they don't happen and thus this is redundant
@@ -33,7 +32,7 @@ import au.csiro.snorocket.core.util.MonotonicCollection;
  * </ol>
  * 
  * @author Michael Lawley
- *
+ * 
  * @param <QueueEntry>
  */
 public final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
@@ -49,12 +48,13 @@ public final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
     static int number = 0;
 
     /**
-     * See chapter 8 of http://java.sun.com/j2se/1.5/pdf/generics-tutorial.pdf for why we need the typeToken parameter
+     * See chapter 8 of http://java.sun.com/j2se/1.5/pdf/generics-tutorial.pdf
+     * for why we need the typeToken parameter
      * 
      * @param typeToken
      */
     @SuppressWarnings("unchecked")
-	public QueueImpl(Class<QueueEntry> typeToken) {
+    public QueueImpl(Class<QueueEntry> typeToken) {
         items = (QueueEntry[]) EMPTY;
 
         number++;

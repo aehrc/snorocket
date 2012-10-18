@@ -38,8 +38,8 @@ final public class DuoFactory implements IFactory {
         this.roleThreshold = base.getTotalRoles();
         this.featureThreshold = base.getTotalFeatures();
 
-        this.overlay = new Factory(conceptThreshold, roleThreshold, 
-        		featureThreshold);
+        this.overlay = new Factory(conceptThreshold, roleThreshold,
+                featureThreshold);
     }
 
     public boolean conceptExists(String key) {
@@ -52,7 +52,7 @@ final public class DuoFactory implements IFactory {
 
     public int getConcept(String key) {
         return base.conceptExists(key) ? base.getConcept(key) : overlay
-            .getConcept(key);
+                .getConcept(key);
     }
 
     public int getRole(String key) {
@@ -77,22 +77,22 @@ final public class DuoFactory implements IFactory {
 
     public boolean isVirtualConcept(int id) {
         return id < conceptThreshold ? base.isVirtualConcept(id) : overlay
-            .isVirtualConcept(id);
+                .isVirtualConcept(id);
     }
 
     public boolean isVirtualRole(int id) {
         return id < roleThreshold ? base.isVirtualRole(id) : overlay
-            .isVirtualRole(id);
+                .isVirtualRole(id);
     }
 
     public String lookupConceptId(int id) {
         return id < conceptThreshold ? base.lookupConceptId(id) : overlay
-            .lookupConceptId(id);
+                .lookupConceptId(id);
     }
 
     public String lookupRoleId(int id) {
         return id < roleThreshold ? base.lookupRoleId(id) : overlay
-            .lookupRoleId(id);
+                .lookupRoleId(id);
     }
 
     public void printAll(PrintWriter writer) {
@@ -103,8 +103,8 @@ final public class DuoFactory implements IFactory {
     public void setVirtualConcept(int id, boolean isVirtual) {
         if (id < conceptThreshold) {
             throw new IllegalArgumentException(
-                "Cannot change status of base Concept: (" + id + ") "
-                    + lookupConceptId(id));
+                    "Cannot change status of base Concept: (" + id + ") "
+                            + lookupConceptId(id));
         } else {
             overlay.setVirtualConcept(id, isVirtual);
         }
@@ -113,31 +113,31 @@ final public class DuoFactory implements IFactory {
     public void setVirtualRole(int id, boolean isVirtual) {
         if (id < roleThreshold) {
             throw new IllegalArgumentException(
-                "Cannot change status of base Role: (" + id + ") "
-                    + lookupRoleId(id));
+                    "Cannot change status of base Role: (" + id + ") "
+                            + lookupRoleId(id));
         } else {
             overlay.setVirtualRole(id, isVirtual);
         }
     }
 
-	public boolean featureExists(String key) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    public boolean featureExists(String key) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-	public int getFeature(String key) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    public int getFeature(String key) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	public int getTotalFeatures() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    public int getTotalFeatures() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	public String lookupFeatureId(int id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public String lookupFeatureId(int id) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

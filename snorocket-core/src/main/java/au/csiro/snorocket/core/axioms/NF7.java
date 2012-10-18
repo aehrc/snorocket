@@ -10,37 +10,37 @@ import au.csiro.snorocket.core.model.Datatype;
  * Normal form 7. A subsumes feature f with operator op and value v.
  * 
  * @author Alejandro Metke
- *
+ * 
  */
 public final class NF7 extends NormalFormGCI implements IFeatureQueueEntry {
-	
-	final public int lhsA;
+
+    final public int lhsA;
     final public Datatype rhsD;
-	
-	/**
+
+    /**
 	 * 
 	 */
-	public NF7(int lhsA, Datatype rhsD) {
-		this.lhsA = lhsA;
-		this.rhsD = rhsD;
-	}
+    public NF7(int lhsA, Datatype rhsD) {
+        this.lhsA = lhsA;
+        this.rhsD = rhsD;
+    }
 
-	public Datatype getD() {
-		return rhsD;
-	}
-	
-	static public NF7 getInstance(final int a, Datatype d) {
+    public Datatype getD() {
+        return rhsD;
+    }
+
+    static public NF7 getInstance(final int a, Datatype d) {
         return new NF7(a, d);
     }
-	
-	public String toString() {
-        return lhsA + " [ " + rhsD.getFeature() + ".(" + rhsD.getOperator() + 
-        		","+rhsD.getLiteral()+")";
+
+    public String toString() {
+        return lhsA + " [ " + rhsD.getFeature() + ".(" + rhsD.getOperator()
+                + "," + rhsD.getLiteral() + ")";
     }
 
-	@Override
-	public int[] getConceptsInAxiom() {
-		return new int[]{lhsA};
-	}
+    @Override
+    public int[] getConceptsInAxiom() {
+        return new int[] { lhsA };
+    }
 
 }

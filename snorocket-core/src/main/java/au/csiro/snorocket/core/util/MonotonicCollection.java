@@ -25,21 +25,20 @@ import java.util.Iterator;
 
 import au.csiro.snorocket.core.Snorocket;
 
-
 /**
  * Hm, not strictly monotonic due to inclusion of clear() method...
  * 
  * @author law223
- *
+ * 
  * @param <T>
  */
 public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
 
     public T[] data;
     int count = 0;
-    
+
     @SuppressWarnings("unchecked")
-	public MonotonicCollection(final int size) {
+    public MonotonicCollection(final int size) {
         data = (T[]) new Object[size];
     }
 
@@ -49,10 +48,14 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
     }
 
     @SuppressWarnings("unchecked")
-	private void checkSize() {
+    private void checkSize() {
         if (count == data.length) {
-            final int newSize = count < 134217728 ? count << 1 : count + 10000000;
-            if (Snorocket.DEBUGGING && count > 1024) System.err.println(hashCode() + "\t" + getClass().getSimpleName() + " resize to: " + (newSize));
+            final int newSize = count < 134217728 ? count << 1
+                    : count + 10000000;
+            if (Snorocket.DEBUGGING && count > 1024)
+                System.err.println(hashCode() + "\t"
+                        + getClass().getSimpleName() + " resize to: "
+                        + (newSize));
             // For SNOMED 20061230, only a couple of these grow to 2048 entries
             T[] newData = (T[]) new Object[newSize];
             System.arraycopy(data, 0, newData, 0, data.length);
@@ -64,7 +67,7 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
         return new Iterator<T>() {
 
             int next = 0;
-            
+
             public boolean hasNext() {
                 return next < count;
             }
@@ -76,14 +79,14 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
             public void remove() {
                 throw new UnsupportedOperationException();
             }
-            
+
         };
     }
-    
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
-        for (final Iterator<T> itr = iterator(); itr.hasNext(); ) {
+        for (final Iterator<T> itr = iterator(); itr.hasNext();) {
             final T o = itr.next();
             sb.append(o);
             if (itr.hasNext()) {
@@ -95,17 +98,17 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
     }
 
     public void addAll(MonotonicCollection<T> collection) {
-        for (T element: collection) {
+        for (T element : collection) {
             add(element);
         }
     }
-    
+
     public int size() {
         return count;
     }
-    
+
     public void clear() {
         count = 0;
     }
-    
+
 }

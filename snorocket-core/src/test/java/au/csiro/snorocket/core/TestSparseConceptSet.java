@@ -34,7 +34,7 @@ public class TestSparseConceptSet extends TestIConceptSet {
     @Before
     public void setUp() throws Exception {
     }
-    
+
     @Override
     IConceptSet createSet(int capacity) {
         return new SparseConceptSet(capacity);
@@ -44,7 +44,7 @@ public class TestSparseConceptSet extends TestIConceptSet {
     boolean supportsRemove() {
         return false;
     }
-    
+
     @Test
     public void testNonpresentLargeValue() {
         int limit = 10;
@@ -52,9 +52,9 @@ public class TestSparseConceptSet extends TestIConceptSet {
         for (int i = 0; i < limit; i++) {
             set.add(i);
         }
-        assertTrue(set.contains(limit-1));
+        assertTrue(set.contains(limit - 1));
         assertFalse(set.contains(limit));
-        assertFalse(set.contains(limit+1));
+        assertFalse(set.contains(limit + 1));
     }
-   
+
 }

@@ -21,14 +21,13 @@
 
 package au.csiro.snorocket.core.axioms;
 
-
 /**
- * Normal form 1: A<sub>1</sub>&nbsp;&#8851;&nbsp;A<sub>2</sub>&nbsp;&#8849;&nbsp;B
- * <br>
+ * Normal form 1:
+ * A<sub>1</sub>&nbsp;&#8851;&nbsp;A<sub>2</sub>&nbsp;&#8849;&nbsp;B <br>
  * A<sub>1</sub> and A<sub>2</sub> subsumes B
  * 
  * @author law223
- *
+ * 
  */
 public final class NF1b extends NormalFormGCI {
 
@@ -56,7 +55,7 @@ public final class NF1b extends NormalFormGCI {
 
             public String toString() {
                 return "ConjunctionQueueEntry[" + (lhsA2 < 0 ? "" : lhsA2)
-                    + " [ " + rhsB + ": " + lhsA1 + "]";
+                        + " [ " + rhsB + ": " + lhsA1 + "]";
             }
         };
 
@@ -71,7 +70,7 @@ public final class NF1b extends NormalFormGCI {
 
             public String toString() {
                 return "ConjunctionQueueEntry[" + lhsA1 + " [ " + rhsB + ": "
-                    + lhsA2 + "]";
+                        + lhsA2 + "]";
             }
         };
     }
@@ -95,7 +94,7 @@ public final class NF1b extends NormalFormGCI {
             sb.append(" & ");
             sb.append(lhsA2);
         }
-        //        sb.append(" \u2291 ");
+        // sb.append(" \u2291 ");
         sb.append(" [ ");
         sb.append(rhsB);
 
@@ -114,9 +113,9 @@ public final class NF1b extends NormalFormGCI {
         return rhsB;
     }
 
-	@Override
-	public int[] getConceptsInAxiom() {
-		return new int[]{lhsA1, lhsA2, rhsB};
-	}
+    @Override
+    public int[] getConceptsInAxiom() {
+        return new int[] { lhsA1, lhsA2, rhsB };
+    }
 
 }

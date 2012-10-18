@@ -26,15 +26,14 @@ import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-
 public class Conjunction extends AbstractConcept {
-	
+
     final private AbstractConcept[] concepts;
     final private int hashCode;
 
     public Conjunction(final AbstractConcept[] concepts) {
         final SortedSet<AbstractConcept> sorted = new TreeSet<AbstractConcept>();
-        for (AbstractConcept concept: concepts) {
+        for (AbstractConcept concept : concepts) {
             sorted.add(concept);
         }
         this.concepts = sorted.toArray(new AbstractConcept[sorted.size()]);
@@ -42,10 +41,13 @@ public class Conjunction extends AbstractConcept {
     }
 
     public Conjunction(final Collection<? extends AbstractConcept> concepts) {
-        // store the concepts in hashCode order so that equals() is order independent
-        // i.e. Conjunctions are reflexive (should also be transitive, but Agile says STTCPW)
-        
-        final SortedSet<AbstractConcept> sorted = new TreeSet<AbstractConcept>(concepts);
+        // store the concepts in hashCode order so that equals() is order
+        // independent
+        // i.e. Conjunctions are reflexive (should also be transitive, but Agile
+        // says STTCPW)
+
+        final SortedSet<AbstractConcept> sorted = new TreeSet<AbstractConcept>(
+                concepts);
         this.concepts = sorted.toArray(new AbstractConcept[sorted.size()]);
         hashCode = sorted.hashCode();
     }
@@ -53,7 +55,7 @@ public class Conjunction extends AbstractConcept {
     public AbstractConcept[] getConcepts() {
         return concepts;
     }
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -67,7 +69,9 @@ public class Conjunction extends AbstractConcept {
         return sb.toString();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -75,7 +79,9 @@ public class Conjunction extends AbstractConcept {
         return hashCode;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -87,38 +93,39 @@ public class Conjunction extends AbstractConcept {
         if (getClass() != obj.getClass())
             return false;
         final Conjunction other = (Conjunction) obj;
-        return hashCode == other.hashCode && Arrays.equals(concepts, other.concepts);
+        return hashCode == other.hashCode
+                && Arrays.equals(concepts, other.concepts);
     }
 
     @Override
     int compareToWhenHashCodesEqual(AbstractConcept other) {
         assert hashCode() == other.hashCode();
         assert other instanceof Conjunction;
-        
+
         final Conjunction otherConjunction = (Conjunction) other;
-        
+
         // First check that the conjunctions have the same length
         int result = concepts.length - otherConjunction.concepts.length;
-        
+
         // Then, compare members in order
         for (int i = 0; 0 == result && i < concepts.length; i++) {
             result = concepts[i].compareTo(otherConjunction.concepts[i]);
         }
-        
+
         return result;
     }
-    
-//    @Override
-//    String getKey() {
-//        StringBuilder sb = new StringBuilder();
-//        sb.append("(");
-//        sb.append(concepts[0].getKey());
-//        for (int i = 1; i < concepts.length; i++) {
-//            sb.append(" + ");
-//            sb.append(concepts[i].getKey());
-//        }
-//        sb.append(")");
-//        return sb.toString();
-//    }
+
+    // @Override
+    // String getKey() {
+    // StringBuilder sb = new StringBuilder();
+    // sb.append("(");
+    // sb.append(concepts[0].getKey());
+    // for (int i = 1; i < concepts.length; i++) {
+    // sb.append(" + ");
+    // sb.append(concepts[i].getKey());
+    // }
+    // sb.append(")");
+    // return sb.toString();
+    // }
 
 }

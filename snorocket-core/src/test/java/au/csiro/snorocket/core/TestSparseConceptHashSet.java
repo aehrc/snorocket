@@ -31,7 +31,7 @@ public class TestSparseConceptHashSet extends TestIConceptSet {
     @Before
     public void setUp() throws Exception {
     }
-    
+
     @Override
     IConceptSet createSet(int capacity) {
         return new SparseConceptHashSet(capacity);
@@ -41,5 +41,5 @@ public class TestSparseConceptHashSet extends TestIConceptSet {
     boolean supportsRemove() {
         return true;
     }
-    
+
 }

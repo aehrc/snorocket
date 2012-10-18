@@ -21,61 +21,59 @@
 
 package au.csiro.snorocket.core.util;
 
-
-public final class SparseConceptMap<V>
-    extends AbstractConceptMap<V>
-{
+public final class SparseConceptMap<V> extends AbstractConceptMap<V> {
     final private IConceptSet keySet;
     protected SparseArray<V> members;
     protected String lbl;
-    
-//    public ConceptMap() {
-//        this(Concept.getTotalConcepts());
-//    }
-    
-//    public void finalize() {
-//        int unused = 0;
-//        for (int i = 0; i < members.length; i++) {
-//            if (null == members[i]) {
-//                unused++;
-//            }
-//        }
-//        System.err.println(lbl + ": " + members.length + ", " + unused + ", " + 100.0*unused/members.length);
-//    }
-    
+
+    // public ConceptMap() {
+    // this(Concept.getTotalConcepts());
+    // }
+
+    // public void finalize() {
+    // int unused = 0;
+    // for (int i = 0; i < members.length; i++) {
+    // if (null == members[i]) {
+    // unused++;
+    // }
+    // }
+    // System.err.println(lbl + ": " + members.length + ", " + unused + ", " +
+    // 100.0*unused/members.length);
+    // }
+
     public int size() {
         return keySet.size();
     }
-    
+
     public SparseConceptMap(final int size) {
         this(size, null);
     }
-    
+
     public SparseConceptMap(final int size, String lbl) {
         this.lbl = lbl;
         keySet = IConceptSet.FACTORY.createConceptSet(size);
         members = new SparseArray<V>(size);
-//        System.err.println("ConceptMap: " + size);
+        // System.err.println("ConceptMap: " + size);
     }
-    
+
     public boolean containsKey(int key) {
         return null != members.get(key);
-//        return key < members.length && null != members[key];
+        // return key < members.length && null != members[key];
     }
 
     public V get(int key) {
         return members.get(key);
     }
 
-//    public ConceptSet keySet() {
-//        return keySet;
-//    }
+    // public ConceptSet keySet() {
+    // return keySet;
+    // }
 
     public void put(int key, V value) {
         keySet.add(key);
         members.set(key, value);
     }
-    
+
     public void remove(int key) {
         keySet.remove(key);
         members.set(key, null);

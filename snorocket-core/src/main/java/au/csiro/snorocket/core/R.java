@@ -33,13 +33,13 @@ public class R extends R1 {
     R(int concepts, int roles) {
         super(concepts, roles);
     }
-    
+
     R(int concepts, int roles, R rr) {
         super(concepts, roles, rr);
     }
 
     /**
-     * Record A [ r.B 
+     * Record A [ r.B
      * 
      * @param A
      * @param r
@@ -49,7 +49,7 @@ public class R extends R1 {
         getB(A, r).add(B);
         getA(B, r).add(A);
     }
-    
+
 }
 
 abstract class AR {
@@ -63,16 +63,16 @@ abstract class AR {
 }
 
 /**
- * Implements R, which is of the form RoleMap&lt;ConceptMap&lt;ConceptSet>> 
- * where the two maps are complete/total (ie there is an entry for every key), 
- * thus it's faster and more space-efficient to just use an array (flattened 
+ * Implements R, which is of the form RoleMap&lt;ConceptMap&lt;ConceptSet>>
+ * where the two maps are complete/total (ie there is an entry for every key),
+ * thus it's faster and more space-efficient to just use an array (flattened
  * from 2D to 1D).
  * 
  * @author law223
- *
+ * 
  */
 abstract class R1 extends AR {
-    
+
     final private BitSet currentRoles;
     final private IConceptSet[] base;
 
@@ -88,14 +88,15 @@ abstract class R1 extends AR {
      * 
      * @param concepts
      * @param roles
-     * @param initialState      used as a base state
+     * @param initialState
+     *            used as a base state
      */
     R1(int concepts, int roles, R1 initialState) {
         super(concepts, roles);
-        
+
         this.data = new IConceptSet[(CONCEPTS * ROLES) << 1];
         this.currentRoles = new BitSet(ROLES);
-        
+
         // This is relatively cheap to initialise up front (unlike this.data)
         if (null != initialState) {
             this.base = initialState.data;
@@ -106,8 +107,8 @@ abstract class R1 extends AR {
     }
 
     /**
-     * This should only ever be called when the relationships wrap an initial state and
-     * no other methods have been called.
+     * This should only ever be called when the relationships wrap an initial
+     * state and no other methods have been called.
      * 
      * @param relationships
      */
@@ -120,7 +121,7 @@ abstract class R1 extends AR {
                 continue;
             }
             final IConceptSet set = data[i] = new SparseConceptHashSet();
-            
+
             set.addAll(base[i]);
             if (null != relationships.data[i]) {
                 set.removeAll(relationships.data[i]);
@@ -131,7 +132,7 @@ abstract class R1 extends AR {
     public boolean containsRole(int role) {
         return currentRoles.get(role);
     }
-    
+
     /**
      * Returns {B | A [ r.B} or {B | (A,B) in R(r)}
      * 
@@ -241,9 +242,10 @@ abstract class R1 extends AR {
 
     private int indexOf(int concept, int role) {
         if (role >= ROLES) {
-            throw new IllegalArgumentException("role " + role + " must be smaller than " + ROLES);
+            throw new IllegalArgumentException("role " + role
+                    + " must be smaller than " + ROLES);
         }
-        return ((concept*ROLES) + role) << 1;
+        return ((concept * ROLES) + role) << 1;
     }
 
     public void clear() {
@@ -253,7 +255,7 @@ abstract class R1 extends AR {
 
     private void resizeConcepts(int maxConcept) {
         final IConceptSet[] oldData = data;
-        
+
         CONCEPTS = maxConcept + 1;
         data = new IConceptSet[(CONCEPTS * ROLES) << 1];
         System.arraycopy(oldData, 0, data, 0, oldData.length);
@@ -267,10 +269,10 @@ abstract class R1 extends AR {
         data = new IConceptSet[(CONCEPTS * ROLES) << 1];
         for (int c = 0; c < CONCEPTS; c++) {
             for (int r = 0; r < OLD_ROLES; r++) {
-                final int newI = ((c*ROLES) + r) << 1;
-                final int oldI = ((c*OLD_ROLES) + r) << 1;
+                final int newI = ((c * ROLES) + r) << 1;
+                final int oldI = ((c * OLD_ROLES) + r) << 1;
                 data[newI] = oldData[oldI];
-                data[newI+1] = oldData[oldI+1];
+                data[newI + 1] = oldData[oldI + 1];
             }
         }
     }
@@ -280,29 +282,26 @@ abstract class R1 extends AR {
     }
 
     public String toString() {
-    	final StringBuilder sb = new StringBuilder();
-    	boolean separator = false;
-    	
-    	for (int index = 0; index < data.length; index += 2) {
-    		if (null != data[index]) {
-    			if (separator) {
-    				sb.append(", ");
-    			}
-    			final int hash = index >> 1;
+        final StringBuilder sb = new StringBuilder();
+        boolean separator = false;
+
+        for (int index = 0; index < data.length; index += 2) {
+            if (null != data[index]) {
+                if (separator) {
+                    sb.append(", ");
+                }
+                final int hash = index >> 1;
                 int r = (int) Math.IEEEremainder(hash, ROLES);
-    			int A = (hash - r) / ROLES;
-    			    			
-    			sb.append(A)
-    			  .append(" [ ")
-    			  .append(r)
-    			  .append(".")
-    			  .append(data[index]);
-    			
-    			separator = true;
-    		}
-    	}
-    	
-    	return sb.toString();
+                int A = (hash - r) / ROLES;
+
+                sb.append(A).append(" [ ").append(r).append(".")
+                        .append(data[index]);
+
+                separator = true;
+            }
+        }
+
+        return sb.toString();
     }
 
 }

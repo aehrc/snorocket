@@ -21,7 +21,6 @@
 
 package au.csiro.snorocket.core.util;
 
-
 /**
  * Concepts are integers >= 0
  * 
@@ -42,7 +41,8 @@ public final class FastConceptHashSet implements IConceptSet {
     }
 
     /**
-     * @param size must be a power of 2
+     * @param size
+     *            must be a power of 2
      */
     private void reallocate(final int size) {
         _keys = new int[size];
@@ -57,7 +57,7 @@ public final class FastConceptHashSet implements IConceptSet {
         int idx = concept & mask;
         while (true) {
             final int K = _keys[idx];
-            if (K < 0) {	// K == EMPTY || K == TOMBSTONE
+            if (K < 0) { // K == EMPTY || K == TOMBSTONE
                 _keys[idx] = concept;
                 _size++;
                 return;
@@ -68,7 +68,7 @@ public final class FastConceptHashSet implements IConceptSet {
             if (++reprobe_count > reprobeLimit(len)) {
                 break;
             }
-            idx = (idx+1) & mask;
+            idx = (idx + 1) & mask;
         }
         resize();
         add(concept);
@@ -76,11 +76,11 @@ public final class FastConceptHashSet implements IConceptSet {
 
     private void resize() {
         grow(_keys.length * 2);
-//      System.err.println(hashCode() + " resize from " + items.length);
+        // System.err.println(hashCode() + " resize from " + items.length);
     }
 
     public void addAll(IConceptSet set) {
-        for (final IntIterator itr = set.iterator(); itr.hasNext(); ) {
+        for (final IntIterator itr = set.iterator(); itr.hasNext();) {
             add(itr.next());
         }
     }
@@ -105,13 +105,13 @@ public final class FastConceptHashSet implements IConceptSet {
             if (++reprobe_count > reprobeLimit(len)) {
                 break;
             }
-            idx = (idx+1) & mask;
+            idx = (idx + 1) & mask;
         }
         return false;
     }
 
     private int reprobeLimit(final int len) {
-        return REPROBE_LIMIT + (len>>2);
+        return REPROBE_LIMIT + (len >> 2);
     }
 
     public boolean containsAll(IConceptSet concepts) {
@@ -124,13 +124,13 @@ public final class FastConceptHashSet implements IConceptSet {
 
     public IntIterator iterator() {
         if (_size < (_keys.length >> 1)) {
-//            System.err.println("Shrinking from " + _keys.length);
+            // System.err.println("Shrinking from " + _keys.length);
             final int[] oldItems = _keys;
             reallocate(_keys.length >> 1);
 
             for (int i = 0; i < oldItems.length; i++) {
                 final int concept = oldItems[i];
-                if (concept >= 0) {	// concept != EMPTY && concept != TOMBSTONE
+                if (concept >= 0) { // concept != EMPTY && concept != TOMBSTONE
                     add(concept);
                 }
             }
@@ -170,7 +170,7 @@ public final class FastConceptHashSet implements IConceptSet {
             if (++reprobe_count > reprobeLimit(len)) {
                 break;
             }
-            idx = (idx+1) & mask;
+            idx = (idx + 1) & mask;
         }
     }
 
@@ -185,7 +185,7 @@ public final class FastConceptHashSet implements IConceptSet {
                 }
             }
         } else {
-            for (final IntIterator itr = set.iterator(); itr.hasNext(); ) {
+            for (final IntIterator itr = set.iterator(); itr.hasNext();) {
                 final int concept = itr.next();
                 remove(concept);
             }
@@ -200,7 +200,7 @@ public final class FastConceptHashSet implements IConceptSet {
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append("{");
-        for (final IntIterator itr = iterator(); itr.hasNext(); ) {
+        for (final IntIterator itr = iterator(); itr.hasNext();) {
             final int c = itr.next();
             sb.append(c);
             if (itr.hasNext()) {
@@ -223,8 +223,8 @@ public final class FastConceptHashSet implements IConceptSet {
         }
     }
 
-	@Override
-	public int[] toArray() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public int[] toArray() {
+        throw new UnsupportedOperationException();
+    }
 }

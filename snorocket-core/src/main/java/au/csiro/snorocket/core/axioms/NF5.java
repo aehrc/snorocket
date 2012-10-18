@@ -22,12 +22,11 @@
 package au.csiro.snorocket.core.axioms;
 
 /**
- * Normal form 5:       r &#8728; s &#8849; t
- * <br>
+ * Normal form 5: r &#8728; s &#8849; t <br>
  * role r composed with role s subsumes role t
  * 
  * @author law223
- *
+ * 
  */
 public final class NF5 extends NormalFormGCI {
 
@@ -53,9 +52,9 @@ public final class NF5 extends NormalFormGCI {
         return rhsT;
     }
 
-	@Override
-	public int[] getConceptsInAxiom() {
-		return new int[]{};
-	}
+    @Override
+    public int[] getConceptsInAxiom() {
+        return new int[] {};
+    }
 
 }

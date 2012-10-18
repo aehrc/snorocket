@@ -27,7 +27,9 @@ import au.csiro.snorocket.core.IFactory_123;
 
 /**
  * 
- * @param lhs lhs.length == 0 -> reflexive; == 1 -> role subtyping; >= 2 -> role composition
+ * @param lhs
+ *            lhs.length == 0 -> reflexive; == 1 -> role subtyping; >= 2 -> role
+ *            composition
  * @param rhs
  */
 public class RI_123 extends Inclusion_123 {
@@ -77,8 +79,9 @@ public class RI_123 extends Inclusion_123 {
     }
 
     /**
-     * r<sub>1</sub> &#8728; &#133; &#8728; r<sub>k</sub> &#8849; s
-     * &rarr; {r<sub>1</sub> &#8728; &#133; &#8728; r<sub>k-1</sub> &#8849; u, u &#8728; r<sub>k</sub> &#8849; s}
+     * r<sub>1</sub> &#8728; &#133; &#8728; r<sub>k</sub> &#8849; s &rarr;
+     * {r<sub>1</sub> &#8728; &#133; &#8728; r<sub>k-1</sub> &#8849; u, u
+     * &#8728; r<sub>k</sub> &#8849; s}
      * 
      * @param gcis
      * @return
@@ -128,7 +131,9 @@ public class RI_123 extends Inclusion_123 {
         return hashCode;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override

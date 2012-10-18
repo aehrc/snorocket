@@ -25,19 +25,24 @@ import au.csiro.snorocket.core.util.IConceptSet;
 
 public interface ConceptSetFactory {
     /**
-     * With no size specified, may assume a sparse ConceptSet implementation is suitable.
+     * With no size specified, may assume a sparse ConceptSet implementation is
+     * suitable.
+     * 
      * @return
      */
     IConceptSet createConceptSet();
 
     /**
-     * For a large size, should assume a dense ConceptSet implementation is required.
+     * For a large size, should assume a dense ConceptSet implementation is
+     * required.
+     * 
      * @return
      */
     IConceptSet createConceptSet(int size);
 
     /**
      * Use size of initial to guide selection of concrete implementation.
+     * 
      * @return
      */
     IConceptSet createConceptSet(IConceptSet initial);

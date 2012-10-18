@@ -21,12 +21,11 @@
 
 package au.csiro.snorocket.core.model;
 
-
 public class Existential extends AbstractConcept {
-    
+
     private int role;
     private AbstractConcept concept;
-    
+
     public Existential(int role, AbstractConcept concept) {
         this.role = role;
         this.concept = concept;
@@ -35,7 +34,7 @@ public class Existential extends AbstractConcept {
     @Override
     public String toString() {
         return role + " . " + concept;
-//        return "\u2203 " + role + "." + concept;
+        // return "\u2203 " + role + "." + concept;
     }
 
     public int getRole() {
@@ -46,7 +45,9 @@ public class Existential extends AbstractConcept {
         return concept;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -58,7 +59,9 @@ public class Existential extends AbstractConcept {
         return result;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -84,17 +87,20 @@ public class Existential extends AbstractConcept {
     int compareToWhenHashCodesEqual(AbstractConcept other) {
         assert hashCode() == other.hashCode();
         assert other instanceof Existential;
-        
+
         final Existential otherExistential = (Existential) other;
-        
+
         final int roleCompare = role - otherExistential.role;
-        
-        return 0 == roleCompare ? (null == concept ? (null == otherExistential.concept ? 0 : -1) : (concept.compareTo(otherExistential.concept))) : roleCompare;
+
+        return 0 == roleCompare ? (null == concept ? (null == otherExistential.concept ? 0
+                : -1)
+                : (concept.compareTo(otherExistential.concept)))
+                : roleCompare;
     }
-    
-//    @Override
-//    public String getKey() {
-//        return role.getKey() + " . " + concept.getKey();
-//    }
+
+    // @Override
+    // public String getKey() {
+    // return role.getKey() + " . " + concept.getKey();
+    // }
 
 }

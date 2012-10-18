@@ -21,7 +21,6 @@
 
 package au.csiro.snorocket.core.util;
 
-
 public interface IConceptMap<V> {
     public boolean containsKey(int key);
 
@@ -38,34 +37,34 @@ public interface IConceptMap<V> {
     public int size();
 
     public void grow(int newSize);
-    
+
     interface IConceptMapFactory {
-		IConceptMap<IConceptSet> createSparseConceptMap(int size);
-    	IConceptMap<IConceptSet> createDenseConceptMap(int size);
+        IConceptMap<IConceptSet> createSparseConceptMap(int size);
+
+        IConceptMap<IConceptSet> createDenseConceptMap(int size);
     }
-    
+
     public static IConceptMapFactory FACTORY = new IConceptMapFactory() {
 
-		public IConceptMap<IConceptSet> createSparseConceptMap(final int size) {
-			return new SparseConceptMap<IConceptSet>(size);
-		}
+        public IConceptMap<IConceptSet> createSparseConceptMap(final int size) {
+            return new SparseConceptMap<IConceptSet>(size);
+        }
 
-		public IConceptMap<IConceptSet> createDenseConceptMap(final int size) {
-			return new DenseConceptMap<IConceptSet>(size);
-		}
+        public IConceptMap<IConceptSet> createDenseConceptMap(final int size) {
+            return new DenseConceptMap<IConceptSet>(size);
+        }
     };
-    
-}
 
+}
 
 final class ReadonlyConceptMap<V> implements IConceptMap<V> {
 
     final private IConceptMap<V> map;
-    
+
     public ReadonlyConceptMap(final IConceptMap<V> map) {
         this.map = map;
     }
-    
+
     public void clear() {
         throw new UnsupportedOperationException();
     }
@@ -97,5 +96,5 @@ final class ReadonlyConceptMap<V> implements IConceptMap<V> {
     public int size() {
         return map.size();
     }
-    
+
 }

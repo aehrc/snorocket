@@ -25,30 +25,30 @@ package au.csiro.snorocket.core.util;
  * {@link IntIterator} used in the {@link SparseConceptSet} implementation.
  * 
  * @author Alejandro Metke
- *
+ * 
  */
 public class SparseConceptSetIntIterator implements IntIterator {
-	
-	private int[] items;
+
+    private int[] items;
     private int size;
     private int next = 0;
-	
-	public SparseConceptSetIntIterator(int[] i, int size) {
-		synchronized (this) {
-			items = new int[i.length];
-			System.arraycopy(i, 0, items, 0, items.length);
-			this.size = size;
-		}
-	}
-	
-	@Override
-	public boolean hasNext() {
-		return next < size;
-	}
 
-	@Override
-	public int next() {
-		return hasNext() ? items[next++] : -1;
-	}
+    public SparseConceptSetIntIterator(int[] i, int size) {
+        synchronized (this) {
+            items = new int[i.length];
+            System.arraycopy(i, 0, items, 0, items.length);
+            this.size = size;
+        }
+    }
+
+    @Override
+    public boolean hasNext() {
+        return next < size;
+    }
+
+    @Override
+    public int next() {
+        return hasNext() ? items[next++] : -1;
+    }
 
 }

@@ -29,33 +29,34 @@ import org.junit.Test;
 import au.csiro.snorocket.core.util.IConceptSet;
 
 public abstract class TestIConceptSet {
-    
+
     private static final int RANGE = 500000;
 
     abstract IConceptSet createSet(final int capacity);
 
     /**
-     * The following test is designed to trigger a potentially
-     * pathalogical condition.
+     * The following test is designed to trigger a potentially pathalogical
+     * condition.
      */
     @Test
     public void testDoubleAdd() {
         final int capacity = 32;
         final IConceptSet set = createSet(capacity);
         final int val1 = 1;
-        final int val2 = val1 + capacity;       // ensure a re-probe when val2 is inserted after val1
-        
+        final int val2 = val1 + capacity; // ensure a re-probe when val2 is
+                                          // inserted after val1
+
         set.add(val1);
         assertTrue(set.contains(val1));
-        
+
         set.add(val2);
         assertTrue(set.contains(val2));
-    
+
         checkRemove(set, val1, "");
-    
+
         set.add(val2);
         assertTrue(set.contains(val2));
-    
+
         checkRemove(set, val2, "");
     }
 
@@ -63,24 +64,24 @@ public abstract class TestIConceptSet {
     public void testAdd() {
         final int limit1 = 10;
         final int limit2 = 200;
-        
+
         for (int capacity = 1; capacity < limit1; capacity++) {
             final IConceptSet set = createSet(capacity);
             for (int i = 0; i < limit2; i++) {
                 final int val = (int) (Math.random() * RANGE);
                 set.add(val);
                 assertTrue("Set should contain " + val, set.contains(val));
-                
+
                 perturb(set);
             }
         }
     }
-    
+
     @Test
     public void testAddSequence() {
         final int limit1 = 100;
         final int limit2 = 20;
-        
+
         for (int capacity = 1; capacity < limit1; capacity++) {
             final IConceptSet set = createSet(capacity);
             for (int i = 0; i < limit2; i++) {
@@ -89,7 +90,7 @@ public abstract class TestIConceptSet {
                 assertTrue("Set should contain " + val, set.contains(val));
             }
         }
-        
+
         for (int capacity = 1; capacity < limit1; capacity++) {
             final IConceptSet set = createSet(capacity);
             for (int i = limit2; i > 0; i--) {
@@ -110,13 +111,15 @@ public abstract class TestIConceptSet {
         }
     }
 
-    private void checkRemove(final IConceptSet set, final int val, String messageSuffix) {
+    private void checkRemove(final IConceptSet set, final int val,
+            String messageSuffix) {
         if (supportsRemove()) {
             set.remove(val);
             if (set.contains(val)) {
                 System.err.println();
             }
-            assertFalse("Set should not contain " + val + messageSuffix, set.contains(val));
+            assertFalse("Set should not contain " + val + messageSuffix,
+                    set.contains(val));
         }
     }
 

@@ -23,25 +23,23 @@ package au.csiro.snorocket.core.util;
 
 import java.util.Arrays;
 
-
 /**
  * Use when all or most keys are going to be mapped to something.
  * 
  * @author law223
- *
+ * 
  * @param <V>
  */
-public final class DenseConceptMap<V>
-extends AbstractConceptMap<V>
-{
+public final class DenseConceptMap<V> extends AbstractConceptMap<V> {
     private V[] members;
 
     /**
      * 
-     * @param capacity estimated maximum key value + 1
+     * @param capacity
+     *            estimated maximum key value + 1
      */
     @SuppressWarnings("unchecked")
-	public DenseConceptMap(final int capacity) {
+    public DenseConceptMap(final int capacity) {
         members = (V[]) new Object[capacity];
     }
 
@@ -54,13 +52,14 @@ extends AbstractConceptMap<V>
     }
 
     @SuppressWarnings("unchecked")
-	public void put(int key, V value) {
+    public void put(int key, V value) {
         final int len = members.length;
         if (key >= len) {
             V[] newMembers = (V[]) new Object[key + 1];
             System.arraycopy(members, 0, newMembers, 0, len);
             members = newMembers;
-//          System.err.println(getClass().getSimpleName() + " resize: " + members.length /* + ", " + keySet.size() */);
+            // System.err.println(getClass().getSimpleName() + " resize: " +
+            // members.length /* + ", " + keySet.size() */);
         }
         members[key] = value;
     }
@@ -95,12 +94,12 @@ extends AbstractConceptMap<V>
     }
 
     public int size() {
-        //throw new UnsupportedOperationException();
-    	return members.length;
+        // throw new UnsupportedOperationException();
+        return members.length;
     }
 
     @SuppressWarnings("unchecked")
-	public void grow(int newSize) {
+    public void grow(int newSize) {
         V[] newMembers = (V[]) new Object[newSize];
         System.arraycopy(members, 0, newMembers, 0, members.length);
         members = newMembers;
@@ -110,7 +109,7 @@ extends AbstractConceptMap<V>
     public String toString() {
         boolean separator = false;
         final StringBuilder sb = new StringBuilder();
-        for (final IntIterator itr = keyIterator(); itr.hasNext(); ) {
+        for (final IntIterator itr = keyIterator(); itr.hasNext();) {
             if (separator) {
                 sb.append(", ");
             }
@@ -118,7 +117,7 @@ extends AbstractConceptMap<V>
             sb.append(key);
             sb.append(" [ ");
             sb.append(get(key));
-            
+
             separator = true;
         }
         return sb.toString();

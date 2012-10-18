@@ -23,23 +23,23 @@ package au.csiro.snorocket.core.util;
 
 import java.util.Arrays;
 
-
 public class RoleMap<V> {
     final private RoleSet keySet;
     private V[] members;
-    
+
     @SuppressWarnings("unchecked")
-	public RoleMap(final int size) {
+    public RoleMap(final int size) {
         keySet = new RoleSet();
         members = (V[]) new Object[size];
     }
-    
+
     public boolean containsKey(int key) {
         return keySet.contains(key);
     }
 
     public V get(int key) {
-        if (key >= members.length) return null;
+        if (key >= members.length)
+            return null;
         return members[key];
     }
 
@@ -48,7 +48,7 @@ public class RoleMap<V> {
     }
 
     @SuppressWarnings("unchecked")
-	public void put(int key, V value) {
+    public void put(int key, V value) {
         keySet.add(key);
         final int len = members.length;
         if (key >= len) {
@@ -63,5 +63,5 @@ public class RoleMap<V> {
         keySet.clear();
         Arrays.fill(members, null);
     }
-    
+
 }
