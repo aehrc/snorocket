@@ -36,8 +36,14 @@ public class TestConcreteDomains {
      * Very simple concrete domains test that uses equality and integers. The
      * expected taxonomy is:
      * 
-     * -Thing -Bottle -Panadol -Panadol_250mg -Panadol_pack_250mg -Panadol_500mg
-     * -Paracetamol
+     * -Thing
+     *   -Bottle
+     *   -Panadol
+     *     -Panadol_250mg
+     *       -Panadol_pack_250mg
+     *     -Panadol_500mg
+     *   -Paracetamol
+     * 
      */
     @Test
     public void testConcreteDomainsEqualityInts() {
@@ -146,8 +152,13 @@ public class TestConcreteDomains {
      * Very simple concrete domains test that uses equality and floats. The
      * expected taxonomy is:
      * 
-     * -Thing -Bottle -Panadol -Panadol_250mg -Panadol_pack_250mg -Panadol_500mg
-     * -Paracetamol
+     * -Thing
+     *   -Bottle
+     *   -Panadol
+     *     -Panadol_250mg
+     *       -Panadol_pack_250mg
+     *     -Panadol_500mg
+     *   -Paracetamol
      */
     @Test
     public void testConcreteDomainsEqualityFloats() {
@@ -256,8 +267,13 @@ public class TestConcreteDomains {
      * Very simple concrete domains test that uses equality and strings. The
      * expected taxonomy is:
      * 
-     * -Thing -Bottle -Panadol -Panadol_250mg -Panadol_pack_250mg -Panadol_500mg
-     * -Paracetamol
+     * -Thing
+     *   -Bottle
+     *   -Panadol
+     *     -Panadol_250mg
+     *       -Panadol_pack_250mg
+     *     -Panadol_500mg
+     *   -Paracetamol
      */
     @Test
     public void testConcreteDomainsEqualityStrings() {
