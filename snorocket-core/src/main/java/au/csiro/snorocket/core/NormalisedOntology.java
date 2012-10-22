@@ -35,6 +35,13 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import au.csiro.ontology.axioms.AbstractAxiom;
+import au.csiro.ontology.axioms.ConceptInclusion;
+import au.csiro.ontology.axioms.RoleInclusion;
+import au.csiro.ontology.model.AbstractConcept;
+import au.csiro.ontology.model.AbstractLiteral;
+import au.csiro.ontology.model.Role;
+import au.csiro.snorocket.core.axioms.GCI;
 import au.csiro.snorocket.core.axioms.IConjunctionQueueEntry;
 import au.csiro.snorocket.core.axioms.IRoleQueueEntry;
 import au.csiro.snorocket.core.axioms.Inclusion;
@@ -48,8 +55,20 @@ import au.csiro.snorocket.core.axioms.NF6;
 import au.csiro.snorocket.core.axioms.NF7;
 import au.csiro.snorocket.core.axioms.NF8;
 import au.csiro.snorocket.core.axioms.NormalFormGCI;
+import au.csiro.snorocket.core.axioms.RI;
 import au.csiro.snorocket.core.concurrent.Context;
 import au.csiro.snorocket.core.concurrent.Worker;
+import au.csiro.snorocket.core.model.BooleanLiteral;
+import au.csiro.snorocket.core.model.Concept;
+import au.csiro.snorocket.core.model.Conjunction;
+import au.csiro.snorocket.core.model.Datatype;
+import au.csiro.snorocket.core.model.DateLiteral;
+import au.csiro.snorocket.core.model.DoubleLiteral;
+import au.csiro.snorocket.core.model.Existential;
+import au.csiro.snorocket.core.model.FloatLiteral;
+import au.csiro.snorocket.core.model.IntegerLiteral;
+import au.csiro.snorocket.core.model.LongLiteral;
+import au.csiro.snorocket.core.model.StringLiteral;
 import au.csiro.snorocket.core.util.AxiomSet;
 import au.csiro.snorocket.core.util.DenseConceptMap;
 import au.csiro.snorocket.core.util.FastConceptMap;
@@ -230,9 +249,9 @@ public class NormalisedOntology {
      * @param inclusions
      */
     public NormalisedOntology(final IFactory factory,
-            final Set<? extends Inclusion> inclusions) {
+            final Set<? extends AbstractAxiom> inclusions) {
         this(factory);
-
+        
         for (Inclusion i : normalise(inclusions)) {
             addTerm(i.getNormalForm());
         }
@@ -300,7 +319,7 @@ public class NormalisedOntology {
      * 
      * @param inclusions
      */
-    public void loadAxioms(final Set<? extends Inclusion> inclusions) {
+    public void loadAxioms(final Set<? extends AbstractAxiom> inclusions) {
         LOGGER.info("Loading " + inclusions.size() + " axioms");
         Set<Inclusion> normInclusions = normalise(inclusions);
         LOGGER.info("Processing " + normInclusions.size()
@@ -309,16 +328,105 @@ public class NormalisedOntology {
             addTerm(i.getNormalForm());
         }
     }
+    
+    /**
+     * Transforms a {@link Set} of {@link AbstractAxiom}s into a {@link Set} of
+     * {@link Inclusion}s.
+     * 
+     * @param axioms The axioms in the ontology model format.
+     * @return The axioms in the internal model format.
+     */
+    private Set<Inclusion> transformAxiom(final Set<? extends AbstractAxiom> axioms) {
+        Set<Inclusion> res = new HashSet<>();
+        
+        for(AbstractAxiom aa : axioms) {
+            if(aa instanceof ConceptInclusion) {
+                ConceptInclusion ci = (ConceptInclusion)aa;
+                AbstractConcept lhs = ci.lhs();
+                AbstractConcept rhs = ci.rhs();
+                res.add(new GCI(transformConcept(lhs), transformConcept(rhs)));
+            } else if(aa instanceof RoleInclusion) {
+                RoleInclusion ri = (RoleInclusion)aa;
+                Role[] lhs = ri.lhs();
+                Role rhs = ri.rhs();
+                int[] lhsInt = new int[lhs.length];
+                for(int i = 0; i < lhsInt.length; i++) {
+                    lhsInt[i] = factory.getRole(lhs[i].getId());
+                }
+                res.add(new RI(lhsInt, factory.getRole(rhs.getId())));
+            }
+        }
+        
+        return res;
+    }
+    
+    /**
+     * Transforms an {@link AbstractConcept} into an 
+     * {@link au.csiro.snorocket.core.model.AbstractConcept}.
+     * 
+     * @param c The concept in the ontology model format.
+     * @return The concept in the internal model format.
+     */
+    private au.csiro.snorocket.core.model.AbstractConcept transformConcept(AbstractConcept c) {
+        if(c instanceof au.csiro.ontology.model.Concept) {
+            return new Concept(factory.getConcept(((au.csiro.ontology.model.Concept)c).getId()));
+        } else if(c instanceof au.csiro.ontology.model.Conjunction) {
+            AbstractConcept[] modelCons = ((au.csiro.ontology.model.Conjunction)c).getConcepts();
+            au.csiro.snorocket.core.model.AbstractConcept[] cons = 
+                    new au.csiro.snorocket.core.model.AbstractConcept[modelCons.length];
+            for(int i = 0; i < modelCons.length; i++) {
+                cons[i] = transformConcept(modelCons[i]);
+            }
+            return new Conjunction(cons);
+        } else if(c instanceof au.csiro.ontology.model.Datatype) {
+            au.csiro.ontology.model.Datatype dt = (au.csiro.ontology.model.Datatype) c;
+            return new Datatype(factory.getFeature(dt.getFeature().getId()), 
+                    dt.getOperator(), transformLiteral(dt.getLiteral()));
+        } else if(c instanceof au.csiro.ontology.model.Existential) {
+            au.csiro.ontology.model.Existential e = (au.csiro.ontology.model.Existential) c;
+            return new Existential(factory.getRole(e.getRole().getId()), 
+                    transformConcept(e.getConcept())); 
+        } else {
+            throw new RuntimeException("Unexpected AbstractConcept "+c.getClass().getName());
+        }
+    }
+    
+    /**
+     * Transforms an {@link AbstractLiteral} into an 
+     * {@link au.csiro.snorocket.core.model.AbstractLiteral}.
+     * 
+     * @param l The literal in the ontology model format.
+     * @return The literal in the internal model format.
+     */
+    private au.csiro.snorocket.core.model.AbstractLiteral transformLiteral(AbstractLiteral l) {
+        if(l instanceof au.csiro.ontology.model.BooleanLiteral) {
+            return new BooleanLiteral(((au.csiro.ontology.model.BooleanLiteral) l).getValue());
+        } else if(l instanceof au.csiro.ontology.model.DateLiteral) {
+            return new DateLiteral(((au.csiro.ontology.model.DateLiteral) l).getValue());
+        } else if(l instanceof au.csiro.ontology.model.DoubleLiteral) {
+            return new DoubleLiteral(((au.csiro.ontology.model.DoubleLiteral) l).getValue());
+        } else if(l instanceof au.csiro.ontology.model.FloatLiteral) {
+            return new FloatLiteral(((au.csiro.ontology.model.FloatLiteral) l).getValue());
+        } else if(l instanceof au.csiro.ontology.model.IntegerLiteral) {
+            return new IntegerLiteral(((au.csiro.ontology.model.IntegerLiteral) l).getValue());
+        } else if(l instanceof au.csiro.ontology.model.LongLiteral) {
+            return new LongLiteral(((au.csiro.ontology.model.LongLiteral) l).getValue());
+        } else if(l instanceof au.csiro.ontology.model.StringLiteral) {
+            return new StringLiteral(((au.csiro.ontology.model.StringLiteral) l).getValue());
+        } else {
+            throw new RuntimeException("Unexpected AbstractLiteral "+l.getClass().getName());
+        }
+    }
 
     /**
      * Returns a set of Inclusions in normal form suitable for classifying.
      */
-    public Set<Inclusion> normalise(final Set<? extends Inclusion> inclusions) {
+    public Set<Inclusion> normalise(final Set<? extends AbstractAxiom> inclusions) {
 
         // Exhaustively apply NF1 to NF4
         final Set<Inclusion> done = new HashSet<Inclusion>();
         Set<Inclusion> oldIs = new HashSet<Inclusion>();
-        Set<Inclusion> newIs = new HashSet<Inclusion>(inclusions);
+        Set<Inclusion> newIs = transformAxiom(inclusions);
 
         do {
             final Set<Inclusion> tmp = oldIs;
@@ -502,7 +610,7 @@ public class NormalisedOntology {
      * 
      * @return
      */
-    public void classifyIncremental(Set<Inclusion> incAxioms) {
+    public void classifyIncremental(Set<AbstractAxiom> incAxioms) {
         // Clear any state from previous incremental classifications
         newContexts.clear();
         affectedContexts.clear();

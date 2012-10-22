@@ -6,10 +6,12 @@ package au.csiro.snorocket.core;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -58,8 +60,9 @@ import org.semanticweb.owlapi.reasoner.impl.OWLNamedIndividualNodeSet;
 import org.semanticweb.owlapi.reasoner.impl.OWLObjectPropertyNode;
 import org.semanticweb.owlapi.util.Version;
 
-import au.csiro.snorocket.core.axioms.Inclusion;
-import au.csiro.snorocket.core.importer.OWLImporter;
+import au.csiro.ontology.Ontology;
+import au.csiro.ontology.axioms.AbstractAxiom;
+import au.csiro.ontology.importer.owl.OWLImporter;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
@@ -106,7 +109,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private NormalisedOntology reasoner = new NormalisedOntology(factory);
 
     // The taxonomy built after the saturation process
-    private final PostProcessedData ppd = new PostProcessedData();
+    private final PostProcessedData ppd = new PostProcessedData(factory);
 
     // List of problems found when doing the ontology classification
     private final List<String> problems = new ArrayList<String>();
@@ -140,7 +143,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         loadAxioms();
         reasoner.classify();
         final IConceptMap<IConceptSet> s = reasoner.getSubsumptions();
-        ppd.computeDag(factory, s, monitor);
+        ppd.computeDag(s, monitor);
     }
 
     /**
@@ -152,9 +155,13 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @throws OWLOntologyCreationException
      */
     void loadAxioms() {
-        OWLImporter oi = new OWLImporter(factory);
-        Set<Inclusion> axioms = oi.transform(owlOntology, monitor);
-        reasoner.loadAxioms(axioms); // TODO: add progress monitor support
+        OWLImporter oi = new OWLImporter(owlOntology);
+        Map<String, Ontology> res = oi.getOntologyVersions(monitor);
+        for(String key : res.keySet()) {
+            Ontology o = res.get(key);
+            Collection<AbstractAxiom> axioms = o.getAxioms();
+            reasoner.loadAxioms(new HashSet<AbstractAxiom>(axioms));
+        }
         manager.removeOntology(owlOntology);
     }
 
@@ -262,13 +269,18 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         if (hasImportChange) {
             synchronise();
         } else {
-            OWLImporter oi = new OWLImporter(reasoner.getFactory());
-            Set<Inclusion> axioms = oi.transform(newAxioms, monitor);
-            reasoner.classifyIncremental(axioms);
+            OWLImporter oi = new OWLImporter(newAxioms);
+            Map<String, Ontology> res = oi.getOntologyVersions(monitor);
+            for(String key : res.keySet()) {
+                Ontology o = res.get(key);
+                Collection<AbstractAxiom> axioms = o.getAxioms();
+                reasoner.classifyIncremental(new HashSet<AbstractAxiom>(axioms));
+            }
+
             final IConceptMap<IConceptSet> n = reasoner.getNewSubsumptions();
             final IConceptMap<IConceptSet> a = reasoner
                     .getAffectedSubsumptions();
-            ppd.computeDagIncremental(factory, n, a, monitor);
+            ppd.computeDagIncremental(n, a, monitor);
         }
 
         rawChanges.clear();

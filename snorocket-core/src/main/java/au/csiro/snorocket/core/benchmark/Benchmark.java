@@ -44,6 +44,7 @@ public class Benchmark {
      * @param relationships
      *            The stated relationships file.
      */
+    /*
     public static Stats runBechmarkRF1(String concepts, String relations) {
         Stats res = new Stats();
 
@@ -74,7 +75,9 @@ public class Benchmark {
 
         return res;
     }
-
+    */
+    
+    /*
     public static void main(String[] args) {
         String type = args[0];
 
@@ -157,5 +160,6 @@ public class Benchmark {
             System.exit(0);
         }
     }
+    */
 
 }

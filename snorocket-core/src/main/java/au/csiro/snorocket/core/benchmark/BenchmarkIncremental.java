@@ -48,6 +48,7 @@ public class BenchmarkIncremental {
      * @param incrementalRelations
      * @return
      */
+    /*
     public static Stats runBechmarkRF1(String baseConcepts,
             String baseRelations, String incrementalConcepts,
             String incrementalRelations) {
@@ -97,7 +98,9 @@ public class BenchmarkIncremental {
 
         return res;
     }
-
+    */
+    
+    /*
     public static void main(String[] args) {
         String type = args[0];
 
@@ -183,5 +186,6 @@ public class BenchmarkIncremental {
             System.exit(0);
         }
     }
+    */
 
 }

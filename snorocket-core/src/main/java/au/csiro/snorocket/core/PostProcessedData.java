@@ -50,9 +50,11 @@ public class PostProcessedData {
 
     // Map of concepts to the node in the resulting taxonomy
     private IConceptMap<ClassNode> conceptNodeIndex;
+    
+    private final IFactory factory;
 
-    public PostProcessedData() {
-
+    public PostProcessedData(IFactory factory) {
+        this.factory = factory;
     }
 
     /**
@@ -91,7 +93,7 @@ public class PostProcessedData {
      *            The subsumptions for the new or modified concepts only.
      * @param monitor
      */
-    public void computeDagIncremental(final IFactory factory,
+    public void computeDagIncremental(
             final IConceptMap<IConceptSet> newConceptSubs,
             final IConceptMap<IConceptSet> affectedConceptSubs,
             ReasonerProgressMonitor monitor) {
@@ -347,7 +349,7 @@ public class PostProcessedData {
         }
     }
 
-    public void computeDag(final IFactory factory,
+    public void computeDag(
             final IConceptMap<IConceptSet> subsumptions,
             ReasonerProgressMonitor monitor) {
         if (monitor == null)
@@ -587,6 +589,10 @@ public class PostProcessedData {
 
     public ClassNode getEquivalents(int concept) {
         return conceptNodeIndex.get(concept);
+    }
+    
+    public ClassNode getEquivalents(String concept) {
+        return conceptNodeIndex.get(factory.getConcept(concept));
     }
 
     public IntIterator getConceptIterator() {
