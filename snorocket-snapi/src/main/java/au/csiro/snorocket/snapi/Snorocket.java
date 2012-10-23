@@ -84,7 +84,7 @@ public class Snorocket implements I_Snorocket {
 	private String isaId;
 
 	//private Classification classification = null;
-	private PostProcessedData postProcessedData = new PostProcessedData();
+	private PostProcessedData postProcessedData;
 
 	final private List<Row> rowList = new ArrayList<Row>();
 

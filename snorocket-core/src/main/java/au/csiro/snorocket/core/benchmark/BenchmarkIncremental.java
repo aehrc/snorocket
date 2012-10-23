@@ -16,12 +16,12 @@ import java.util.List;
 
 import org.semanticweb.owlapi.reasoner.NullReasonerProgressMonitor;
 
+import au.csiro.ontology.Ontology;
+import au.csiro.ontology.importer.rf1.RF1Importer;
 import au.csiro.snorocket.core.Factory;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.PostProcessedData;
-import au.csiro.snorocket.core.axioms.Inclusion;
-import au.csiro.snorocket.core.importer.RF1Importer;
 
 /**
  * Class used to measure the speed of the incremental classification
@@ -48,10 +48,9 @@ public class BenchmarkIncremental {
      * @param incrementalRelations
      * @return
      */
-    /*
-    public static Stats runBechmarkRF1(String baseConcepts,
-            String baseRelations, String incrementalConcepts,
-            String incrementalRelations) {
+    public static Stats runBechmarkRF1(File baseConcepts, File baseDescriptions,
+            File baseRelations, File incrementalConcepts,
+            File incrementalRelations, String version) {
         Stats res = new Stats();
 
         // Classify ontology from stated form
@@ -60,16 +59,17 @@ public class BenchmarkIncremental {
         IFactory factory = new Factory();
         NormalisedOntology no = new NormalisedOntology(factory);
         System.out.println("Importing axioms");
-        RF1Importer imp = new RF1Importer(factory, baseConcepts, baseRelations);
-        NullReasonerProgressMonitor mon = new NullReasonerProgressMonitor();
-        List<Inclusion> axioms = imp.transform(mon);
+        RF1Importer imp = new RF1Importer(baseConcepts, baseDescriptions, 
+                baseRelations, version);
+        Ontology ont = imp.getOntologyVersions(
+                new NullReasonerProgressMonitor()).get(version);
         System.out.println("Loading axioms");
-        no.loadAxioms(new HashSet<>(axioms));
+        no.loadAxioms(new HashSet<>(ont.getAxioms()));
         System.out.println("Running classification");
         no.classify();
         System.out.println("Computing taxonomy");
-        PostProcessedData ppd = new PostProcessedData();
-        ppd.computeDag(factory, no.getSubsumptions(), null);
+        PostProcessedData ppd = new PostProcessedData(factory);
+        ppd.computeDag(no.getSubsumptions(), null);
         System.out.println("Done");
 
         // If a relationship that is part of a role group is added incrementally
@@ -79,39 +79,40 @@ public class BenchmarkIncremental {
         // a test case for incremental classification using RF1.
 
         System.out.println("Running incremental classification");
-        imp = new RF1Importer(factory, incrementalConcepts,
-                incrementalRelations);
+        imp = new RF1Importer(incrementalConcepts, null, incrementalRelations, 
+                version);
 
         long start = System.currentTimeMillis();
         System.out.println("Transforming axioms");
-        axioms = imp.transform(mon);
+        ont = imp.getOntologyVersions(
+                new NullReasonerProgressMonitor()).get(version);
         res.setAxiomTransformationTimeMs(System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
         System.out.println("Running classification");
-        no.classifyIncremental(new HashSet<>(axioms));
+        no.classifyIncremental(new HashSet<>(ont.getAxioms()));
         res.setClassificationTimeMs(System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
         System.out.println("Computing taxonomy");
-        ppd.computeDagIncremental(factory, no.getNewSubsumptions(),
+        ppd.computeDagIncremental(no.getNewSubsumptions(),
                 no.getAffectedSubsumptions(), null);
         res.setTaxonomyBuildingTimeMs(System.currentTimeMillis() - start);
 
         return res;
     }
-    */
     
-    /*
     public static void main(String[] args) {
         String type = args[0];
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm_ss");
 
         if ("RF1".equals(type)) {
-            String baseConcepts = RES_DIR + args[1];
-            String baseRelations = RES_DIR + args[2];
-            String incConcepts = RES_DIR + args[3];
-            String incRelations = RES_DIR + args[4];
-            int numRuns = Integer.parseInt(args[5]);
+            File baseConcepts = new File(RES_DIR + args[1]);
+            File baseDescriptions = new File(RES_DIR + args[2]);
+            File baseRelations = new File(RES_DIR + args[3]);
+            File incConcepts = new File(RES_DIR + args[4]);
+            File incRelations = new File(RES_DIR + args[5]);
+            String version = args[6];
+            int numRuns = Integer.parseInt(args[7]);
             String outputFile = OUT_DIR + "inc_benchmark_" + VERSION + "_"
                     + sdf.format(Calendar.getInstance().getTime()) + ".csv";
 
@@ -125,7 +126,8 @@ public class BenchmarkIncremental {
 
             for (int j = 0; j < numRuns; j++) {
                 Stats stats = BenchmarkIncremental.runBechmarkRF1(baseConcepts,
-                        baseRelations, incConcepts, incRelations);
+                        baseDescriptions, baseRelations, incConcepts, 
+                        incRelations, version);
 
                 sb.append(sdf.format(Calendar.getInstance().getTime()));
                 sb.append(",");
@@ -186,6 +188,5 @@ public class BenchmarkIncremental {
             System.exit(0);
         }
     }
-    */
 
 }
