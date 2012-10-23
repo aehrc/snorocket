@@ -16,12 +16,12 @@ import java.util.List;
 
 import org.semanticweb.owlapi.reasoner.NullReasonerProgressMonitor;
 
+import au.csiro.ontology.Ontology;
+import au.csiro.ontology.importer.rf1.RF1Importer;
 import au.csiro.snorocket.core.Factory;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.PostProcessedData;
-import au.csiro.snorocket.core.axioms.Inclusion;
-import au.csiro.snorocket.core.importer.RF1Importer;
 
 /**
  * Class used to measure the speed of the Snorocket classifier.
@@ -44,8 +44,8 @@ public class Benchmark {
      * @param relationships
      *            The stated relationships file.
      */
-    /*
-    public static Stats runBechmarkRF1(String concepts, String relations) {
+    public static Stats runBechmarkRF1(File concepts, File descriptions, 
+            File relations, String version) {
         Stats res = new Stats();
 
         // Classify ontology from stated form
@@ -54,13 +54,12 @@ public class Benchmark {
         IFactory factory = new Factory();
         NormalisedOntology no = new NormalisedOntology(factory);
         System.out.println("Importing axioms");
-        RF1Importer imp = new RF1Importer(factory, concepts, relations);
-        NullReasonerProgressMonitor mon = new NullReasonerProgressMonitor();
-        List<Inclusion> axioms = imp.transform(mon);
+        RF1Importer imp = new RF1Importer(concepts, descriptions, relations, version);
+        Ontology ont = imp.getOntologyVersions(new NullReasonerProgressMonitor()).get(version);
         res.setAxiomTransformationTimeMs(System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
         System.out.println("Loading axioms");
-        no.loadAxioms(new HashSet<>(axioms));
+        no.loadAxioms(new HashSet<>(ont.getAxioms()));
         res.setAxiomLoadingTimeMs(System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
         System.out.println("Running classification");
@@ -68,25 +67,25 @@ public class Benchmark {
         res.setClassificationTimeMs(System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
         System.out.println("Computing taxonomy");
-        PostProcessedData ppd = new PostProcessedData();
-        ppd.computeDag(factory, no.getSubsumptions(), null);
+        PostProcessedData ppd = new PostProcessedData(factory);
+        ppd.computeDag(no.getSubsumptions(), null);
         res.setTaxonomyBuildingTimeMs(System.currentTimeMillis() - start);
         System.out.println("Done");
 
         return res;
     }
-    */
     
-    /*
     public static void main(String[] args) {
         String type = args[0];
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm_ss");
 
         if ("RF1".equals(type)) {
-            String concepts = RES_DIR + args[1];
-            String relations = RES_DIR + args[2];
-            int numRuns = Integer.parseInt(args[3]);
+            File concepts = new File(RES_DIR + args[1]);
+            File descriptions = new File(RES_DIR + args[2]);
+            File relations = new File(RES_DIR + args[3]);
+            String version = args[4];
+            int numRuns = Integer.parseInt(args[5]);
             String outputFile = OUT_DIR + "benchmark_" + VERSION + "_"
                     + sdf.format(Calendar.getInstance().getTime()) + ".csv";
 
@@ -99,7 +98,8 @@ public class Benchmark {
                     + "Max Memory (bytes)\n");
 
             for (int j = 0; j < numRuns; j++) {
-                Stats stats = Benchmark.runBechmarkRF1(concepts, relations);
+                Stats stats = Benchmark.runBechmarkRF1(concepts, descriptions, 
+                        relations, version);
 
                 sb.append(sdf.format(Calendar.getInstance().getTime()));
                 sb.append(",");
@@ -160,6 +160,5 @@ public class Benchmark {
             System.exit(0);
         }
     }
-    */
 
 }
