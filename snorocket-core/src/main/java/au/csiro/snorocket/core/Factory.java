@@ -27,13 +27,18 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.LineReader;
 import au.csiro.snorocket.core.util.RoleSet;
 import au.csiro.snorocket.core.util.SparseConceptSet;
 
 final public class Factory implements IFactory {
-
+    
+    // Logger
+    private final static Logger log = Logger.getLogger(Factory.class);
+    
     private static final int SIZE_ESTIMATE = 3000; // + 517249 + 1423;
 
     // Increment 3rd place for upwards/backwards compatible change
@@ -122,9 +127,8 @@ final public class Factory implements IFactory {
                 final String[] newConcepts = new String[conceptIdCounter * 2];
                 System.arraycopy(concepts, 0, newConcepts, 0, conceptIdCounter);
                 concepts = newConcepts;
-                if (Snorocket.DEBUGGING)
-                    Snorocket.getLogger().info(
-                            "concept resize to: " + concepts.length);
+                if (log.isInfoEnabled())
+                    log.info("concept resize to: " + concepts.length);
             }
             concepts[conceptIdCounter] = key;
             result = conceptIdCounter++;
@@ -145,9 +149,8 @@ final public class Factory implements IFactory {
                 final String[] newRoles = new String[roleIdCounter * 2];
                 System.arraycopy(roles, 0, newRoles, 0, roleIdCounter);
                 roles = newRoles;
-                if (Snorocket.DEBUGGING) {
-                    Snorocket.getLogger().info(
-                            "role resize to: " + roles.length);
+                if (log.isInfoEnabled()) {
+                    log.info("role resize to: " + roles.length);
                 }
             }
             roles[roleIdCounter] = key;
@@ -176,9 +179,8 @@ final public class Factory implements IFactory {
                 final String[] newFeatures = new String[featureIdCounter * 2];
                 System.arraycopy(features, 0, newFeatures, 0, featureIdCounter);
                 features = newFeatures;
-                if (Snorocket.DEBUGGING) {
-                    Snorocket.getLogger().info(
-                            "feature resize to: " + features.length);
+                if (log.isInfoEnabled()) {
+                    log.info("feature resize to: " + features.length);
                 }
             }
             features[featureIdCounter] = key;
@@ -309,7 +311,8 @@ final public class Factory implements IFactory {
 
         // LOAD CONCEPTS...
         final int numConcepts = Integer.parseInt(reader.readLine());
-        Snorocket.getLogger().fine("loading " + numConcepts + " concepts ...");
+        if(log.isTraceEnabled()) 
+            log.trace("loading " + numConcepts + " concepts ...");
 
         // // Skip over TOP and BOTTOM
         // reader.readLine();
@@ -343,7 +346,8 @@ final public class Factory implements IFactory {
 
         // LOAD ROLES...
         final int numRoles = Integer.parseInt(reader.readLine());
-        Snorocket.getLogger().fine("loading " + numRoles + " roles ...");
+        if(log.isTraceEnabled())
+            log.trace("loading " + numRoles + " roles ...");
 
         for (int i = 0; i < numRoles; i++) {
             final String line = reader.readLine();

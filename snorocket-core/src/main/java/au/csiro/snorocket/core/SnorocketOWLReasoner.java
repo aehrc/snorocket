@@ -109,7 +109,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private NormalisedOntology reasoner = new NormalisedOntology(factory);
 
     // The taxonomy built after the saturation process
-    private final PostProcessedData ppd = new PostProcessedData(factory);
+    private PostProcessedData ppd = new PostProcessedData(factory);
 
     // List of problems found when doing the ontology classification
     private final List<String> problems = new ArrayList<String>();
@@ -173,6 +173,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         problems.clear();
         factory = new Factory();
         reasoner = new NormalisedOntology(factory);
+        ppd = new PostProcessedData(factory);
         monitor.reasonerTaskStopped();
     }
 
@@ -241,8 +242,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     }
 
     /**
-     * Simple implementation that clears everything and classifies the ontology
-     * again.
+     * Classifies the ontology incrementally if no import changes have occurred.
      */
     @Override
     public void flush() {
@@ -491,7 +491,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             throw new ReasonerInternalException("Expected a named class, got "
                     + ce);
         }
+        
         OWLClass c = ce.asOWLClass();
+        
         // Get the corresponding concept in the internal representation
         int cc = factory.getConcept(c.toStringID());
 

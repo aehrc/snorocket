@@ -19,7 +19,7 @@
 	<groupId>au.csiro</groupId>
 	<artifactId>snorocket-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>1.1.22-SNAPSHOT</version>
+	<version>1.4.0-SNAPSHOT</version>
 	<name>IHTSDO Classifier (based on Snorocket) Parent POM</name>
 	<scm>
 		<connection>scm:svn:https://csfe.aceworkspace.net/svn/repos/sim-classifier/trunk/sim-classifier</connection>
@@ -28,9 +28,7 @@
 	</scm>
 	<modules>
 		<module>snorocket-core</module>
-		<module>snorocket-snapi</module>
-		<module>snorocket</module>
-		<module>snorocket-bridge</module>
+		<module>snorocket-tests</module>
 	</modules>
 	<dependencies>
 		<dependency>

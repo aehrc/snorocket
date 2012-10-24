@@ -32,11 +32,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import au.csiro.ontology.axioms.AbstractAxiom;
+import au.csiro.ontology.axioms.ConceptDeclarationAxiom;
 import au.csiro.ontology.axioms.ConceptInclusion;
+import au.csiro.ontology.axioms.FeatureDeclarationAxiom;
+import au.csiro.ontology.axioms.RoleDeclarationAxiom;
 import au.csiro.ontology.axioms.RoleInclusion;
 import au.csiro.ontology.model.AbstractConcept;
 import au.csiro.ontology.model.AbstractLiteral;
@@ -92,7 +95,9 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  */
 public class NormalisedOntology {
 
-    static final Logger LOGGER = Snorocket.getLogger();
+    // Logger
+    private final static Logger log = Logger.getLogger(
+            NormalisedOntology.class);
 
     // Increment 3rd place for upwards/backwards compatible change
     // Increment 2nd place for upwards compatible change
@@ -320,9 +325,11 @@ public class NormalisedOntology {
      * @param inclusions
      */
     public void loadAxioms(final Set<? extends AbstractAxiom> inclusions) {
-        LOGGER.info("Loading " + inclusions.size() + " axioms");
+        if(log.isInfoEnabled())
+            log.info("Loading " + inclusions.size() + " axioms");
         Set<Inclusion> normInclusions = normalise(inclusions);
-        LOGGER.info("Processing " + normInclusions.size()
+        if(log.isInfoEnabled())
+            log.info("Processing " + normInclusions.size()
                 + " normalised axioms");
         for (Inclusion i : normInclusions) {
             addTerm(i.getNormalForm());
@@ -354,6 +361,18 @@ public class NormalisedOntology {
                     lhsInt[i] = factory.getRole(lhs[i].getId());
                 }
                 res.add(new RI(lhsInt, factory.getRole(rhs.getId())));
+            } else if(aa instanceof ConceptDeclarationAxiom) {
+                ConceptDeclarationAxiom cda = (ConceptDeclarationAxiom)aa;
+                // Just add the concept to the factory
+                factory.getConcept(cda.getConcept().getId());
+            } else if(aa instanceof RoleDeclarationAxiom) {
+                RoleDeclarationAxiom rda = (RoleDeclarationAxiom)aa;
+                // Just add the role to the factory
+                factory.getRole(rda.getRole().getId());
+            } else if(aa instanceof FeatureDeclarationAxiom) {
+                FeatureDeclarationAxiom fda = (FeatureDeclarationAxiom)aa;
+                // Just add the feature to the factory
+                factory.getFeature(fda.getFeature().getId());
             }
         }
         
@@ -644,8 +663,8 @@ public class NormalisedOntology {
                     if (c.activate()) {
                         todo.add(c);
                     }
-                    if (LOGGER.isLoggable(Level.FINE)) {
-                        LOGGER.fine("Added context " + c);
+                    if (log.isTraceEnabled()) {
+                        log.trace("Added context " + c);
                     }
 
                     // Keep track of the newly added contexts
@@ -654,9 +673,10 @@ public class NormalisedOntology {
                 }
             }
         }
-
-        LOGGER.info("Added " + numNewConcepts
-                + " new concepts to the ontology.");
+        
+        if(log.isInfoEnabled()) 
+            log.info("Added " + numNewConcepts + 
+                    " new concepts to the ontology.");
 
         // TODO: this is potentially slow
         IConceptMap<IConceptSet> subsumptions = getSubsumptions();
@@ -672,10 +692,12 @@ public class NormalisedOntology {
 
         // Classify
         int numThreads = Runtime.getRuntime().availableProcessors();
-        LOGGER.log(Level.INFO, "Classifying incrementally with " + numThreads
-                + " threads");
-
-        LOGGER.log(Level.INFO, "Running saturation");
+        if(log.isInfoEnabled())
+            log.info("Classifying incrementally with " + numThreads + 
+                    " threads");
+        
+        if(log.isInfoEnabled())
+            log.info("Running saturation");
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
         for (int j = 0; j < numThreads; j++) {
             Runnable worker = new Worker(todo);
@@ -700,9 +722,8 @@ public class NormalisedOntology {
 
         affectedContexts.removeAll(newContexts);
 
-        if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.fine("Processed " + contextIndex.size() + " contexts");
-        }
+        if(log.isTraceEnabled())
+            log.trace("Processed " + contextIndex.size() + " contexts");
     }
 
     /**
@@ -1096,7 +1117,8 @@ public class NormalisedOntology {
      */
     public void classify() {
         int numThreads = Runtime.getRuntime().availableProcessors();
-        LOGGER.log(Level.INFO, "Classifying with " + numThreads + " threads");
+        if(log.isInfoEnabled())
+            log.info("Classifying with " + numThreads + " threads");
 
         Context.init(NormalisedOntology.this);
 
@@ -1108,12 +1130,13 @@ public class NormalisedOntology {
             if (c.activate()) {
                 todo.add(c);
             }
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.fine("Added context " + c);
+            if(log.isTraceEnabled()) {
+                log.trace("Added context " + c);
             }
         }
-
-        LOGGER.log(Level.INFO, "Running saturation");
+        
+        if(log.isInfoEnabled())
+            log.info("Running saturation");
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
         for (int j = 0; j < numThreads; j++) {
             Runnable worker = new Worker(todo);
@@ -1131,8 +1154,8 @@ public class NormalisedOntology {
 
         assert (todo.isEmpty());
 
-        if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.fine("Processed " + contextIndex.size() + " contexts");
+        if (log.isTraceEnabled()) {
+            log.trace("Processed " + contextIndex.size() + " contexts");
         }
     }
 
