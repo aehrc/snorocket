@@ -22,10 +22,10 @@
 package au.csiro.snorocket.core.axioms;
 
 import java.io.PrintWriter;
-import java.util.logging.Level;
+
+import org.apache.log4j.Logger;
 
 import au.csiro.snorocket.core.IFactory;
-import au.csiro.snorocket.core.Snorocket;
 import au.csiro.snorocket.core.model.AbstractConcept;
 import au.csiro.snorocket.core.model.Concept;
 import au.csiro.snorocket.core.model.Conjunction;
@@ -39,7 +39,10 @@ import au.csiro.snorocket.core.model.Existential;
  * 
  */
 public class GCI extends Inclusion {
-
+    
+    // Logger
+    private final static Logger log = Logger.getLogger(GCI.class);
+    
     private static final int PRIME = 31;
 
     final private AbstractConcept lhs;
@@ -127,8 +130,7 @@ public class GCI extends Inclusion {
                 gcis[0] = new GCI(concepts[0], rhs);
                 result = true;
             } else if (concepts.length == 0) {
-                Snorocket.getLogger().log(Level.WARNING,
-                        "WARNING: Empty conjunct detected in: " + this);
+                log.warn("Empty conjunct detected in: " + this);
                 gcis[0] = new GCI(IFactory.TOP_CONCEPT, rhs);
                 result = true;
             } else {

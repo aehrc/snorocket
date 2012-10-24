@@ -87,10 +87,8 @@ public class PostProcessedData {
      * Computes an incremental DAG based on the subsumptions for concepts in the
      * new axioms.
      * 
-     * @param factory
-     *            The factory.
-     * @param subsumptions
-     *            The subsumptions for the new or modified concepts only.
+     * @param newConceptSubs
+     * @param affectedConceptSubs
      * @param monitor
      */
     public void computeDagIncremental(

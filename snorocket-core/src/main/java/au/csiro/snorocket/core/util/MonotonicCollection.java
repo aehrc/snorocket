@@ -23,7 +23,7 @@ package au.csiro.snorocket.core.util;
 
 import java.util.Iterator;
 
-import au.csiro.snorocket.core.Snorocket;
+import org.apache.log4j.Logger;
 
 /**
  * Hm, not strictly monotonic due to inclusion of clear() method...
@@ -33,7 +33,11 @@ import au.csiro.snorocket.core.Snorocket;
  * @param <T>
  */
 public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
-
+    
+    // Logger
+    private final static Logger log = Logger.getLogger(
+            MonotonicCollection.class);
+    
     public T[] data;
     int count = 0;
 
@@ -52,8 +56,8 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
         if (count == data.length) {
             final int newSize = count < 134217728 ? count << 1
                     : count + 10000000;
-            if (Snorocket.DEBUGGING && count > 1024)
-                System.err.println(hashCode() + "\t"
+            if (log.isDebugEnabled() && count > 1024)
+                log.debug(hashCode() + "\t"
                         + getClass().getSimpleName() + " resize to: "
                         + (newSize));
             // For SNOMED 20061230, only a couple of these grow to 2048 entries
