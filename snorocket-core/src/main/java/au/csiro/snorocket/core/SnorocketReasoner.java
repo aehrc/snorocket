@@ -36,7 +36,7 @@ import au.csiro.snorocket.core.util.IntIterator;
 
 /**
  * This class represents an instance of the reasoner. It uses the internal
- * ontology model. In order to use an OWL model refer to the 
+ * ontology model. If you need to use an OWL model refer to the 
  * {@link SnorocketOWLReasoner} class.
  * 
  * @author Alejandro Metke
@@ -53,7 +53,6 @@ final public class SnorocketReasoner implements IReasoner {
      * @param ontology The base ontology to classify.
      */
     public SnorocketReasoner() {
-        
         
     }
     

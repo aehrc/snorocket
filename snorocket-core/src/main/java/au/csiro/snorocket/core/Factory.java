@@ -127,8 +127,8 @@ final public class Factory implements IFactory {
                 final String[] newConcepts = new String[conceptIdCounter * 2];
                 System.arraycopy(concepts, 0, newConcepts, 0, conceptIdCounter);
                 concepts = newConcepts;
-                if (log.isInfoEnabled())
-                    log.info("concept resize to: " + concepts.length);
+                if (log.isDebugEnabled())
+                    log.debug("concept resize to: " + concepts.length);
             }
             concepts[conceptIdCounter] = key;
             result = conceptIdCounter++;
