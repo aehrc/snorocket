@@ -16,7 +16,7 @@ import java.util.List;
 
 import org.semanticweb.owlapi.reasoner.NullReasonerProgressMonitor;
 
-import au.csiro.ontology.Ontology;
+import au.csiro.ontology.IOntology;
 import au.csiro.ontology.importer.rf1.RF1Importer;
 import au.csiro.snorocket.core.Factory;
 import au.csiro.snorocket.core.IFactory;
@@ -55,7 +55,7 @@ public class Benchmark {
         NormalisedOntology no = new NormalisedOntology(factory);
         System.out.println("Importing axioms");
         RF1Importer imp = new RF1Importer(concepts, descriptions, relations, version);
-        Ontology ont = imp.getOntologyVersions(new NullReasonerProgressMonitor()).get(version);
+        IOntology ont = imp.getOntologyVersions(new NullReasonerProgressMonitor()).get(version);
         res.setAxiomTransformationTimeMs(System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
         System.out.println("Loading axioms");

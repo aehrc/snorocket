@@ -60,6 +60,7 @@ import org.semanticweb.owlapi.reasoner.impl.OWLNamedIndividualNodeSet;
 import org.semanticweb.owlapi.reasoner.impl.OWLObjectPropertyNode;
 import org.semanticweb.owlapi.util.Version;
 
+import au.csiro.ontology.IOntology;
 import au.csiro.ontology.Ontology;
 import au.csiro.ontology.axioms.AbstractAxiom;
 import au.csiro.ontology.importer.owl.OWLImporter;
@@ -158,7 +159,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         OWLImporter oi = new OWLImporter(owlOntology);
         Map<String, Ontology> res = oi.getOntologyVersions(monitor);
         for(String key : res.keySet()) {
-            Ontology o = res.get(key);
+            IOntology o = res.get(key);
             Collection<AbstractAxiom> axioms = o.getAxioms();
             reasoner.loadAxioms(new HashSet<AbstractAxiom>(axioms));
         }
@@ -272,7 +273,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             OWLImporter oi = new OWLImporter(newAxioms);
             Map<String, Ontology> res = oi.getOntologyVersions(monitor);
             for(String key : res.keySet()) {
-                Ontology o = res.get(key);
+                IOntology o = res.get(key);
                 Collection<AbstractAxiom> axioms = o.getAxioms();
                 reasoner.classifyIncremental(new HashSet<AbstractAxiom>(axioms));
             }
