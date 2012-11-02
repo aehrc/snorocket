@@ -16,7 +16,7 @@ import java.util.List;
 
 import org.semanticweb.owlapi.reasoner.NullReasonerProgressMonitor;
 
-import au.csiro.ontology.Ontology;
+import au.csiro.ontology.IOntology;
 import au.csiro.ontology.importer.rf1.RF1Importer;
 import au.csiro.snorocket.core.Factory;
 import au.csiro.snorocket.core.IFactory;
@@ -61,7 +61,7 @@ public class BenchmarkIncremental {
         System.out.println("Importing axioms");
         RF1Importer imp = new RF1Importer(baseConcepts, baseDescriptions, 
                 baseRelations, version);
-        Ontology ont = imp.getOntologyVersions(
+        IOntology ont = imp.getOntologyVersions(
                 new NullReasonerProgressMonitor()).get(version);
         System.out.println("Loading axioms");
         no.loadAxioms(new HashSet<>(ont.getAxioms()));
