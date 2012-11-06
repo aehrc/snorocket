@@ -30,7 +30,8 @@ import java.util.Set;
 
 import au.csiro.ontology.Node;
 import au.csiro.ontology.Taxonomy;
-import au.csiro.ontology.axioms.AbstractAxiom;
+import au.csiro.ontology.axioms.IAxiom;
+import au.csiro.ontology.classification.IReasoner;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
 
@@ -42,10 +43,10 @@ import au.csiro.snorocket.core.util.IntIterator;
  * @author Alejandro Metke
  *
  */
-final public class SnorocketReasoner implements IReasoner {
+final public class SnorocketReasoner<T> implements IReasoner<T> {
     
-    private NormalisedOntology no = null;
-    private IFactory factory = null;
+    private NormalisedOntology<T> no = null;
+    private IFactory<T> factory = null;
     
     /**
      * Creates an instance of Snorocket using the given base ontology.
@@ -55,29 +56,37 @@ final public class SnorocketReasoner implements IReasoner {
     public SnorocketReasoner() {
         
     }
-    
+
     @Override
-    public void classify(Set<AbstractAxiom> axioms) {
-        factory = new Factory();
-        no = new NormalisedOntology(factory);
-        no.loadAxioms(new HashSet<AbstractAxiom>(axioms));
+    public IReasoner<T> classify(Set<IAxiom> axioms) {
+        factory = new Factory<T>();
+        no = new NormalisedOntology<T>(factory);
+        no.loadAxioms(new HashSet<IAxiom>(axioms));
         no.classify();
+        return this;
     }
-    
+
     @Override
-    public void classifyIncremental(Set<AbstractAxiom> axioms) {
+    public IReasoner<T> classifyIncremental(Set<IAxiom> axioms) {
         no.classifyIncremental(axioms);
+        return this;
     }
-    
+
     @Override
-    public Taxonomy getTaxonomy() {
+    public void prune() {
+        // TODO: implement
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Taxonomy<T> getTaxonomy() {
         if(no == null)
             return null;
         
-        PostProcessedData ppd = new PostProcessedData(factory);
+        PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
         ppd.computeDag(no.getSubsumptions(), null);
         
-        Map<String, Node> res = new HashMap<String, Node>();
+        Map<T, Node<T>> res = new HashMap<>();
         
         // Two pass approach - first create the map with the new nodes without
         // connections and then add the connections
@@ -85,11 +94,11 @@ final public class SnorocketReasoner implements IReasoner {
         Queue<ClassNode> todo = new LinkedList<>();
         todo.add(top);
         
-        Map<ClassNode, Node> nodeToNodeMap = new HashMap<>();
+        Map<ClassNode, Node<T>> nodeToNodeMap = new HashMap<>();
         
         while(!todo.isEmpty()) {
             ClassNode node = todo.poll();
-            Node newNode = new Node();
+            Node<T> newNode = new Node<T>();
             nodeToNodeMap.put(node, newNode);
             IConceptSet equivs = node.getEquivalentConcepts();
             for(IntIterator it = equivs.iterator(); it.hasNext(); ) {
@@ -97,14 +106,14 @@ final public class SnorocketReasoner implements IReasoner {
                         factory.lookupConceptId(it.next()));
             }
             
-            for(String key : newNode.getEquivalentConcepts()) {
+            for(T key : newNode.getEquivalentConcepts()) {
                 res.put(key, newNode);
             }
             todo.addAll(node.getChildren());
         }
         
         for(ClassNode key : nodeToNodeMap.keySet()) {
-            Node node = nodeToNodeMap.get(key);
+            Node<T> node = nodeToNodeMap.get(key);
             for(ClassNode parent : key.getParents()) {
                 node.getParents().add(nodeToNodeMap.get(parent));
             }
@@ -114,7 +123,7 @@ final public class SnorocketReasoner implements IReasoner {
             }
         }
         
-        return new Taxonomy(res);
+        return new Taxonomy<T>(res);
     }
-    
+
 }

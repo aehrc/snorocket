@@ -12,16 +12,17 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import au.csiro.ontology.axioms.AbstractAxiom;
+import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.RoleInclusion;
-import au.csiro.ontology.model.AbstractConcept;
+import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.Concept;
 import au.csiro.ontology.model.Conjunction;
 import au.csiro.ontology.model.Datatype;
 import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.Feature;
 import au.csiro.ontology.model.IntegerLiteral;
+import au.csiro.ontology.model.Operator;
 import au.csiro.ontology.model.Role;
 import au.csiro.snorocket.core.axioms.Inclusion;
 import au.csiro.snorocket.core.util.IConceptMap;
@@ -41,58 +42,58 @@ public class TestNormalisedOntology {
     @Test
     public void testEndocarditis() {
         // Create roles
-        Role contIn = new Role("cont-in");
-        Role partOf = new Role("part-of");
-        Role hasLoc = new Role("has-loc");
-        Role actsOn = new Role("acts-on");
+        Role<String> contIn = new Role<>("cont-in");
+        Role<String> partOf = new Role<>("part-of");
+        Role<String> hasLoc = new Role<>("has-loc");
+        Role<String> actsOn = new Role<>("acts-on");
 
         // Create concepts
-        Concept endocardium = new Concept("Endocardium");
-        Concept tissue = new Concept("Tissue");
-        Concept heartWall = new Concept("HeartWall");
-        Concept heartValve = new Concept("HeartValve");
-        Concept bodyWall = new Concept("BodyWall");
-        Concept heart = new Concept("Heart");
-        Concept bodyValve = new Concept("BodyValve");
-        Concept endocarditis = new Concept("Endocarditis");
-        Concept inflammation = new Concept("Inflammation");
-        Concept disease = new Concept("Disease");
-        Concept heartdisease = new Concept("Heartdisease");
-        Concept criticalDisease = new Concept("CriticalDisease");
+        Concept<String> endocardium = new Concept<>("Endocardium");
+        Concept<String> tissue = new Concept<>("Tissue");
+        Concept<String> heartWall = new Concept<>("HeartWall");
+        Concept<String> heartValve = new Concept<>("HeartValve");
+        Concept<String> bodyWall = new Concept<>("BodyWall");
+        Concept<String> heart = new Concept<>("Heart");
+        Concept<String> bodyValve = new Concept<>("BodyValve");
+        Concept<String> endocarditis = new Concept<>("Endocarditis");
+        Concept<String> inflammation = new Concept<>("Inflammation");
+        Concept<String> disease = new Concept<>("Disease");
+        Concept<String> heartdisease = new Concept<>("Heartdisease");
+        Concept<String> criticalDisease = new Concept<>("CriticalDisease");
 
         // Create axioms
         ConceptInclusion a1 = new ConceptInclusion(endocardium,
-                new Conjunction(new AbstractConcept[] { tissue,
-                        new Existential(contIn, heartWall),
-                        new Existential(contIn, heartValve) }));
+                new Conjunction(new IConcept[] { tissue,
+                        new Existential<>(contIn, heartWall),
+                        new Existential<>(contIn, heartValve) }));
 
         ConceptInclusion a2 = new ConceptInclusion(heartWall, new Conjunction(
-                new AbstractConcept[] { bodyWall,
-                        new Existential(partOf, heart) }));
+                new IConcept[] { bodyWall,
+                        new Existential<>(partOf, heart) }));
 
         ConceptInclusion a3 = new ConceptInclusion(heartValve, new Conjunction(
-                new AbstractConcept[] { bodyValve,
-                        new Existential(partOf, heart) }));
+                new IConcept[] { bodyValve,
+                        new Existential<>(partOf, heart) }));
 
         ConceptInclusion a4 = new ConceptInclusion(endocarditis,
-                new Conjunction(new AbstractConcept[] { inflammation,
-                        new Existential(hasLoc, endocardium) }));
+                new Conjunction(new IConcept[] { inflammation,
+                        new Existential<>(hasLoc, endocardium) }));
 
         ConceptInclusion a5 = new ConceptInclusion(inflammation,
-                new Conjunction(new AbstractConcept[] { disease,
-                        new Existential(actsOn, tissue) }));
+                new Conjunction(new IConcept[] { disease,
+                        new Existential<>(actsOn, tissue) }));
 
         ConceptInclusion a6 = new ConceptInclusion(new Conjunction(
-                new AbstractConcept[] { heartdisease,
-                        new Existential(hasLoc, heartValve) }), criticalDisease);
+                new IConcept[] { heartdisease,
+                        new Existential<>(hasLoc, heartValve) }), criticalDisease);
 
         ConceptInclusion a7 = new ConceptInclusion(heartdisease,
-                new Conjunction(new AbstractConcept[] { disease,
-                        new Existential(hasLoc, heart) }));
+                new Conjunction(new IConcept[] { disease,
+                        new Existential<>(hasLoc, heart) }));
 
         ConceptInclusion a8 = new ConceptInclusion(
-                new Conjunction(new AbstractConcept[] { disease,
-                        new Existential(hasLoc, heart) }), heartdisease);
+                new Conjunction(new IConcept[] { disease,
+                        new Existential<>(hasLoc, heart) }), heartdisease);
 
         RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf },
                 partOf);
@@ -100,7 +101,7 @@ public class TestNormalisedOntology {
         RoleInclusion a11 = new RoleInclusion(new Role[] { hasLoc, contIn },
                 hasLoc);
 
-        Set<AbstractAxiom> axioms = new HashSet<>();
+        Set<IAxiom> axioms = new HashSet<>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -114,13 +115,13 @@ public class TestNormalisedOntology {
         axioms.add(a11);
 
         // Classify
-        IFactory factory = new Factory();
-        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        IFactory<String> factory = new Factory<>();
+        NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
         final IConceptMap<IConceptSet> s = o.getSubsumptions();
 
         // Build taxonomy
-        PostProcessedData ppd = new PostProcessedData(factory);
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         ppd.computeDag(s, null);
 
         // Test results
@@ -210,59 +211,59 @@ public class TestNormalisedOntology {
 
     @Test
     public void testNormalise() {
-        IFactory factory = new Factory();
+        IFactory<String> factory = new Factory<>();
 
         // Add roles
-        Role container = new Role("container");
-        Role contains = new Role("contains");
+        Role<String> container = new Role<>("container");
+        Role<String> contains = new Role<>("contains");
 
         // Add features
-        Feature mgPerTablet = new Feature("mgPerTablet");
+        Feature<String> mgPerTablet = new Feature<>("mgPerTablet");
 
         // Add concepts
-        Concept panadol = new Concept("Panadol");
-        Concept panadol_250mg = new Concept("Panadol_250mg");
-        Concept panadol_500mg = new Concept("Panadol_500mg");
-        Concept panadol_pack_250mg = new Concept("Panadol_pack_250mg");
-        Concept paracetamol = new Concept("Paracetamol");
-        Concept bottle = new Concept("Bottle");
+        Concept<String> panadol = new Concept<>("Panadol");
+        Concept<String> panadol_250mg = new Concept<>("Panadol_250mg");
+        Concept<String> panadol_500mg = new Concept<>("Panadol_500mg");
+        Concept<String> panadol_pack_250mg = new Concept<>("Panadol_pack_250mg");
+        Concept<String> paracetamol = new Concept<>("Paracetamol");
+        Concept<String> bottle = new Concept<>("Bottle");
 
         // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential(
+        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential<>(
                 contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(250)) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
-                new AbstractConcept[] {
+                new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(250)) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(500)) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
-                new AbstractConcept[] {
+                new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(500)) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(250)),
-                        new Existential(container, bottle) }));
+                        new Existential<>(container, bottle) }));
 
-        Set<AbstractAxiom> axioms = new HashSet<>();
+        Set<IAxiom> axioms = new HashSet<>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -270,10 +271,10 @@ public class TestNormalisedOntology {
         axioms.add(a5);
         axioms.add(a6);
 
-        NormalisedOntology no = new NormalisedOntology(factory);
-        Set<Inclusion> norms = no.normalise(axioms);
+        NormalisedOntology<String> no = new NormalisedOntology<>(factory);
+        Set<Inclusion<String>> norms = no.normalise(axioms);
 
-        for (Inclusion norm : norms) {
+        for (Inclusion<String> norm : norms) {
             System.out.println(norm.getNormalForm().toString());
         }
 
@@ -306,47 +307,47 @@ public class TestNormalisedOntology {
      */
     @Test
     public void testEndocarditisIncremental() {
-        IFactory factory = new Factory();
+        IFactory<String> factory = new Factory<>();
 
         // Original Endocarditis ontology axioms
-        Role contIn = new Role("cont-in");
-        Role partOf = new Role("part-of");
-        Role hasLoc = new Role("has-loc");
-        Role actsOn = new Role("acts-on");
-        Concept tissue = new Concept("Tissue");
-        Concept heartWall = new Concept("HeartWall");
-        Concept heartValve = new Concept("HeartValve");
-        Concept bodyWall = new Concept("BodyWall");
-        Concept heart = new Concept("Heart");
-        Concept bodyValve = new Concept("BodyValve");
-        Concept inflammation = new Concept("Inflammation");
-        Concept disease = new Concept("Disease");
-        Concept heartdisease = new Concept("Heartdisease");
-        Concept criticalDisease = new Concept("CriticalDisease");
+        Role<String> contIn = new Role<>("cont-in");
+        Role<String> partOf = new Role<>("part-of");
+        Role<String> hasLoc = new Role<>("has-loc");
+        Role<String> actsOn = new Role<>("acts-on");
+        Concept<String> tissue = new Concept<>("Tissue");
+        Concept<String> heartWall = new Concept<>("HeartWall");
+        Concept<String> heartValve = new Concept<>("HeartValve");
+        Concept<String> bodyWall = new Concept<>("BodyWall");
+        Concept<String> heart = new Concept<>("Heart");
+        Concept<String> bodyValve = new Concept<>("BodyValve");
+        Concept<String> inflammation = new Concept<>("Inflammation");
+        Concept<String> disease = new Concept<>("Disease");
+        Concept<String> heartdisease = new Concept<>("Heartdisease");
+        Concept<String> criticalDisease = new Concept<>("CriticalDisease");
 
         ConceptInclusion a2 = new ConceptInclusion(heartWall, new Conjunction(
-                new AbstractConcept[] { bodyWall,
-                        new Existential(partOf, heart) }));
+                new IConcept[] { bodyWall,
+                        new Existential<>(partOf, heart) }));
 
         ConceptInclusion a3 = new ConceptInclusion(heartValve, new Conjunction(
-                new AbstractConcept[] { bodyValve,
-                        new Existential(partOf, heart) }));
+                new IConcept[] { bodyValve,
+                        new Existential<>(partOf, heart) }));
 
         ConceptInclusion a5 = new ConceptInclusion(inflammation,
-                new Conjunction(new AbstractConcept[] { disease,
-                        new Existential(actsOn, tissue) }));
+                new Conjunction(new IConcept[] { disease,
+                        new Existential<>(actsOn, tissue) }));
 
         ConceptInclusion a6 = new ConceptInclusion(new Conjunction(
-                new AbstractConcept[] { heartdisease,
-                        new Existential(hasLoc, heartValve) }), criticalDisease);
+                new IConcept[] { heartdisease,
+                        new Existential<>(hasLoc, heartValve) }), criticalDisease);
 
         ConceptInclusion a7 = new ConceptInclusion(heartdisease,
-                new Conjunction(new AbstractConcept[] { disease,
-                        new Existential(hasLoc, heart) }));
+                new Conjunction(new IConcept[] { disease,
+                        new Existential<>(hasLoc, heart) }));
 
         ConceptInclusion a8 = new ConceptInclusion(
-                new Conjunction(new AbstractConcept[] { disease,
-                        new Existential(hasLoc, heart) }), heartdisease);
+                new Conjunction(new IConcept[] { disease,
+                        new Existential<>(hasLoc, heart) }), heartdisease);
 
         RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf },
                 partOf);
@@ -355,7 +356,7 @@ public class TestNormalisedOntology {
                 hasLoc);
 
         // Partial ontology
-        Set<AbstractAxiom> axioms = new HashSet<>();
+        Set<IAxiom> axioms = new HashSet<>();
         axioms.add(a2);
         axioms.add(a3);
         axioms.add(a5);
@@ -366,26 +367,26 @@ public class TestNormalisedOntology {
         axioms.add(a10);
         axioms.add(a11);
 
-        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
         IConceptMap<IConceptSet> s = o.getSubsumptions();
-        PostProcessedData ppd = new PostProcessedData(factory);
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         ppd.computeDag(s, null);
 
         // Add delta axioms and classify incrementally
-        Concept endocardium = new Concept("Endocardium");
-        Concept endocarditis = new Concept("Endocarditis");
+        Concept<String> endocardium = new Concept<>("Endocardium");
+        Concept<String> endocarditis = new Concept<>("Endocarditis");
 
         ConceptInclusion a1 = new ConceptInclusion(endocardium,
-                new Conjunction(new AbstractConcept[] { tissue,
-                        new Existential(contIn, heartWall),
-                        new Existential(contIn, heartValve) }));
+                new Conjunction(new IConcept[] { tissue,
+                        new Existential<>(contIn, heartWall),
+                        new Existential<>(contIn, heartValve) }));
 
         ConceptInclusion a4 = new ConceptInclusion(endocarditis,
-                new Conjunction(new AbstractConcept[] { inflammation,
-                        new Existential(hasLoc, endocardium) }));
+                new Conjunction(new IConcept[] { inflammation,
+                        new Existential<>(hasLoc, endocardium) }));
 
-        Set<AbstractAxiom> incAxioms = new HashSet<>();
+        Set<IAxiom> incAxioms = new HashSet<>();
         incAxioms.add(a1);
         incAxioms.add(a4);
 

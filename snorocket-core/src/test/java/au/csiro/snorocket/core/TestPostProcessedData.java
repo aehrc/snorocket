@@ -9,8 +9,8 @@ import java.util.Arrays;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.semanticweb.owlapi.reasoner.NullReasonerProgressMonitor;
 
+import au.csiro.ontology.classification.NullProgressMonitor;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
@@ -36,8 +36,8 @@ public class TestPostProcessedData {
      */
     @Test
     public void testComputeDag() {
-        IFactory factory = new Factory();
-        PostProcessedData ppd = new PostProcessedData(factory);
+        IFactory<String> factory = new Factory<>();
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         int a = factory.getConcept("A");
         int b = factory.getConcept("B");
         int c = factory.getConcept("C");
@@ -70,7 +70,7 @@ public class TestPostProcessedData {
         eSet.add(d);
         subsumptions.put(e, eSet);
 
-        ppd.computeDag(subsumptions, new NullReasonerProgressMonitor());
+        ppd.computeDag(subsumptions, new NullProgressMonitor());
 
         ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
         Assert.assertEquals(true, top.getParents().isEmpty());
@@ -156,8 +156,8 @@ public class TestPostProcessedData {
      */
     @Test
     public void testComputeDagIncremental1() {
-        IFactory factory = new Factory();
-        PostProcessedData ppd = new PostProcessedData(factory);
+        IFactory<String> factory = new Factory<>();
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         int a = factory.getConcept("A");
         int b = factory.getConcept("B");
         int c = factory.getConcept("C");
@@ -177,7 +177,7 @@ public class TestPostProcessedData {
         cSet.add(a);
         subsumptions.put(c, cSet);
 
-        ppd.computeDag(subsumptions, new NullReasonerProgressMonitor());
+        ppd.computeDag(subsumptions, new NullProgressMonitor());
 
         // Add additional subsumptions
         int d = factory.getConcept("D");
@@ -200,7 +200,7 @@ public class TestPostProcessedData {
 
         // Compute DAG incrementally
         ppd.computeDagIncremental(newSubsumptions,
-                affectedConceptSubs, new NullReasonerProgressMonitor());
+                affectedConceptSubs, new NullProgressMonitor());
 
         ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
         Assert.assertEquals(true, top.getParents().isEmpty());
@@ -286,8 +286,8 @@ public class TestPostProcessedData {
      */
     @Test
     public void testComputeDagIncremental2() {
-        IFactory factory = new Factory();
-        PostProcessedData ppd = new PostProcessedData(factory);
+        IFactory<String> factory = new Factory<>();
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         
         int a = factory.getConcept("A");
         int b = factory.getConcept("B");
@@ -302,7 +302,7 @@ public class TestPostProcessedData {
         bSet.add(a);
         subsumptions.put(b, bSet);
 
-        ppd.computeDag(subsumptions, new NullReasonerProgressMonitor());
+        ppd.computeDag(subsumptions, new NullProgressMonitor());
 
         // Add additional subsumptions
         int c = factory.getConcept("C");
@@ -329,7 +329,7 @@ public class TestPostProcessedData {
 
         // Compute DAG incrementally
         ppd.computeDagIncremental(newSubsumptions,
-                affectedConceptSubs, new NullReasonerProgressMonitor());
+                affectedConceptSubs, new NullProgressMonitor());
 
         ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
         Assert.assertEquals(true, top.getParents().isEmpty());
@@ -404,8 +404,8 @@ public class TestPostProcessedData {
      */
     @Test
     public void testComputeDagIncremental3() {
-        IFactory factory = new Factory();
-        PostProcessedData ppd = new PostProcessedData(factory);
+        IFactory<String> factory = new Factory<>();
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         
         int a = factory.getConcept("A");
         int b = factory.getConcept("B");
@@ -439,7 +439,7 @@ public class TestPostProcessedData {
         eSet.add(c);
         subsumptions.put(e, eSet);
 
-        ppd.computeDag(subsumptions, new NullReasonerProgressMonitor());
+        ppd.computeDag(subsumptions, new NullProgressMonitor());
 
         // Add additional subsumptions
         int f = factory.getConcept("F");
@@ -462,7 +462,7 @@ public class TestPostProcessedData {
 
         // Compute DAG incrementally
         ppd.computeDagIncremental(newSubsumptions,
-                affectedConceptSubs, new NullReasonerProgressMonitor());
+                affectedConceptSubs, new NullProgressMonitor());
 
         // Verify taxonomy
         ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
@@ -554,8 +554,8 @@ public class TestPostProcessedData {
      */
     @Test
     public void testComputeDagIncremental4() {
-        IFactory factory = new Factory();
-        PostProcessedData ppd = new PostProcessedData(factory);
+        IFactory<String> factory = new Factory<>();
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         
         int a = factory.getConcept("A");
         int b = factory.getConcept("B");
@@ -570,7 +570,7 @@ public class TestPostProcessedData {
         bSet.add(a);
         subsumptions.put(b, bSet);
 
-        ppd.computeDag(subsumptions, new NullReasonerProgressMonitor());
+        ppd.computeDag(subsumptions, new NullProgressMonitor());
 
         // Add additional subsumptions
         IConceptMap<IConceptSet> newSubsumptions = new SparseConceptMap<>(1);
@@ -584,7 +584,7 @@ public class TestPostProcessedData {
 
         // Compute DAG incrementally
         ppd.computeDagIncremental(newSubsumptions,
-                affectedConceptSubs, new NullReasonerProgressMonitor());
+                affectedConceptSubs, new NullProgressMonitor());
 
         // Verify taxonomy
         ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
@@ -619,8 +619,8 @@ public class TestPostProcessedData {
      */
     @Test
     public void testComputeDagIncremental5() {
-        IFactory factory = new Factory();
-        PostProcessedData ppd = new PostProcessedData(factory);
+        IFactory<String> factory = new Factory<>();
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         
         int a = factory.getConcept("A");
         int b = factory.getConcept("B");
@@ -641,7 +641,7 @@ public class TestPostProcessedData {
         cSet.add(a);
         subsumptions.put(c, cSet);
 
-        ppd.computeDag(subsumptions, new NullReasonerProgressMonitor());
+        ppd.computeDag(subsumptions, new NullProgressMonitor());
 
         // Add additional subsumptions
         IConceptMap<IConceptSet> newSubsumptions = new SparseConceptMap<>(1);
@@ -653,7 +653,7 @@ public class TestPostProcessedData {
 
         // Compute DAG incrementally
         ppd.computeDagIncremental(newSubsumptions,
-                affectedConceptSubs, new NullReasonerProgressMonitor());
+                affectedConceptSubs, new NullProgressMonitor());
 
         ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
         Assert.assertEquals(true, top.getParents().isEmpty());
@@ -711,8 +711,8 @@ public class TestPostProcessedData {
      */
     @Test
     public void testComputeDagIncremental6() {
-        IFactory factory = new Factory();
-        PostProcessedData ppd = new PostProcessedData(factory);
+        IFactory<String> factory = new Factory<>();
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         
         int a = factory.getConcept("A");
         int b = factory.getConcept("B");
@@ -733,7 +733,7 @@ public class TestPostProcessedData {
         cSet.add(b);
         subsumptions.put(c, cSet);
 
-        ppd.computeDag(subsumptions, new NullReasonerProgressMonitor());
+        ppd.computeDag(subsumptions, new NullProgressMonitor());
 
         // Add additional subsumptions
         IConceptMap<IConceptSet> newSubsumptions = new SparseConceptMap<>(1);
@@ -745,7 +745,7 @@ public class TestPostProcessedData {
 
         // Compute DAG incrementally
         ppd.computeDagIncremental(newSubsumptions,
-                affectedConceptSubs, new NullReasonerProgressMonitor());
+                affectedConceptSubs, new NullProgressMonitor());
 
         ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
         Assert.assertEquals(true, top.getParents().isEmpty());
@@ -803,8 +803,8 @@ public class TestPostProcessedData {
      */
     @Test
     public void testComputeDagIncremental7() {
-        IFactory factory = new Factory();
-        PostProcessedData ppd = new PostProcessedData(factory);
+        IFactory<String> factory = new Factory<>();
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         
         int a = factory.getConcept("A");
         int c = factory.getConcept("C");
@@ -819,7 +819,7 @@ public class TestPostProcessedData {
         cSet.add(a);
         subsumptions.put(c, cSet);
 
-        ppd.computeDag(subsumptions, new NullReasonerProgressMonitor());
+        ppd.computeDag(subsumptions, new NullProgressMonitor());
 
         int b = factory.getConcept("B");
         // Add additional subsumptions
@@ -835,7 +835,7 @@ public class TestPostProcessedData {
 
         // Compute DAG incrementally
         ppd.computeDagIncremental(newSubsumptions,
-                affectedConceptSubs, new NullReasonerProgressMonitor());
+                affectedConceptSubs, new NullProgressMonitor());
 
         ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
         Assert.assertEquals(true, top.getParents().isEmpty());

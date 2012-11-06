@@ -1,3 +1,0 @@
-﻿CONCEPTID	CONCEPTSTATUS	FULLYSPECIFIEDNAME	CTV3ID	SNOMEDID	ISPRIMITIVE
-196781001	0	Acute appendicitis with peritonitis (disorder)	J200.	D5-46213	0
-28358004	0	Acute obstructive appendicitis with perforation AND peritonitis (disorder)	XUAxu	D5-46340	1

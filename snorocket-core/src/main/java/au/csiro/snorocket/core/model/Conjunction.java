@@ -69,21 +69,11 @@ public class Conjunction extends AbstractConcept {
         return sb.toString();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
         return hashCode;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -114,18 +104,5 @@ public class Conjunction extends AbstractConcept {
 
         return result;
     }
-
-    // @Override
-    // String getKey() {
-    // StringBuilder sb = new StringBuilder();
-    // sb.append("(");
-    // sb.append(concepts[0].getKey());
-    // for (int i = 1; i < concepts.length; i++) {
-    // sb.append(" + ");
-    // sb.append(concepts[i].getKey());
-    // }
-    // sb.append(")");
-    // return sb.toString();
-    // }
 
 }

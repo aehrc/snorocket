@@ -21,54 +21,135 @@
 
 package au.csiro.snorocket.core;
 
-import java.io.PrintWriter;
-
-public interface IFactory {
-
-    public static final String TOP = "_top_";
-    public static final String BOTTOM = "_bottom_";
-    // FIXME: this shouldn't be here... is specific to SNOMED
-    public static final String ROLE_GROUP = "_role_group_";
-
+/**
+ * Interface for the factory used to create concepts, roles and features
+ * internally.
+ * 
+ * @author Alejandro Metke
+ *
+ * @param <T> The typeof the key used in the factory. The type should support
+ * identity based on equals and hashcode.
+ */
+public interface IFactory<T> {
+    
+    /**
+     * Internal id used for the top concept.
+     */
     public static final int TOP_CONCEPT = 0;
+    
+    /**
+     * Internal id used for the bottom concept.
+     */
     public static final int BOTTOM_CONCEPT = 1;
+    
+    /**
+     * Indicates if a concept, either named or virtual, exists.
+     * 
+     * @param key
+     * @return
+     */
+    boolean conceptExists(final Object key);
 
-    boolean conceptExists(final String key);
+    /**
+     * Indicates if a role, either named or virtual, exists.
+     * 
+     * @param key
+     * @return
+     */
+    boolean roleExists(final Object key);
+    
+    /**
+     * Indicates if a feature exists.
+     * 
+     * @param key
+     * @return
+     */
+    boolean featureExists(final T key);
+    
+    /**
+     * Returns the internal id of a concept.
+     * 
+     * @param key
+     * @return
+     */
+    int getConcept(final Object key);
+    
+    /**
+     * Returns the internal id of a role.
+     * 
+     * @param key
+     * @return
+     */
+    int getRole(final Object key);
 
-    boolean roleExists(final String key);
-
-    boolean featureExists(final String key);
-
-    int getConcept(final String key);
-
-    int getRole(final String key);
-
-    int getFeature(final String key);
-
+    /**
+     * Returns the internal id of a feature.
+     * 
+     * @param key
+     * @return
+     */
+    int getFeature(final T key);
+    
+    /**
+     * Returns the total number of concepts.
+     * 
+     * @return
+     */
     int getTotalConcepts();
-
+    
+    /**
+     * Returns the total number of roles.
+     * 
+     * @return
+     */
     int getTotalRoles();
-
+    
+    /**
+     * Returns the total number of features.
+     * 
+     * @return
+     */
     int getTotalFeatures();
-
-    String lookupConceptId(final int id);
-
-    String lookupRoleId(final int id);
-
-    String lookupFeatureId(final int id);
-
-    boolean isBaseConcept(int id);
-
-    boolean isBaseRole(int id);
-
-    void setVirtualConcept(int id, boolean isVirtual);
-
+    
+    /**
+     * Returns the external id of a concept given its internal id.
+     * 
+     * @param id
+     * @return
+     */
+    T lookupConceptId(final int id);
+    
+    /**
+     * Returns the external id of a role given its internal id.
+     * 
+     * @param id
+     * @return
+     */
+    T lookupRoleId(final int id);
+    
+    /**
+     * Returns a feature given its id.
+     * 
+     * @param id
+     * @return
+     */
+    T lookupFeatureId(final int id);
+    
+    /**
+     * Indicates if a concept, identified by its internal id, is virtual or
+     * named.
+     * 
+     * @param id
+     * @return
+     */
     boolean isVirtualConcept(int id);
-
-    void setVirtualRole(int id, boolean isVirtual);
-
+    
+    /**
+     * Indicates if a role, identified by its internal id, is virtual or named.
+     * 
+     * @param id
+     * @return
+     */
     boolean isVirtualRole(int id);
-
-    void printAll(PrintWriter writer);
 
 }

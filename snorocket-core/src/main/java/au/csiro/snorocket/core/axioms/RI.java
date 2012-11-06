@@ -33,7 +33,7 @@ import au.csiro.snorocket.core.IFactory;
  * 
  * @param rhs
  */
-public class RI extends Inclusion {
+public class RI<T> extends Inclusion<T> {
 
     private static final int PRIME = 31;
 
@@ -61,8 +61,9 @@ public class RI extends Inclusion {
         return rhs;
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    public Inclusion[] normalise1(final IFactory factory) {
+    public Inclusion<T>[] normalise1(final IFactory<T> factory) {
         Inclusion[] result = { null, null };
 
         if (rule1(factory, result)) {
@@ -75,7 +76,7 @@ public class RI extends Inclusion {
     }
 
     @Override
-    public Inclusion[] normalise2(final IFactory factory) {
+    public Inclusion<T>[] normalise2(final IFactory<T> factory) {
         return null;
     }
 
@@ -87,62 +88,35 @@ public class RI extends Inclusion {
      * @param gcis
      * @return
      */
-    boolean rule1(final IFactory factory, final Inclusion[] gcis) {
+    boolean rule1(final IFactory<T> factory, final Inclusion<T>[] gcis) {
         boolean result = false;
 
-        // TODO make this "binarisation" more efficient by doing it for all
-        // elements
-        // rather than relying on multiple calls to this rule and stripping off
-        // one
-        // Role for each call.
+        // TODO: make this "binarisation" more efficient by doing it for all
+        // elements rather than relying on multiple calls to this rule and 
+        // stripping off one Role for each call.
         if (lhs.length > 2) {
             result = true;
 
             final int k = lhs.length - 1;
             int[] newLhs1 = new int[k];
             System.arraycopy(lhs, 0, newLhs1, 0, newLhs1.length);
-            int u = factory.getRole("* " + getKey(newLhs1));
-            factory.setVirtualRole(u, true);
+            int u = factory.getRole(newLhs1);
 
             int[] newLhs2 = { u, lhs[k] };
 
-            gcis[0] = new RI(newLhs1, u);
-            gcis[1] = new RI(newLhs2, rhs);
+            gcis[0] = new RI<T>(newLhs1, u);
+            gcis[1] = new RI<T>(newLhs2, rhs);
         }
 
         return result;
     }
 
-    private String getKey(final int[] roles) {
-        final StringBuilder sb = new StringBuilder("[");
-
-        for (int i = 0; i < roles.length; i++) {
-            if (i > 0) {
-                sb.append(",");
-            }
-            sb.append(roles[i]);
-        }
-
-        sb.append("]");
-
-        return sb.toString();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
         return hashCode;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
+    @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object obj) {
         if (this == obj)

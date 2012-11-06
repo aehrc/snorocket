@@ -4,6 +4,8 @@
  */
 package au.csiro.snorocket.core.model;
 
+import au.csiro.ontology.model.Operator;
+
 /**
  * A datatype expression that represents a set of individuals that have a
  * property with a certain value. The expression consists of a feature, an
@@ -13,22 +15,15 @@ package au.csiro.snorocket.core.model;
  * 
  */
 public class Datatype extends AbstractConcept {
-
-    // Operator constants
-    public static final int OPERATOR_EQUALS = 0;
-    public static final int OPERATOR_LESS_THAN = 1;
-    public static final int OPERATOR_LESS_THAN_EQUALS = 2;
-    public static final int OPERATOR_GREATER_THAN = 3;
-    public static final int OPERATOR_GREATER_THAN_EQUALS = 4;
-
+    
     private int feature;
-    private int operator;
+    private Operator operator;
     private AbstractLiteral literal;
 
     /**
 	 * 
 	 */
-    public Datatype(int feature, int operator, AbstractLiteral literal) {
+    public Datatype(int feature, Operator operator, AbstractLiteral literal) {
         this.feature = feature;
         this.operator = operator;
         this.literal = literal;
@@ -38,7 +33,7 @@ public class Datatype extends AbstractConcept {
         return feature;
     }
 
-    public int getOperator() {
+    public Operator getOperator() {
         return operator;
     }
 
@@ -57,7 +52,8 @@ public class Datatype extends AbstractConcept {
         int result = 1;
         result = prime * result + feature;
         result = prime * result + ((literal == null) ? 0 : literal.hashCode());
-        result = prime * result + operator;
+        result = prime * result
+                + ((operator == null) ? 0 : operator.hashCode());
         return result;
     }
 
@@ -92,7 +88,8 @@ public class Datatype extends AbstractConcept {
         final int featureCompare = feature - otherDatatype.feature;
 
         if (featureCompare == 0) {
-            final int operatorCompare = operator - otherDatatype.operator;
+            final int operatorCompare = operator.compareTo(
+                    otherDatatype.operator);
             if (operatorCompare == 0) {
                 return literal.toString().compareTo(otherDatatype.toString());
             } else {

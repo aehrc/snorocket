@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import au.csiro.ontology.model.Operator;
 import au.csiro.snorocket.core.Factory;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.IQueue;
@@ -127,6 +128,7 @@ public class Context {
     /**
      * Reference to the global factory.
      */
+    @SuppressWarnings("rawtypes")
     private static IFactory factory;
 
     /**
@@ -189,6 +191,7 @@ public class Context {
      * 
      * @param ont
      */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static void init(NormalisedOntology ont) {
         parentTodo = ont.getTodo();
         contextIndex = ont.getContextIndex();
@@ -533,101 +536,101 @@ public class Context {
      */
     private boolean datatypeMatches(Datatype d1, Datatype d2) {
         assert (d1.getFeature() == d2.getFeature());
-        int lhsOp = d1.getOperator();
-        int rhsOp = d2.getOperator();
+        Operator lhsOp = d1.getOperator();
+        Operator rhsOp = d2.getOperator();
         AbstractLiteral lhsLit = d1.getLiteral();
         AbstractLiteral rhsLit = d2.getLiteral();
-        if (rhsOp == Datatype.OPERATOR_EQUALS) {
+        if (rhsOp == Operator.EQUALS) {
             // If the rhs operator is =, then the expression will only match
             // if the lhs operator is also = and the literal values are the
             // same.
             return d1.getLiteral().equals(d2.getLiteral());
-        } else if (rhsOp == Datatype.OPERATOR_GREATER_THAN) {
-            if (lhsOp == Datatype.OPERATOR_LESS_THAN
-                    || lhsOp == Datatype.OPERATOR_LESS_THAN_EQUALS) {
+        } else if (rhsOp == Operator.GREATER_THAN) {
+            if (lhsOp == Operator.LESS_THAN
+                    || lhsOp == Operator.LESS_THAN_EQUALS) {
                 return false;
-            } else if (lhsOp == Datatype.OPERATOR_EQUALS) {
+            } else if (lhsOp == Operator.EQUALS) {
                 if (compareLiterals(lhsLit, rhsLit) > 0) {
                     return true;
                 } else {
                     return false;
                 }
-            } else if (lhsOp == Datatype.OPERATOR_GREATER_THAN) {
+            } else if (lhsOp == Operator.GREATER_THAN) {
                 if (compareLiterals(lhsLit, rhsLit) >= 0) {
                     return true;
                 } else {
                     return false;
                 }
-            } else if (lhsOp == Datatype.OPERATOR_GREATER_THAN_EQUALS) {
+            } else if (lhsOp == Operator.GREATER_THAN_EQUALS) {
                 if (compareLiterals(lhsLit, rhsLit) > 0) {
                     return true;
                 } else {
                     return false;
                 }
             }
-        } else if (rhsOp == Datatype.OPERATOR_GREATER_THAN_EQUALS) {
-            if (lhsOp == Datatype.OPERATOR_LESS_THAN
-                    || lhsOp == Datatype.OPERATOR_LESS_THAN_EQUALS) {
+        } else if (rhsOp == Operator.GREATER_THAN_EQUALS) {
+            if (lhsOp == Operator.LESS_THAN
+                    || lhsOp == Operator.LESS_THAN_EQUALS) {
                 return false;
-            } else if (lhsOp == Datatype.OPERATOR_EQUALS) {
+            } else if (lhsOp == Operator.EQUALS) {
                 if (compareLiterals(lhsLit, rhsLit) >= 0) {
                     return true;
                 } else {
                     return false;
                 }
-            } else if (lhsOp == Datatype.OPERATOR_GREATER_THAN) {
+            } else if (lhsOp == Operator.GREATER_THAN) {
                 if (compareLiterals(lhsLit, rhsLit) >= -1) {
                     return true;
                 } else {
                     return false;
                 }
-            } else if (lhsOp == Datatype.OPERATOR_GREATER_THAN_EQUALS) {
+            } else if (lhsOp == Operator.GREATER_THAN_EQUALS) {
                 if (compareLiterals(lhsLit, rhsLit) >= 0) {
                     return true;
                 } else {
                     return false;
                 }
             }
-        } else if (rhsOp == Datatype.OPERATOR_LESS_THAN) {
-            if (lhsOp == Datatype.OPERATOR_GREATER_THAN
-                    || lhsOp == Datatype.OPERATOR_GREATER_THAN_EQUALS) {
+        } else if (rhsOp == Operator.LESS_THAN) {
+            if (lhsOp == Operator.GREATER_THAN
+                    || lhsOp == Operator.GREATER_THAN_EQUALS) {
                 return false;
-            } else if (lhsOp == Datatype.OPERATOR_EQUALS) {
+            } else if (lhsOp == Operator.EQUALS) {
                 if (compareLiterals(lhsLit, rhsLit) < 0) {
                     return true;
                 } else {
                     return false;
                 }
-            } else if (lhsOp == Datatype.OPERATOR_LESS_THAN) {
+            } else if (lhsOp == Operator.LESS_THAN) {
                 if (compareLiterals(lhsLit, rhsLit) <= 0) {
                     return true;
                 } else {
                     return false;
                 }
-            } else if (lhsOp == Datatype.OPERATOR_LESS_THAN_EQUALS) {
+            } else if (lhsOp == Operator.LESS_THAN_EQUALS) {
                 if (compareLiterals(lhsLit, rhsLit) < 0) {
                     return true;
                 } else {
                     return false;
                 }
             }
-        } else if (rhsOp == Datatype.OPERATOR_LESS_THAN_EQUALS) {
-            if (lhsOp == Datatype.OPERATOR_GREATER_THAN
-                    || lhsOp == Datatype.OPERATOR_GREATER_THAN_EQUALS) {
+        } else if (rhsOp == Operator.LESS_THAN_EQUALS) {
+            if (lhsOp == Operator.GREATER_THAN
+                    || lhsOp == Operator.GREATER_THAN_EQUALS) {
                 return false;
-            } else if (lhsOp == Datatype.OPERATOR_EQUALS) {
+            } else if (lhsOp == Operator.EQUALS) {
                 if (compareLiterals(lhsLit, rhsLit) <= 0) {
                     return true;
                 } else {
                     return false;
                 }
-            } else if (lhsOp == Datatype.OPERATOR_LESS_THAN) {
+            } else if (lhsOp == Operator.LESS_THAN) {
                 if (compareLiterals(lhsLit, rhsLit) <= 1) {
                     return true;
                 } else {
                     return false;
                 }
-            } else if (lhsOp == Datatype.OPERATOR_LESS_THAN_EQUALS) {
+            } else if (lhsOp == Operator.LESS_THAN_EQUALS) {
                 if (compareLiterals(lhsLit, rhsLit) <= 0) {
                     return true;
                 } else {

@@ -36,8 +36,8 @@ public class TestReflexiveRoles {
 
     @Test
     public void testPartWhole() {
-        IFactory factory = new Factory();
-        NormalisedOntology o = new NormalisedOntology(factory);
+        IFactory<String> factory = new Factory<>();
+        NormalisedOntology<String> o = new NormalisedOntology<>(factory);
 
         // roles
         int partOf = factory.getRole("part-of");
@@ -92,8 +92,8 @@ public class TestReflexiveRoles {
     @Ignore
     @Test
     public void simpleReflexive() {
-        IFactory factory = new Factory();
-        NormalisedOntology o = new NormalisedOntology(factory);
+        IFactory<String> factory = new Factory<>();
+        NormalisedOntology<String> o = new NormalisedOntology<>(factory);
 
         // roles
         int partOf = factory.getRole("partOf");
@@ -135,7 +135,7 @@ public class TestReflexiveRoles {
         }
     }
 
-    private int printAll(IFactory factory, final IConceptMap<IConceptSet> s) {
+    private int printAll(IFactory<String> factory, final IConceptMap<IConceptSet> s) {
         int count = 0;
         for (final IntIterator keyItr = s.keyIterator(); keyItr.hasNext();) {
             final int key = keyItr.next();

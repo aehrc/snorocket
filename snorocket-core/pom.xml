@@ -28,26 +28,6 @@
   
   <dependencies>
     <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-api</artifactId>
-      <version>3.3</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-apibinding</artifactId>
-      <version>3.3</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-reasoner</artifactId>
-      <version>3.3</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-mansyntax</artifactId>
-      <version>3.3</version>
-    </dependency>
-    <dependency>
       <groupId>au.csiro</groupId>
       <artifactId>ontology-model</artifactId>
       <version>0.0.1-SNAPSHOT</version>
@@ -87,6 +67,5 @@
 	  </plugin>
 	</plugins>
   </build>
-  <groupId>au.csiro</groupId>
 </project>
 
