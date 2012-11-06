@@ -11,16 +11,17 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import au.csiro.ontology.axioms.AbstractAxiom;
 import au.csiro.ontology.axioms.ConceptInclusion;
-import au.csiro.ontology.model.AbstractConcept;
+import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.model.Concept;
 import au.csiro.ontology.model.Conjunction;
 import au.csiro.ontology.model.Datatype;
 import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.Feature;
 import au.csiro.ontology.model.FloatLiteral;
+import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.IntegerLiteral;
+import au.csiro.ontology.model.Operator;
 import au.csiro.ontology.model.Role;
 import au.csiro.ontology.model.StringLiteral;
 import au.csiro.snorocket.core.util.IConceptMap;
@@ -49,59 +50,59 @@ public class TestConcreteDomains {
      */
     @Test
     public void testConcreteDomainsEqualityInts() {
-        IFactory factory = new Factory();
+        IFactory<String> factory = new Factory<>();
 
         // Add roles
-        Role container = new Role("container");
-        Role contains = new Role("contains");
+        Role<String> container = new Role<>("container");
+        Role<String> contains = new Role<>("contains");
 
         // Add features
-        Feature mgPerTablet = new Feature("mgPerTablet");
+        Feature<String> mgPerTablet = new Feature<>("mgPerTablet");
 
         // Add concepts
-        Concept panadol = new Concept("Panadol");
-        Concept panadol_250mg = new Concept("Panadol_250mg");
-        Concept panadol_500mg = new Concept("Panadol_500mg");
-        Concept panadol_pack_250mg = new Concept("Panadol_pack_250mg");
-        Concept paracetamol = new Concept("Paracetamol");
-        Concept bottle = new Concept("Bottle");
+        Concept<String> panadol = new Concept<>("Panadol");
+        Concept<String> panadol_250mg = new Concept<>("Panadol_250mg");
+        Concept<String> panadol_500mg = new Concept<>("Panadol_500mg");
+        Concept<String> panadol_pack_250mg = new Concept<>("Panadol_pack_250mg");
+        Concept<String> paracetamol = new Concept<>("Paracetamol");
+        Concept<String> bottle = new Concept<>("Bottle");
 
         // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential(
+        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential<>(
                 contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(250)) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
-                new AbstractConcept[] {
+                new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(250)) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(500)) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
-                new AbstractConcept[] {
+                new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(500)) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(250)),
-                        new Existential(container, bottle) }));
+                        new Existential<>(container, bottle) }));
 
-        Set<AbstractAxiom> axioms = new HashSet<>();
+        Set<IAxiom> axioms = new HashSet<>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -110,12 +111,12 @@ public class TestConcreteDomains {
         axioms.add(a6);
 
         // Classify
-        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
         final IConceptMap<IConceptSet> s = o.getSubsumptions();
 
         // Build taxonomy
-        PostProcessedData ppd = new PostProcessedData(factory);
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         ppd.computeDag(s, null);
 
         // Test results
@@ -171,59 +172,59 @@ public class TestConcreteDomains {
      */
     @Test
     public void testConcreteDomainsEqualityFloats() {
-        IFactory factory = new Factory();
+        IFactory<String> factory = new Factory<>();
 
         // Add roles
-        Role container = new Role("container");
-        Role contains = new Role("contains");
+        Role<String> container = new Role<>("container");
+        Role<String> contains = new Role<>("contains");
 
         // Add features
-        Feature mgPerTablet = new Feature("mgPerTablet");
+        Feature<String> mgPerTablet = new Feature<>("mgPerTablet");
 
         // Add concepts
-        Concept panadol = new Concept("Panadol");
-        Concept panadol_250mg = new Concept("Panadol_250mg");
-        Concept panadol_500mg = new Concept("Panadol_500mg");
-        Concept panadol_pack_250mg = new Concept("Panadol_pack_250mg");
-        Concept paracetamol = new Concept("Paracetamol");
-        Concept bottle = new Concept("Bottle");
+        Concept<String> panadol = new Concept<>("Panadol");
+        Concept<String> panadol_250mg = new Concept<>("Panadol_250mg");
+        Concept<String> panadol_500mg = new Concept<>("Panadol_500mg");
+        Concept<String> panadol_pack_250mg = new Concept<>("Panadol_pack_250mg");
+        Concept<String> paracetamol = new Concept<>("Paracetamol");
+        Concept<String> bottle = new Concept<>("Bottle");
 
         // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential(
+        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential<>(
                 contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new FloatLiteral(250.0f)) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
-                new AbstractConcept[] {
+                new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new FloatLiteral(250.0f)) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new FloatLiteral(500.0f)) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
-                new AbstractConcept[] {
+                new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new FloatLiteral(500.0f)) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new FloatLiteral(250.0f)),
-                        new Existential(container, bottle) }));
+                        new Existential<>(container, bottle) }));
 
-        Set<AbstractAxiom> axioms = new HashSet<>();
+        Set<IAxiom> axioms = new HashSet<>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -232,12 +233,12 @@ public class TestConcreteDomains {
         axioms.add(a6);
 
         // Classify
-        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
         final IConceptMap<IConceptSet> s = o.getSubsumptions();
 
         // Build taxonomy
-        PostProcessedData ppd = new PostProcessedData(factory);
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         ppd.computeDag(s, null);
 
         // Test results
@@ -293,59 +294,59 @@ public class TestConcreteDomains {
      */
     @Test
     public void testConcreteDomainsEqualityStrings() {
-        IFactory factory = new Factory();
+        IFactory<String> factory = new Factory<>();
 
         // Add roles
-        Role container = new Role("container");
-        Role contains = new Role("contains");
+        Role<String> container = new Role<>("container");
+        Role<String> contains = new Role<>("contains");
 
         // Add features
-        Feature mgPerTablet = new Feature("mgPerTablet");
+        Feature<String> mgPerTablet = new Feature<>("mgPerTablet");
 
         // Add concepts
-        Concept panadol = new Concept("Panadol");
-        Concept panadol_250mg = new Concept("Panadol_250mg");
-        Concept panadol_500mg = new Concept("Panadol_500mg");
-        Concept panadol_pack_250mg = new Concept("Panadol_pack_250mg");
-        Concept paracetamol = new Concept("Paracetamol");
-        Concept bottle = new Concept("Bottle");
+        Concept<String> panadol = new Concept<>("Panadol");
+        Concept<String> panadol_250mg = new Concept<>("Panadol_250mg");
+        Concept<String> panadol_500mg = new Concept<>("Panadol_500mg");
+        Concept<String> panadol_pack_250mg = new Concept<>("Panadol_pack_250mg");
+        Concept<String> paracetamol = new Concept<>("Paracetamol");
+        Concept<String> bottle = new Concept<>("Bottle");
 
         // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential(
+        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential<>(
                 contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new StringLiteral("250")) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
-                new AbstractConcept[] {
+                new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new StringLiteral("250")) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new StringLiteral("500")) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
-                new AbstractConcept[] {
+                new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new StringLiteral("500")) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new StringLiteral("250")),
-                        new Existential(container, bottle) }));
+                        new Existential<>(container, bottle) }));
 
-        Set<AbstractAxiom> axioms = new HashSet<>();
+        Set<IAxiom> axioms = new HashSet<>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -354,12 +355,12 @@ public class TestConcreteDomains {
         axioms.add(a6);
 
         // Classify
-        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
         final IConceptMap<IConceptSet> s = o.getSubsumptions();
 
         // Build taxonomy
-        PostProcessedData ppd = new PostProcessedData(factory);
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         ppd.computeDag(s, null);
 
         // Test results
@@ -407,62 +408,62 @@ public class TestConcreteDomains {
      */
     @Test
     public void testConcreteDomainsOperators() {
-        IFactory factory = new Factory();
+        IFactory<String> factory = new Factory<>();
 
         // Add roles
-        Role contains = new Role("contains");
-        Role hasPrescription = new Role("hasPrescription");
+        Role<String> contains = new Role<>("contains");
+        Role<String> hasPrescription = new Role<>("hasPrescription");
 
         // Add features
-        Feature mgPerTablet = new Feature("mgPerTablet");
-        Feature hasAge = new Feature("hasAge");
+        Feature<String> mgPerTablet = new Feature<>("mgPerTablet");
+        Feature<String> hasAge = new Feature<>("hasAge");
 
         // Add concepts
-        Concept panadol = new Concept("Panadol");
-        Concept paracetamol = new Concept("Paracetamol");
-        Concept patient = new Concept("Patient");
-        Concept X = new Concept("X");
+        Concept<String> panadol = new Concept<>("Panadol");
+        Concept<String> paracetamol = new Concept<>("Paracetamol");
+        Concept<String> patient = new Concept<>("Patient");
+        Concept<String> X = new Concept<>("X");
 
         // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential(
-                contains, new Conjunction(new AbstractConcept[] {
+        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential<>(
+                contains, new Conjunction(new IConcept[] {
                         paracetamol,
-                        new Datatype(mgPerTablet, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(500)) })));
 
         ConceptInclusion a2 = new ConceptInclusion(
-                new Conjunction(new AbstractConcept[] {
+                new Conjunction(new IConcept[] {
                         patient,
-                        new Datatype(hasAge, Datatype.OPERATOR_LESS_THAN,
+                        new Datatype<>(hasAge, Operator.LESS_THAN,
                                 new IntegerLiteral(6)),
-                        new Existential(hasPrescription, new Existential(
+                        new Existential<>(hasPrescription, new Existential<>(
                                 contains,
-                                new Conjunction(new AbstractConcept[] {
+                                new Conjunction(new IConcept[] {
                                         paracetamol,
-                                        new Datatype(mgPerTablet,
-                                                Datatype.OPERATOR_GREATER_THAN,
+                                        new Datatype<>(mgPerTablet,
+                                                Operator.GREATER_THAN,
                                                 new IntegerLiteral(250)) }))) }),
                 Concept.BOTTOM);
 
         ConceptInclusion a3 = new ConceptInclusion(X, new Conjunction(
-                new AbstractConcept[] {
+                new IConcept[] {
                         patient,
-                        new Datatype(hasAge, Datatype.OPERATOR_EQUALS,
+                        new Datatype<>(hasAge, Operator.EQUALS,
                                 new IntegerLiteral(3)),
-                        new Existential(hasPrescription, panadol) }));
+                        new Existential<>(hasPrescription, panadol) }));
 
-        Set<AbstractAxiom> axioms = new HashSet<>();
+        Set<IAxiom> axioms = new HashSet<>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
 
         // Classify
-        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
         final IConceptMap<IConceptSet> s = o.getSubsumptions();
 
         // Build taxonomy
-        PostProcessedData ppd = new PostProcessedData(factory);
+        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
         ppd.computeDag(s, null);
 
         // Test results

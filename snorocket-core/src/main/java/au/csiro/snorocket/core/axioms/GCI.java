@@ -21,8 +21,6 @@
 
 package au.csiro.snorocket.core.axioms;
 
-import java.io.PrintWriter;
-
 import org.apache.log4j.Logger;
 
 import au.csiro.snorocket.core.IFactory;
@@ -38,7 +36,7 @@ import au.csiro.snorocket.core.model.Existential;
  * @author Michael Lawley
  * 
  */
-public class GCI extends Inclusion {
+public class GCI<T> extends Inclusion<T> {
     
     // Logger
     private final static Logger log = Logger.getLogger(GCI.class);
@@ -89,7 +87,8 @@ public class GCI extends Inclusion {
         return rhs;
     }
 
-    public Inclusion[] normalise1(final IFactory factory) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public Inclusion<T>[] normalise1(final IFactory factory) {
         final Inclusion[] result = { null, null };
 
         if (rule2(factory, result) || rule3(factory, result) || rule4(result)) {
@@ -99,6 +98,7 @@ public class GCI extends Inclusion {
         return null;
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public Inclusion[] normalise2(final IFactory factory) {
         final Inclusion[] result = { null, null, null, null, null, null, null,
                 null };
@@ -118,6 +118,7 @@ public class GCI extends Inclusion {
      * @param gcis
      * @return
      */
+    @SuppressWarnings("rawtypes")
     boolean rule2(final IFactory factory, final Inclusion[] gcis) {
         boolean result = false;
 
@@ -183,6 +184,7 @@ public class GCI extends Inclusion {
      * @param gcis
      * @return
      */
+    @SuppressWarnings("rawtypes")
     boolean rule3(final IFactory factory, final Inclusion[] gcis) {
         boolean result = false;
 
@@ -210,7 +212,7 @@ public class GCI extends Inclusion {
      * @param gcis
      * @return
      */
-    boolean rule4(Inclusion[] gcis) {
+    boolean rule4(Inclusion<T>[] gcis) {
         boolean result = false;
         return result;
     }
@@ -221,6 +223,7 @@ public class GCI extends Inclusion {
      * @param gcis
      * @return
      */
+    @SuppressWarnings("rawtypes")
     boolean rule5(final IFactory factory, final Inclusion[] gcis) {
         boolean result = false;
 
@@ -240,6 +243,7 @@ public class GCI extends Inclusion {
      * @param gcis
      * @return
      */
+    @SuppressWarnings("rawtypes")
     boolean rule6(final IFactory factory, final Inclusion[] gcis) {
         boolean result = false;
 
@@ -258,13 +262,9 @@ public class GCI extends Inclusion {
         return result;
     }
 
+    @SuppressWarnings("rawtypes")
     private Concept getA(final IFactory factory, final AbstractConcept cHat) {
-        final String key = "<" + structure(factory, cHat) + ">";
-        final boolean alreadyExists = factory.conceptExists(key);
-        final int a = factory.getConcept(key);
-        if (!alreadyExists) {
-            factory.setVirtualConcept(a, true);
-        }
+        final int a = factory.getConcept(cHat);
         return new Concept(a);
     }
 
@@ -278,7 +278,8 @@ public class GCI extends Inclusion {
      * @param gcis
      * @return
      */
-    Inclusion[] rule7(Inclusion[] gcis) {
+    @SuppressWarnings("unchecked")
+    Inclusion<T>[] rule7(Inclusion<T>[] gcis) {
         assert isRule7Applicable();
 
         final Conjunction conjunction = (Conjunction) rhs;
@@ -289,27 +290,18 @@ public class GCI extends Inclusion {
         }
 
         for (int i = 0; i < concepts.length; i++) {
-            gcis[i] = new GCI(lhs, concepts[i]);
+            gcis[i] = new GCI<T>(lhs, concepts[i]);
         }
 
         return gcis;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
         return hashCode;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
+    @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -328,9 +320,7 @@ public class GCI extends Inclusion {
 
     @Override
     public String toString() {
-        return // lhs.hashCode() +
-        structure(lhs) + " [ " + structure(rhs);
-        // return lhs + " \u2291 " + rhs;
+        return lhs.toString() + " [ " + rhs.toString();
     }
 
     @Override
@@ -349,10 +339,9 @@ public class GCI extends Inclusion {
                 final Datatype datatype = (Datatype) rhs;
                 result = NF7.getInstance(lhs.hashCode(), datatype);
             } else {
-                throw new IllegalStateException(
-                        "GCI is not in Normal Form: lhs is Concept but rhs "
-                                + "is neither Concept, Existential nor Datatype; it is "
-                                + structure(rhs));
+                throw new IllegalStateException("GCI is not in Normal Form: " +
+                		"lhs is Concept but rhs is neither Concept, " +
+                		"Existential nor Datatype; it is " + rhs);
             }
         } else if (lhs instanceof Conjunction) {
             final Conjunction conjunction = (Conjunction) lhs;
@@ -367,7 +356,7 @@ public class GCI extends Inclusion {
                 throw new IllegalStateException(
                         "Conjunction should have exactly one or two "
                                 + "Concepts not " + concepts.length + ": "
-                                + structure(conjunction));
+                                + conjunction);
             }
         } else if (lhs instanceof Existential) {
             Existential existential = (Existential) lhs;
@@ -378,126 +367,10 @@ public class GCI extends Inclusion {
             result = NF8.getInstance(datatype, rhs.hashCode());
         } else {
             throw new IllegalStateException("GCI is not in Normal Form: "
-                    + structure(lhs) + ", " + structure(rhs));
+                    + lhs + ", " + rhs);
         }
 
         return result;
-    }
-
-    private String structure(AbstractConcept concept) {
-        return structure(LookupFactory.INSTANCE, concept);
-    }
-
-    private String structure(IFactory factory, AbstractConcept concept) {
-        if (null == concept) {
-            return "NULL";
-        } else if (concept instanceof Conjunction) {
-            final Conjunction conj = (Conjunction) concept;
-            final AbstractConcept[] concepts = conj.getConcepts();
-            final StringBuilder sb = new StringBuilder();
-            sb.append("(");
-            sb.append(structure(factory, concepts[0]));
-            for (int i = 1; i < concepts.length; i++) {
-                sb.append(" + ");
-                sb.append(structure(factory, concepts[i]));
-            }
-            sb.append(")");
-            return sb.toString();
-        } else if (concept instanceof Existential) {
-            final Existential existential = (Existential) concept;
-            return factory.lookupRoleId(existential.getRole()) + "."
-                    + structure(factory, existential.getConcept());
-        } else if (concept instanceof Datatype) {
-            final Datatype datatype = (Datatype) concept;
-            return factory.lookupFeatureId(datatype.getFeature()) + "."
-                    + datatype.getOperator() + datatype.getLiteral().toString();
-        } else { // It's a Concept
-            return factory.lookupConceptId(((Concept) concept).hashCode());
-        }
-    }
-
-    private static final class LookupFactory implements IFactory {
-
-        final static LookupFactory INSTANCE = new LookupFactory(); // SINGLETON
-
-        private LookupFactory() {
-        }
-
-        public String lookupConceptId(int id) {
-            return String.valueOf(id);
-        }
-
-        public String lookupRoleId(int id) {
-            return String.valueOf(id);
-        }
-
-        public boolean conceptExists(String key) {
-            throw new UnsupportedOperationException();
-        }
-
-        public int getConcept(String key) {
-            throw new UnsupportedOperationException();
-        }
-
-        public int getRole(String key) {
-            throw new UnsupportedOperationException();
-        }
-
-        public int getTotalConcepts() {
-            throw new UnsupportedOperationException();
-        }
-
-        public int getTotalRoles() {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean isBaseConcept(int id) {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean isBaseRole(int id) {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean isVirtualConcept(int id) {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean isVirtualRole(int id) {
-            throw new UnsupportedOperationException();
-        }
-
-        public void printAll(PrintWriter writer) {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean roleExists(String key) {
-            throw new UnsupportedOperationException();
-        }
-
-        public void setVirtualConcept(int id, boolean isVirtual) {
-            throw new UnsupportedOperationException();
-        }
-
-        public void setVirtualRole(int id, boolean isVirtual) {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean featureExists(String key) {
-            throw new UnsupportedOperationException();
-        }
-
-        public int getFeature(String key) {
-            throw new UnsupportedOperationException();
-        }
-
-        public int getTotalFeatures() {
-            throw new UnsupportedOperationException();
-        }
-
-        public String lookupFeatureId(int id) {
-            return String.valueOf(id);
-        }
     }
 
 }
