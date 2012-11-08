@@ -51,7 +51,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerConfiguration;
 import org.semanticweb.owlapi.reasoner.ReasonerInternalException;
 import org.semanticweb.owlapi.reasoner.ReasonerInterruptedException;
-import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
 import org.semanticweb.owlapi.reasoner.TimeOutException;
 import org.semanticweb.owlapi.reasoner.UnsupportedEntailmentTypeException;
 import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
@@ -61,9 +60,14 @@ import org.semanticweb.owlapi.reasoner.impl.OWLObjectPropertyNode;
 import org.semanticweb.owlapi.util.Version;
 
 import au.csiro.ontology.IOntology;
-import au.csiro.ontology.Ontology;
 import au.csiro.ontology.axioms.IAxiom;
+import au.csiro.ontology.classification.IProgressMonitor;
 import au.csiro.ontology.importer.owl.OWLImporter;
+import au.csiro.snorocket.core.ClassNode;
+import au.csiro.snorocket.core.Factory;
+import au.csiro.snorocket.core.IFactory;
+import au.csiro.snorocket.core.NormalisedOntology;
+import au.csiro.snorocket.core.PostProcessedData;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
@@ -98,19 +102,19 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private final OWLReasonerConfiguration config;
 
     // The progress monitor
-    private final ReasonerProgressMonitor monitor;
+    private final IProgressMonitor monitor;
 
     // Indicates if the reasoner should work in buffering or non-buffering mode
     private final boolean buffering;
 
     // The reasoner's factory
-    private IFactory factory = new Factory();
+    private IFactory<String> factory = new Factory<>();
 
     // The core reasoner
-    private NormalisedOntology reasoner = new NormalisedOntology(factory);
+    private NormalisedOntology<String> reasoner = new NormalisedOntology<>(factory);
 
     // The taxonomy built after the saturation process
-    private PostProcessedData ppd = new PostProcessedData(factory);
+    private PostProcessedData<String> ppd = new PostProcessedData<>(factory);
 
     // List of problems found when doing the ontology classification
     private final List<String> problems = new ArrayList<String>();
@@ -131,8 +135,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         this.owlFactory = manager.getOWLDataFactory();
         manager.addOntologyChangeListener(ontologyChangeListener);
         this.config = config;
-        this.monitor = (config != null) ? config.getProgressMonitor()
-                : new NullReasonerProgressMonitor();
+        this.monitor = (config != null) ? 
+                new ProgressMonitorWrapper(config.getProgressMonitor()) : 
+                new ProgressMonitorWrapper(new NullReasonerProgressMonitor());
         this.buffering = buffering;
     }
 
@@ -157,11 +162,15 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      */
     void loadAxioms() {
         OWLImporter oi = new OWLImporter(owlOntology);
-        Map<String, Ontology> res = oi.getOntologyVersions(monitor);
+        Map<String, Map<String, IOntology<String>>> res = 
+                oi.getOntologyVersions(monitor);
         for(String key : res.keySet()) {
-            IOntology o = res.get(key);
-            Collection<AbstractAxiom> axioms = o.getAxioms();
-            reasoner.loadAxioms(new HashSet<AbstractAxiom>(axioms));
+            Map<String, IOntology<String>> map = res.get(key);
+            for(String ikey : map.keySet()) {
+                IOntology<String> o = map.get(ikey);
+                Collection<IAxiom> axioms = o.getAxioms();
+                reasoner.loadAxioms(new HashSet<IAxiom>(axioms));
+            }
         }
         manager.removeOntology(owlOntology);
     }
@@ -170,12 +179,12 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * Clears all current axioms and derivations.
      */
     private void reset() {
-        monitor.reasonerTaskStarted("Clearing state");
+        monitor.taskStarted("Clearing state");
         problems.clear();
-        factory = new Factory();
-        reasoner = new NormalisedOntology(factory);
-        ppd = new PostProcessedData(factory);
-        monitor.reasonerTaskStopped();
+        factory = new Factory<>();
+        reasoner = new NormalisedOntology<>(factory);
+        ppd = new PostProcessedData<>(factory);
+        monitor.taskEnded();
     }
 
     /**
@@ -186,12 +195,13 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @return
      */
     private OWLClass getOWLClass(int id) {
-        String iri = factory.lookupConceptId(id);
-        if (IFactory.TOP.equals(iri)) {
+        // Special cases top and bottom
+        if(id == IFactory.TOP_CONCEPT) {
             return owlFactory.getOWLThing();
-        } else if (Factory.BOTTOM.equals(iri)) {
+        } else if(id == IFactory.BOTTOM_CONCEPT) {
             return owlFactory.getOWLNothing();
         } else {
+            String iri = factory.lookupConceptId(id);
             return owlFactory.getOWLClass(IRI.create(iri));
         }
     }
@@ -271,11 +281,14 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             synchronise();
         } else {
             OWLImporter oi = new OWLImporter(newAxioms);
-            Map<String, Ontology> res = oi.getOntologyVersions(monitor);
+            Map<String, Map<String, IOntology<String>>> res = oi.getOntologyVersions(monitor);
             for(String key : res.keySet()) {
-                IOntology o = res.get(key);
-                Collection<AbstractAxiom> axioms = o.getAxioms();
-                reasoner.classifyIncremental(new HashSet<AbstractAxiom>(axioms));
+                Map<String, IOntology<String>> map = res.get(key);
+                for(String ikey : map.keySet()) {
+                    IOntology<String> o = map.get(ikey);
+                    Collection<IAxiom> axioms = o.getAxioms();
+                    reasoner.classifyIncremental(new HashSet<IAxiom>(axioms));
+                }
             }
 
             final IConceptMap<IConceptSet> n = reasoner.getNewSubsumptions();

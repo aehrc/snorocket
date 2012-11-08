@@ -90,7 +90,7 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  * @author law223
  * 
  */
-public class NormalisedOntology<T> {
+public class NormalisedOntology<T extends Comparable<T>> {
 
     // Logger
     private final static Logger log = Logger.getLogger(

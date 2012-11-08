@@ -29,6 +29,8 @@
 	<modules>
 		<module>snorocket-core</module>
 		<module>snorocket-tests</module>
+		<module>snorocket-benchmark</module>
+		<module>snorocket-protege</module>
 	</modules>
 	<dependencies>
 		<dependency>
