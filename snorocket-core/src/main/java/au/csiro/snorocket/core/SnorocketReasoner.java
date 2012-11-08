@@ -43,7 +43,7 @@ import au.csiro.snorocket.core.util.IntIterator;
  * @author Alejandro Metke
  *
  */
-final public class SnorocketReasoner<T> implements IReasoner<T> {
+final public class SnorocketReasoner<T extends Comparable<T>> implements IReasoner<T> {
     
     private NormalisedOntology<T> no = null;
     private IFactory<T> factory = null;

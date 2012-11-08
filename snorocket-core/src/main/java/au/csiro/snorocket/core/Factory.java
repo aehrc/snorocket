@@ -163,7 +163,7 @@ final public class Factory<T> implements IFactory<T> {
         Integer result = conceptMap.get(key);
         if (null == result) {
             if (conceptIdCounter == concepts.length) {
-                final String[] newConcepts = new String[conceptIdCounter * 2];
+                final Object[] newConcepts = new Object[conceptIdCounter * 2];
                 System.arraycopy(concepts, 0, newConcepts, 0, conceptIdCounter);
                 concepts = newConcepts;
                 if (log.isDebugEnabled())
@@ -181,7 +181,7 @@ final public class Factory<T> implements IFactory<T> {
         Integer result = roleMap.get(key);
         if (null == result) {
             if (roleIdCounter == roles.length) {
-                final String[] newRoles = new String[roleIdCounter * 2];
+                final Object[] newRoles = new Object[roleIdCounter * 2];
                 System.arraycopy(roles, 0, newRoles, 0, roleIdCounter);
                 roles = newRoles;
                 if (log.isInfoEnabled()) {
@@ -200,7 +200,7 @@ final public class Factory<T> implements IFactory<T> {
         Integer result = featureNameMap.get(key);
         if (null == result) {
             if (featureIdCounter == features.length) {
-                final String[] newFeatures = new String[featureIdCounter * 2];
+                final Object[] newFeatures = new Object[featureIdCounter * 2];
                 System.arraycopy(features, 0, newFeatures, 0, featureIdCounter);
                 features = newFeatures;
                 if (log.isInfoEnabled()) {
