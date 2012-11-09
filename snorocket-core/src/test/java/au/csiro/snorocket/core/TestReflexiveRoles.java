@@ -61,10 +61,10 @@ public class TestReflexiveRoles {
         o.addTerm(NF2.getInstance(intestine, partOf, gastroTract));
         o.addTerm(NF2.getInstance(stomach, partOf, gastroTract));
 
-        int allParts = factory
-                .getConcept("|All anatomical parts of the gastrointestinal tract|");
-        int allPartsOrWhole = factory
-                .getConcept("|All anatomical parts or whole of the gastrointestinal tract|");
+        int allParts = factory.getConcept(
+                "|All anatomical parts of the gastrointestinal tract|");
+        int allPartsOrWhole = factory.getConcept(
+                "|All anatomical parts or whole of the gastrointestinal tract|");
 
         // allParts == partOf.gastroTract
         o.addTerm(NF2.getInstance(allParts, partOf, gastroTract));
@@ -110,15 +110,10 @@ public class TestReflexiveRoles {
         int yy = factory.getConcept("YY");
 
         // relationships
-
         o.addTerm(NF2.getInstance(foot, subPart, lowerLeg));
         o.addTerm(NF2.getInstance(xx, partOf, yy));
         o.addTerm(NF1a.getInstance(lowerLeg, bodyPart));
         o.addTerm(NF1a.getInstance(foot, bodyPart));
-
-        final IConceptMap<IConceptSet> s = o.getSubsumptions();
-
-        printAll(factory, s);
 
         final R r = o.getRelationships();
 
@@ -140,16 +135,14 @@ public class TestReflexiveRoles {
         for (final IntIterator keyItr = s.keyIterator(); keyItr.hasNext();) {
             final int key = keyItr.next();
 
-            System.out.print(factory.lookupConceptId(key) + " :");
+            //System.out.print(factory.lookupConceptId(key) + " :");
             for (final IntIterator valItr = s.get(key).iterator(); valItr
                     .hasNext();) {
-                final int val = valItr.next();
+                valItr.next();
 
-                System.out.print(" " + factory.lookupConceptId(val));
+                //System.out.print(" " + factory.lookupConceptId(val));
                 count++;
             }
-
-            System.out.println();
         }
 
         return count;

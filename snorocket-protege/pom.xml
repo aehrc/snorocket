@@ -24,9 +24,15 @@
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
     <version>1.4.0-SNAPSHOT</version>
+    <relativePath>..</relativePath>
   </parent>
   
   <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>snorocket-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>au.csiro</groupId>
       <artifactId>ontology-model</artifactId>
