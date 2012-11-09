@@ -151,5 +151,13 @@ public interface IFactory<T> {
      * @return
      */
     boolean isVirtualRole(int id);
+    
+    /**
+     * Flags a concept as virtual.
+     * 
+     * @param id
+     * @param isVirtual
+     */
+    public void setVirtualConcept(int id, boolean isVirtual);
 
 }

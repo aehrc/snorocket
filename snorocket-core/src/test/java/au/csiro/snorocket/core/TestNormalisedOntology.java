@@ -117,6 +117,22 @@ public class TestNormalisedOntology {
         // Classify
         IFactory<String> factory = new Factory<>();
         NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
+        
+        int total = factory.getTotalConcepts();
+        for(int i = 2; i < total; i++) {
+            Object ob = factory.lookupConceptId(i);
+            String str = ob.toString();
+            System.out.println(i+ "->"+str);
+        }
+        total = factory.getTotalRoles();
+        for(int i = 0; i < total; i++) {
+            System.out.println(i+ "->"+factory.lookupRoleId(i).toString());
+        }
+        total = factory.getTotalFeatures();
+        for(int i = 0; i < total; i++) {
+            System.out.println(i+ "->"+factory.lookupFeatureId(i).toString());
+        }
+        
         o.classify();
         final IConceptMap<IConceptSet> s = o.getSubsumptions();
 

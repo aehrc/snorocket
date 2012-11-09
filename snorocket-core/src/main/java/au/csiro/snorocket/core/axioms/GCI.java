@@ -264,7 +264,11 @@ public class GCI<T> extends Inclusion<T> {
 
     @SuppressWarnings("rawtypes")
     private Concept getA(final IFactory factory, final AbstractConcept cHat) {
+        final boolean alreadyExists = factory.conceptExists(cHat);
         final int a = factory.getConcept(cHat);
+        if(!alreadyExists) {
+            factory.setVirtualConcept(a, true);
+        }
         return new Concept(a);
     }
 

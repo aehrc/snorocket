@@ -28,6 +28,7 @@ import java.util.Set;
 
 import au.csiro.ontology.classification.IProgressMonitor;
 import au.csiro.ontology.classification.NullProgressMonitor;
+import au.csiro.ontology.model.Concept;
 import au.csiro.snorocket.core.util.DenseConceptMap;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
@@ -588,8 +589,15 @@ public class PostProcessedData<T> {
         return conceptNodeIndex.get(concept);
     }
     
-    public ClassNode getEquivalents(String concept) {
-        return conceptNodeIndex.get(factory.getConcept(concept));
+    public ClassNode getEquivalents(Object concept) {
+        // Special cases
+        if(concept == Concept.TOP) {
+            return conceptNodeIndex.get(0);
+        } else if(concept == Concept.BOTTOM) {
+            return conceptNodeIndex.get(1);
+        } else {
+            return conceptNodeIndex.get(factory.getConcept(concept));
+        }
     }
 
     public IntIterator getConceptIterator() {
