@@ -374,7 +374,7 @@ public class NormalisedOntology<T extends Comparable<T>> {
     private au.csiro.snorocket.core.model.AbstractConcept transformConcept(IConcept c) {
         if(c == au.csiro.ontology.model.Concept.TOP) {
             return new Concept(IFactory.TOP_CONCEPT);
-        } else if(c == au.csiro.ontology.model.Concept.TOP) {
+        } else if(c == au.csiro.ontology.model.Concept.BOTTOM) {
             return new Concept(IFactory.BOTTOM_CONCEPT);
         } else if(c instanceof au.csiro.ontology.model.Concept) {
             return new Concept(factory.getConcept(((au.csiro.ontology.model.Concept<T>)c).getId()));
