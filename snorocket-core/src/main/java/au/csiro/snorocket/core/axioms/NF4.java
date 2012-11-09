@@ -50,5 +50,10 @@ public final class NF4 extends NormalFormGCI {
     public int[] getConceptsInAxiom() {
         return new int[] {};
     }
+    
+    @Override
+    public String toString() {
+        return lhsR+" [ "+rhsS;
+    }
 
 }

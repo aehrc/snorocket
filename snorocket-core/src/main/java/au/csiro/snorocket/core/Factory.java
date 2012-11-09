@@ -213,5 +213,14 @@ final public class Factory<T> implements IFactory<T> {
         }
         return result + featureBase;
     }
+    
+    @Override
+    public void setVirtualConcept(int id, boolean isVirtual) {
+        if (isVirtual) {
+            virtualConcepts.add(id - conceptBase);
+        } else {
+            virtualConcepts.remove(id - conceptBase);
+        }
+    }
 
 }

@@ -40,6 +40,7 @@ import au.csiro.ontology.axioms.IRoleInclusion;
 import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.ILiteral;
 import au.csiro.ontology.model.INamedRole;
+import au.csiro.ontology.model.IRole;
 import au.csiro.snorocket.core.axioms.GCI;
 import au.csiro.snorocket.core.axioms.IConjunctionQueueEntry;
 import au.csiro.snorocket.core.axioms.IRoleQueueEntry;
@@ -345,7 +346,11 @@ public class NormalisedOntology<T extends Comparable<T>> {
                 res.add(new GCI<T>(transformConcept(lhs), transformConcept(rhs)));
             } else if(aa instanceof IRoleInclusion) {
                 IRoleInclusion ri = (IRoleInclusion)aa;
-                INamedRole[] lhs = (INamedRole[])ri.lhs();
+                IRole[] lh = ri.lhs();
+                INamedRole[] lhs = new INamedRole[lh.length];
+                for(int i = 0; i < lh.length; i++) {
+                    lhs[i] = (INamedRole)lh[i];
+                }
                 INamedRole rhs = (INamedRole)ri.rhs();
                 int[] lhsInt = new int[lhs.length];
                 for(int i = 0; i < lhsInt.length; i++) {
@@ -367,7 +372,11 @@ public class NormalisedOntology<T extends Comparable<T>> {
      */
     @SuppressWarnings("unchecked")
     private au.csiro.snorocket.core.model.AbstractConcept transformConcept(IConcept c) {
-        if(c instanceof au.csiro.ontology.model.Concept) {
+        if(c == au.csiro.ontology.model.Concept.TOP) {
+            return new Concept(IFactory.TOP_CONCEPT);
+        } else if(c == au.csiro.ontology.model.Concept.TOP) {
+            return new Concept(IFactory.BOTTOM_CONCEPT);
+        } else if(c instanceof au.csiro.ontology.model.Concept) {
             return new Concept(factory.getConcept(((au.csiro.ontology.model.Concept<T>)c).getId()));
         } else if(c instanceof au.csiro.ontology.model.Conjunction) {
             IConcept[] modelCons = ((au.csiro.ontology.model.Conjunction)c).getConcepts();
