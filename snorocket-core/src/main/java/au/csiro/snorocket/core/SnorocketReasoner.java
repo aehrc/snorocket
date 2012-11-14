@@ -47,6 +47,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
     
     private NormalisedOntology<T> no = null;
     private IFactory<T> factory = null;
+    private boolean isClassified = false;
     
     /**
      * Creates an instance of Snorocket using the given base ontology.
@@ -59,16 +60,15 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
 
     @Override
     public IReasoner<T> classify(Set<IAxiom> axioms) {
-        factory = new Factory<T>();
-        no = new NormalisedOntology<T>(factory);
-        no.loadAxioms(new HashSet<IAxiom>(axioms));
-        no.classify();
-        return this;
-    }
-
-    @Override
-    public IReasoner<T> classifyIncremental(Set<IAxiom> axioms) {
-        no.classifyIncremental(axioms);
+        if(!isClassified) {
+            factory = new Factory<T>();
+            no = new NormalisedOntology<T>(factory);
+            no.loadAxioms(new HashSet<IAxiom>(axioms));
+            no.classify();
+            isClassified = true;
+        } else {
+            no.classifyIncremental(axioms);
+        }
         return this;
     }
 
