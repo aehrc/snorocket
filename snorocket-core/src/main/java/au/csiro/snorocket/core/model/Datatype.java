@@ -91,7 +91,7 @@ public class Datatype extends AbstractConcept {
             final int operatorCompare = operator.compareTo(
                     otherDatatype.operator);
             if (operatorCompare == 0) {
-                return literal.toString().compareTo(otherDatatype.toString());
+                return literal.toString().compareTo(otherDatatype.literal.toString());
             } else {
                 return operatorCompare;
             }
