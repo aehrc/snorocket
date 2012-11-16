@@ -23,6 +23,7 @@ package au.csiro.snorocket.core;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
@@ -44,6 +45,8 @@ import au.csiro.snorocket.core.util.IntIterator;
  *
  */
 final public class SnorocketReasoner<T extends Comparable<T>> implements IReasoner<T> {
+    
+    public static final int BUFFER_SIZE = 10;
     
     private NormalisedOntology<T> no = null;
     private IFactory<T> factory = null;
@@ -70,6 +73,27 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             no.classifyIncremental(axioms);
         }
         return this;
+    }
+    
+    @Override
+    public IReasoner<T> classify(Iterator<IAxiom> axioms) {
+        IReasoner<T> res = null;
+        Set<IAxiom> axiomSet = new HashSet<>();
+        while(axioms.hasNext()) {
+            IAxiom axiom = axioms.next();
+            if(axiom == null) continue;
+            axiomSet.add(axiom);
+            if(axiomSet.size() == BUFFER_SIZE) {
+                res = classify(axiomSet);
+                axiomSet.clear();
+            }
+        }
+        
+        if(!axiomSet.isEmpty()) {
+            res = classify(axiomSet);
+        }
+        
+        return res;
     }
 
     @Override
