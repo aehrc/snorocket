@@ -29,12 +29,21 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import au.csiro.ontology.IOntology;
 import au.csiro.ontology.Node;
+import au.csiro.ontology.Ontology;
 import au.csiro.ontology.Taxonomy;
+import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IReasoner;
+import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.model.Existential;
+import au.csiro.ontology.model.IConcept;
+import au.csiro.ontology.model.Role;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
+import au.csiro.snorocket.core.util.RoleMap;
+import au.csiro.snorocket.core.util.RoleSet;
 
 /**
  * This class represents an instance of the reasoner. It uses the internal
@@ -149,5 +158,172 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         
         return new Taxonomy<T>(res);
     }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public IOntology<T> getClassifiedOntology() {
+        // Check ontology is classified
+        if(!isClassified) return null;
+        
+        // Get the is-a relationships that correspond to the proximal super type
+        // view
+        Taxonomy<T> t = getTaxonomy();
+        Node<T> top = t.getNode(factory.lookupConceptId(IFactory.TOP_CONCEPT));
+        
+        Queue<Node<T>> todo = new LinkedList<>();
+        todo.add(top);
+        
+        Set<IAxiom> axioms = new HashSet<>();
+        
+        while(!todo.isEmpty()) {
+            Node<T> node = todo.poll();
+            Set<T> equivs = node.getEquivalentConcepts();
+            Object[] equivsArray = equivs.toArray();
+            
+            // Add equivalence axioms
+            if(equivs.size() > 1) {
+                for(int i = 0; i < equivsArray.length; i++) {
+                    for(int j = i+1; j < equivsArray.length; j++) {
+                        IConcept lhs = new Concept<T>((T)equivsArray[i]);
+                        IConcept rhs = new Concept<T>((T)equivsArray[j]);
+                        axioms.add(new ConceptInclusion(lhs, rhs));
+                        axioms.add(new ConceptInclusion(rhs, lhs));
+                    }
+                }
+            }
+            
+            // Add is-a relationships
+            Set<Node<T>> parents = node.getParents();
+            for(Node<T> parent : parents) {
+                Object[] parentsEquivsArray = parent.getEquivalentConcepts().toArray();
+                // Create an is-a relationship between each equivalent concept
+                // and each equivalent parent
+                for(int i = 0; i < equivsArray.length; i++) {
+                    T equiv = (T)equivsArray[i];
+                    for(int j = 0; j < parentsEquivsArray.length; j++) {
+                        T equivParent = (T)parentsEquivsArray[j];
+                        IConcept lhs = new Concept<T>(equiv);
+                        IConcept rhs = new Concept<T>(equivParent);
+                        axioms.add(new ConceptInclusion(lhs, rhs));
+                    }
+                }
+            }
+        }
+        
+        // Get all the other relationships that correspond to the distribution
+        // view
+        int numRoles = factory.getTotalRoles();
+        R r = no.getRelationships();
+        RoleMap<RoleSet> rc = no.getRoleClosureCache();
+        
+        // We need the inverted role closure to make sure redundant 
+        // relationships are filtered
+        RoleMap<RoleSet> irc = getInvertedRoleClosure(rc, numRoles);
+       
+        int numConcepts = factory.getTotalConcepts();
+        for(int i = 0; i < numRoles; i++) {
+            for(int j = 0; j < numConcepts; j++) {
+                IConceptSet tgts = r.lookupB(j, i);
+                for(IntIterator it = tgts.iterator(); it.hasNext(); ) {
+                    // Check if this relationship has a more specific one and
+                    // if not then add it
+                    int b = it.next();
+                    RoleSet childRoles = irc.get(i);
+                    boolean skip = false;
+                    for (int k = childRoles.nextSetBit(0); k >= 0; 
+                            k = childRoles.nextSetBit(k+1)) {
+                        IConceptSet ics = r.lookupB(j, k);
+                        if(ics != null && ics.contains(b)) {
+                            skip = true;
+                            break;
+                        }
+                    }
+                    
+                    if(!skip) {
+                        T role = factory.lookupRoleId(i);
+                        T A = factory.lookupConceptId(j);
+                        T B = factory.lookupConceptId(b);
+                        axioms.add(new ConceptInclusion(new Concept<T>(A), 
+                                new Existential<>(new Role<T>(role), 
+                                        new Concept<T>(B))));
+                    } 
+                }
+            }
+        }
+        
+        IOntology<T> res = new Ontology<T>(null, axioms);
+        return res;
+    }
+    
+    public RoleMap<RoleSet> getInvertedRoleClosure(RoleMap<RoleSet> rc, 
+            int numRoles) {
+        RoleMap<RoleSet> irc = new RoleMap<RoleSet>(numRoles);
+        for(int i = 0; i < numRoles; i++) {
+            if(rc.containsKey(i)) {
+                RoleSet parentRoles = rc.get(i);
+                for (int j = parentRoles.nextSetBit(0); j >= 0; 
+                        j = parentRoles.nextSetBit(j+1)) {
+                    if(j == i) continue;
+                    RoleSet children = irc.get(j);
+                    if(children == null) {
+                        children = new RoleSet();
+                        irc.put(j, children);
+                    }
+                    children.add(i);
+                }
+            }
+        }
+        return irc;
+    }
+    
+    /*
+    interface I_Callback {
+        void addRelationship(String conceptId1, String roleId, 
+                String conceptId2, int group);
+    }
+    
+    private void getDistributionRelationshipsForConcept(final String concept, 
+            final I_Callback callback) {
+        assert factory.conceptExists(concept);
+        final int conceptId = factory.getConcept(concept);
+
+        final R rels = no.getRelationships();
+        PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
+        ppd.computeDag(no.getSubsumptions(), null);
+        final IConceptMap<IConceptSet> filteredSubsumptions = 
+                ppd.getParents(factory);
+        
+        // Look for new is-a relationships (inferred)
+        returnIsaRelationships(callback, filteredSubsumptions, conceptId);
+        
+        // Look for other inferred relationships
+        returnOtherRelationships(callback, conceptId, true);
+
+        // handle ROLE_GROUP special case
+        final IntIterator roleValues = rels.lookupB(conceptId, ROLE_GROUP);
+        final IConceptSet candidateValues = getLeaves(roleValues);
+        returnGroupedRelationships(callback, classification, rels, conceptId, candidateValues, true);
+    }
+    
+    private R getDistributionRelationshipsForConcept(final T concept) {
+        final int conceptId = factory.getConcept(concept);
+
+        final R rels = no.getRelationships();
+        PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
+        ppd.computeDag(no.getSubsumptions(), null);
+        final IConceptMap<IConceptSet> filteredSubsumptions = ppd.getParents(factory);
+        
+        // Look for new inferred relationships
+        returnIsaRelationships(callback, filteredSubsumptions, conceptId);
+        
+        // 
+        returnOtherRelationships(callback, conceptId, true);
+
+        // handle ROLE_GROUP special case
+        final IntIterator roleValues = rels.lookupB(conceptId, ROLE_GROUP);
+        final IConceptSet candidateValues = getLeaves(roleValues);
+        returnGroupedRelationships(callback, classification, rels, conceptId, candidateValues, true);
+    }
+    */
 
 }

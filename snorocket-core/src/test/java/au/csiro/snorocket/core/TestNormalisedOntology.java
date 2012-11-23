@@ -495,5 +495,62 @@ public class TestNormalisedOntology {
         assertTrue(criticalDiseaseRes.contains(ppd
                 .getEquivalents(IFactory.TOP_CONCEPT)));
     }
-
+    
+    @Test
+    public void testGetClassifiedOntology() {
+        
+        Concept<String> amputationOfFinger = new Concept<>("Amputation Of Finger");
+        Concept<String> amputationOfHand = new Concept<>("Amputation Of Hand");
+        Concept<String> amputationOfUpperLimb = new Concept<>("Amputation Of Upper Limb");
+        Concept<String> injuryToFinger = new Concept<>("Injury To Finger");
+        Concept<String> injuryToHand = new Concept<>("Injury To Hand");
+        Concept<String> injuryToUpperLimb = new Concept<>("Injury To Upper Limb");
+        Concept<String> finger = new Concept<>("Finger");
+        Concept<String> bodyPart = new Concept<>("BodyPart");
+        Concept<String> hand = new Concept<>("Hand");
+        Concept<String> upperLimb = new Concept<>("Upper Limb");
+        Concept<String> amputation = new Concept<>("Amputation");
+        
+        Role<String> subPart = new Role<>("sub-part");
+        Role<String> partOf = new Role<>("part-of");
+        Role<String> hasLocation = new Role<>("has-location");
+        Role<String> exactLocation = new Role<>("exact-location");
+        
+        // TODO: finish this
+        
+        /*
+        rocket.addConcept(AMPUTATION_OF_FINGER, true);
+        rocket.addConcept(AMPUTATION_OF_HAND, true);
+        rocket.addConcept(AMPUTATION_OF_UPPER_LIMB, true);
+        rocket.addConcept(INJURY_TO_FINGER, true);
+        rocket.addConcept(INJURY_TO_HAND, true);
+        rocket.addConcept(INJURY_TO_UPPER_LIMB, true);
+        
+        rocket.addRelationship(FINGER, ISA, BODY_PART, 0);                      // 1a
+        rocket.addRelationship(FINGER, SUB_PART, HAND, 0);                      // 1b
+        rocket.addRelationship(HAND, ISA, BODY_PART, 0);                        // 2a
+        rocket.addRelationship(HAND, SUB_PART, UPPER_LIMB, 0);                  // 2b
+        rocket.addRelationship(UPPER_LIMB, ISA, BODY_PART, 0);                  // 3
+        rocket.addRelationship(AMPUTATION_OF_FINGER, ISA, AMPUTATION, 0);       // 4a
+        rocket.addRelationship(AMPUTATION_OF_FINGER, EXACT_LOCATION, FINGER, 0);// 4b
+        rocket.addRelationship(AMPUTATION_OF_HAND, ISA, AMPUTATION, 0);         // 5a
+        rocket.addRelationship(AMPUTATION_OF_HAND, EXACT_LOCATION, HAND, 0);    // 5b
+        rocket.addRelationship(AMPUTATION_OF_UPPER_LIMB, ISA, AMPUTATION, 0);   // 6a
+        rocket.addRelationship(AMPUTATION_OF_UPPER_LIMB, EXACT_LOCATION, UPPER_LIMB, 0);    // 6b
+        rocket.addRelationship(INJURY_TO_FINGER, ISA, INJURY, 0);               // 7a
+        rocket.addRelationship(INJURY_TO_FINGER, HAS_LOCATION, FINGER, 0);      // 7b
+        rocket.addRelationship(INJURY_TO_HAND, ISA, INJURY, 0);                 // 8a
+        rocket.addRelationship(INJURY_TO_HAND, HAS_LOCATION, HAND, 0);          // 8b
+        rocket.addRelationship(INJURY_TO_UPPER_LIMB, ISA, INJURY, 0);           // 9a
+        rocket.addRelationship(INJURY_TO_UPPER_LIMB, HAS_LOCATION, UPPER_LIMB, 0);// 9b
+        
+        rocket.addRoleComposition(new String[] {SUB_PART, SUB_PART}, SUB_PART); // 10
+        rocket.addRelationship(SUB_PART, ISA, PART_OF, 0);                      // 11
+        
+        rocket.addRoleComposition(new String[] {PART_OF, PART_OF}, PART_OF);    // 12
+        rocket.addRoleComposition(EMPTY_ARRAY, PART_OF);                        // 13
+        rocket.addRelationship(EXACT_LOCATION, ISA, HAS_LOCATION, 0);           // 14
+        rocket.addRoleComposition(new String[] {HAS_LOCATION, SUB_PART}, HAS_LOCATION); // 15
+        */
+    }
 }

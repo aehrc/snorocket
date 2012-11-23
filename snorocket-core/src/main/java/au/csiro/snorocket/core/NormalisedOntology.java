@@ -56,6 +56,7 @@ import au.csiro.snorocket.core.axioms.NF7;
 import au.csiro.snorocket.core.axioms.NF8;
 import au.csiro.snorocket.core.axioms.NormalFormGCI;
 import au.csiro.snorocket.core.axioms.RI;
+import au.csiro.snorocket.core.concurrent.CR;
 import au.csiro.snorocket.core.concurrent.Context;
 import au.csiro.snorocket.core.concurrent.Worker;
 import au.csiro.snorocket.core.model.AbstractConcept;
@@ -1202,11 +1203,42 @@ public class NormalisedOntology<T extends Comparable<T>> {
         }
         return res;
     }
-
+    
+    /**
+     * Collects all the information contained in the concurrent R structures in
+     * every context and returns a single R structure with all their content.
+     * 
+     * @return R
+     */
     public R getRelationships() {
-        // Collect relationships from context index
-        // TODO: implement or check if needed.
-        return null;
+        R r = new R(factory.getTotalConcepts(), factory.getTotalRoles());
+        
+        // Collect subsumptions from context index
+        for (IntIterator it = contextIndex.keyIterator(); it.hasNext();) {
+            int key = it.next();
+            Context ctx = contextIndex.get(key);
+            int concept = ctx.getConcept();
+            CR pred = ctx.getPred();
+            CR succ = ctx.getSucc();
+            
+            int[] predRoles = pred.getRoles();
+            for(int i = 0; i < predRoles.length; i++) {
+                IConceptSet cs = pred.lookupConcept(predRoles[i]);
+                for(IntIterator it2 = cs.iterator(); it2.hasNext(); ) {
+                    r.store(it2.next(), predRoles[i], concept);
+                }
+            }
+            
+            int[] succRoles = succ.getRoles();
+            for(int i = 0; i < succRoles.length; i++) {
+                IConceptSet cs = succ.lookupConcept(succRoles[i]);
+                for(IntIterator it2 = cs.iterator(); it2.hasNext(); ) {
+                    r.store(concept, succRoles[i], it2.next());
+                }
+            }
+        }
+        
+        return r;
     }
 
     /**
