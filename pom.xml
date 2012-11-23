@@ -59,6 +59,16 @@
       </modules>
     </profile>
 	</profiles>
+	<repositories>
+      <repository>
+        <id>ehrc-public-repo</id>
+        <name>AeHRC Public</name>
+        <url>http://aehrc.com/maven2</url>
+        <releases>
+          <enabled>true</enabled>
+        </releases>
+      </repository>
+    </repositories>
 	<build>
     <plugins>
 	  <plugin>
