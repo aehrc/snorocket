@@ -7,20 +7,27 @@ package au.csiro.snorocket.core;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 
-import au.csiro.ontology.axioms.IAxiom;
+import au.csiro.ontology.IOntology;
+import au.csiro.ontology.IOntology.AxiomForm;
 import au.csiro.ontology.axioms.ConceptInclusion;
+import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.axioms.RoleInclusion;
-import au.csiro.ontology.model.IConcept;
+import au.csiro.ontology.classification.IReasoner;
 import au.csiro.ontology.model.Concept;
 import au.csiro.ontology.model.Conjunction;
 import au.csiro.ontology.model.Datatype;
 import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.Feature;
+import au.csiro.ontology.model.IConcept;
+import au.csiro.ontology.model.IRole;
 import au.csiro.ontology.model.IntegerLiteral;
 import au.csiro.ontology.model.Operator;
 import au.csiro.ontology.model.Role;
@@ -498,59 +505,162 @@ public class TestNormalisedOntology {
     
     @Test
     public void testGetClassifiedOntology() {
+        final String AMPUTATION_OF_FINGER = "Amputation Of Finger";
+        final String AMPUTATION_OF_HAND = "Amputation Of Hand";
+        final String AMPUTATION_OF_UPPER_LIMB = "Amputation Of Upper Limb";
+        final String INJURY = "Injury";
+        final String INJURY_TO_FINGER = "Injury To Finger";
+        final String INJURY_TO_HAND = "Injury To Hand";
+        final String INJURY_TO_UPPER_LIMB = "Injury To Upper Limb";
+        final String FINGER = "Finger";
+        final String BODY_PART = "Body Part";
+        final String HAND = "Hand";
+        final String UPPER_LIMB = "Upper Limb";
+        final String AMPUTATION = "Amputation";
+        final String HAND_S = "Hand S";
+        final String HAND_P = "Hand P";
+        final String SUB_PART = "sub-part";
+        final String PART_OF = "part-of";
+        final String HAS_LOCATION = "has-location";
+        final String EXACT_LOCATION = "exact-location";
         
-        Concept<String> amputationOfFinger = new Concept<>("Amputation Of Finger");
-        Concept<String> amputationOfHand = new Concept<>("Amputation Of Hand");
-        Concept<String> amputationOfUpperLimb = new Concept<>("Amputation Of Upper Limb");
-        Concept<String> injuryToFinger = new Concept<>("Injury To Finger");
-        Concept<String> injuryToHand = new Concept<>("Injury To Hand");
-        Concept<String> injuryToUpperLimb = new Concept<>("Injury To Upper Limb");
-        Concept<String> finger = new Concept<>("Finger");
-        Concept<String> bodyPart = new Concept<>("BodyPart");
-        Concept<String> hand = new Concept<>("Hand");
-        Concept<String> upperLimb = new Concept<>("Upper Limb");
-        Concept<String> amputation = new Concept<>("Amputation");
+        Concept<String> amputationOfFinger = new Concept<>(
+                AMPUTATION_OF_FINGER);
+        Concept<String> amputationOfHand = new Concept<>(AMPUTATION_OF_HAND);
+        Concept<String> amputationOfUpperLimb = new Concept<>(
+                AMPUTATION_OF_UPPER_LIMB);
+        Concept<String> injury = new Concept<>(INJURY);
+        Concept<String> injuryToFinger = new Concept<>(INJURY_TO_FINGER);
+        Concept<String> injuryToHand = new Concept<>(INJURY_TO_HAND);
+        Concept<String> injuryToUpperLimb = new Concept<>(
+                INJURY_TO_UPPER_LIMB);
+        Concept<String> finger = new Concept<>(FINGER);
+        Concept<String> bodyPart = new Concept<>(BODY_PART);
+        Concept<String> hand = new Concept<>(HAND);
+        Concept<String> upperLimb = new Concept<>(UPPER_LIMB);
+        Concept<String> amputation = new Concept<>(AMPUTATION);
+        Concept<String> handS = new Concept<>(HAND_S);
+        Concept<String> handP = new Concept<>(HAND_P);
         
-        Role<String> subPart = new Role<>("sub-part");
-        Role<String> partOf = new Role<>("part-of");
-        Role<String> hasLocation = new Role<>("has-location");
-        Role<String> exactLocation = new Role<>("exact-location");
+        Role<String> subPart = new Role<>(SUB_PART);
+        Role<String> partOf = new Role<>(PART_OF);
+        Role<String> hasLocation = new Role<>(HAS_LOCATION);
+        Role<String> exactLocation = new Role<>(EXACT_LOCATION);
         
-        // TODO: finish this
+        Set<IAxiom> axioms = new HashSet<>();
+        axioms.add(new ConceptInclusion(finger, 
+                new Conjunction(new IConcept[]{
+                        bodyPart, 
+                        new Existential<String>(subPart, hand)}
+                )
+            )
+        );
+        axioms.add(new ConceptInclusion(hand, 
+                new Conjunction(new IConcept[]{
+                        bodyPart, 
+                        new Existential<String>(subPart, upperLimb)}
+                )
+            )
+        );
+        axioms.add(new ConceptInclusion(upperLimb, bodyPart));
         
-        /*
-        rocket.addConcept(AMPUTATION_OF_FINGER, true);
-        rocket.addConcept(AMPUTATION_OF_HAND, true);
-        rocket.addConcept(AMPUTATION_OF_UPPER_LIMB, true);
-        rocket.addConcept(INJURY_TO_FINGER, true);
-        rocket.addConcept(INJURY_TO_HAND, true);
-        rocket.addConcept(INJURY_TO_UPPER_LIMB, true);
+        IConcept lhs = amputationOfFinger;
+        IConcept rhs = new Conjunction(new IConcept[]{
+                amputation, 
+                new Existential<String>(exactLocation, finger)}
+        );
+        axioms.add(new ConceptInclusion(lhs, rhs));
+        axioms.add(new ConceptInclusion(rhs, lhs));
         
-        rocket.addRelationship(FINGER, ISA, BODY_PART, 0);                      // 1a
-        rocket.addRelationship(FINGER, SUB_PART, HAND, 0);                      // 1b
-        rocket.addRelationship(HAND, ISA, BODY_PART, 0);                        // 2a
-        rocket.addRelationship(HAND, SUB_PART, UPPER_LIMB, 0);                  // 2b
-        rocket.addRelationship(UPPER_LIMB, ISA, BODY_PART, 0);                  // 3
-        rocket.addRelationship(AMPUTATION_OF_FINGER, ISA, AMPUTATION, 0);       // 4a
-        rocket.addRelationship(AMPUTATION_OF_FINGER, EXACT_LOCATION, FINGER, 0);// 4b
-        rocket.addRelationship(AMPUTATION_OF_HAND, ISA, AMPUTATION, 0);         // 5a
-        rocket.addRelationship(AMPUTATION_OF_HAND, EXACT_LOCATION, HAND, 0);    // 5b
-        rocket.addRelationship(AMPUTATION_OF_UPPER_LIMB, ISA, AMPUTATION, 0);   // 6a
-        rocket.addRelationship(AMPUTATION_OF_UPPER_LIMB, EXACT_LOCATION, UPPER_LIMB, 0);    // 6b
-        rocket.addRelationship(INJURY_TO_FINGER, ISA, INJURY, 0);               // 7a
-        rocket.addRelationship(INJURY_TO_FINGER, HAS_LOCATION, FINGER, 0);      // 7b
-        rocket.addRelationship(INJURY_TO_HAND, ISA, INJURY, 0);                 // 8a
-        rocket.addRelationship(INJURY_TO_HAND, HAS_LOCATION, HAND, 0);          // 8b
-        rocket.addRelationship(INJURY_TO_UPPER_LIMB, ISA, INJURY, 0);           // 9a
-        rocket.addRelationship(INJURY_TO_UPPER_LIMB, HAS_LOCATION, UPPER_LIMB, 0);// 9b
+        lhs = amputationOfHand;
+        rhs = new Conjunction(new IConcept[]{
+                amputation, 
+                new Existential<String>(exactLocation, hand)}
+        );
+        axioms.add(new ConceptInclusion(lhs, rhs));
+        axioms.add(new ConceptInclusion(rhs, lhs));
         
-        rocket.addRoleComposition(new String[] {SUB_PART, SUB_PART}, SUB_PART); // 10
-        rocket.addRelationship(SUB_PART, ISA, PART_OF, 0);                      // 11
+        lhs = amputationOfUpperLimb;
+        rhs = new Conjunction(new IConcept[]{
+                amputation, 
+                new Existential<String>(exactLocation, upperLimb)}
+        );
+        axioms.add(new ConceptInclusion(lhs, rhs));
+        axioms.add(new ConceptInclusion(rhs, lhs));
         
-        rocket.addRoleComposition(new String[] {PART_OF, PART_OF}, PART_OF);    // 12
-        rocket.addRoleComposition(EMPTY_ARRAY, PART_OF);                        // 13
-        rocket.addRelationship(EXACT_LOCATION, ISA, HAS_LOCATION, 0);           // 14
-        rocket.addRoleComposition(new String[] {HAS_LOCATION, SUB_PART}, HAS_LOCATION); // 15
-        */
+        lhs = injuryToFinger;
+        rhs = new Conjunction(new IConcept[]{
+                injury, 
+                new Existential<String>(hasLocation, finger)}
+        );
+        axioms.add(new ConceptInclusion(lhs, rhs));
+        axioms.add(new ConceptInclusion(rhs, lhs));
+        
+        lhs = injuryToHand;
+        rhs = new Conjunction(new IConcept[]{
+                injury, 
+                new Existential<String>(hasLocation, hand)}
+        );
+        axioms.add(new ConceptInclusion(lhs, rhs));
+        axioms.add(new ConceptInclusion(rhs, lhs));
+        
+        lhs = injuryToUpperLimb;
+        rhs = new Conjunction(new IConcept[]{
+                injury, 
+                new Existential<String>(hasLocation, upperLimb)}
+        );
+        axioms.add(new ConceptInclusion(lhs, rhs));
+        axioms.add(new ConceptInclusion(rhs, lhs));
+        
+        axioms.add(new RoleInclusion(new IRole[]{subPart, subPart}, subPart));
+        axioms.add(new RoleInclusion(new IRole[]{subPart}, partOf));
+        axioms.add(new RoleInclusion(new IRole[]{partOf, partOf}, partOf));
+        axioms.add(new RoleInclusion(new IRole[]{}, partOf));
+        axioms.add(new RoleInclusion(new IRole[]{exactLocation}, hasLocation));
+        axioms.add(new RoleInclusion(new IRole[]{hasLocation, subPart}, 
+                hasLocation));
+        
+        lhs = handS;
+        rhs = new Existential<String>(partOf, hand);
+        axioms.add(new ConceptInclusion(lhs, rhs));
+        axioms.add(new ConceptInclusion(rhs, lhs));
+        
+        lhs = handP;
+        rhs = new Existential<String>(subPart, hand);
+        axioms.add(new ConceptInclusion(lhs, rhs)); 
+        axioms.add(new ConceptInclusion(rhs, lhs));
+        
+        IReasoner<String> reasoner = new SnorocketReasoner<>();
+        reasoner.classify(axioms);
+        IOntology<String> ont = reasoner.getClassifiedOntology();
+        Collection<IAxiom> inferredAxioms = ont.getAxioms(AxiomForm.INFERRED);
+        
+        // 0 - hand partOf hand
+        // 1 - hand isA handS
+        // 2 - handP isA handS
+        // 3 - handP subPart hand
+        // 4 - handP partOf hand
+        IAxiom a0 = new ConceptInclusion(hand, 
+                new Existential<String>(partOf, hand));
+        IAxiom a1 = new ConceptInclusion(hand, handS);
+        IAxiom a2 = new ConceptInclusion(handP, handS);
+        IAxiom a3 = new ConceptInclusion(handP, 
+                new Existential<String>(subPart, hand));
+        IAxiom a4 = new ConceptInclusion(handP, 
+                new Existential<String>(partOf, hand));
+        
+        Assert.assertEquals(true, containsAxiom(a0, inferredAxioms));
+        Assert.assertEquals(true, containsAxiom(a1, inferredAxioms));
+        Assert.assertEquals(true, containsAxiom(a2, inferredAxioms));
+        Assert.assertEquals(true, containsAxiom(a3, inferredAxioms));
+        Assert.assertEquals(false, containsAxiom(a4, inferredAxioms));
     }
+    
+    private boolean containsAxiom(IAxiom axiom, Collection<IAxiom> axioms) {
+        for(IAxiom iaxiom : axioms) {
+            if(axiom.equals(iaxiom)) return true;
+        }
+        return false;
+    }
+    
 }
