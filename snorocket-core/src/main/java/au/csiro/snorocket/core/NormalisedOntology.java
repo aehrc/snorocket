@@ -1225,7 +1225,8 @@ public class NormalisedOntology<T extends Comparable<T>> {
             for(int i = 0; i < predRoles.length; i++) {
                 IConceptSet cs = pred.lookupConcept(predRoles[i]);
                 for(IntIterator it2 = cs.iterator(); it2.hasNext(); ) {
-                    r.store(it2.next(), predRoles[i], concept);
+                    int predC = it2.next();
+                    r.store(predC, predRoles[i], concept);
                 }
             }
             
@@ -1233,7 +1234,8 @@ public class NormalisedOntology<T extends Comparable<T>> {
             for(int i = 0; i < succRoles.length; i++) {
                 IConceptSet cs = succ.lookupConcept(succRoles[i]);
                 for(IntIterator it2 = cs.iterator(); it2.hasNext(); ) {
-                    r.store(concept, succRoles[i], it2.next());
+                    int succC = it2.next();
+                    r.store(concept, succRoles[i], succC);
                 }
             }
         }

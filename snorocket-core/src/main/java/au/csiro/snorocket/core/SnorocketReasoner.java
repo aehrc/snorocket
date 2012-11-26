@@ -208,6 +208,8 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
                     }
                 }
             }
+            
+            todo.addAll(node.getChildren());
         }
         
         // Get all the other relationships that correspond to the distribution
@@ -230,12 +232,15 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
                     int b = it.next();
                     RoleSet childRoles = irc.get(i);
                     boolean skip = false;
-                    for (int k = childRoles.nextSetBit(0); k >= 0; 
-                            k = childRoles.nextSetBit(k+1)) {
-                        IConceptSet ics = r.lookupB(j, k);
-                        if(ics != null && ics.contains(b)) {
-                            skip = true;
-                            break;
+                    
+                    if(childRoles != null)  {
+                        for (int k = childRoles.nextSetBit(0); k >= 0; 
+                                k = childRoles.nextSetBit(k+1)) {
+                            IConceptSet ics = r.lookupB(j, k);
+                            if(ics != null && ics.contains(b)) {
+                                skip = true;
+                                break;
+                            }
                         }
                     }
                     
@@ -246,7 +251,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
                         axioms.add(new ConceptInclusion(new Concept<T>(A), 
                                 new Existential<>(new Role<T>(role), 
                                         new Concept<T>(B))));
-                    } 
+                    }
                 }
             }
         }
@@ -255,7 +260,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         return res;
     }
     
-    public RoleMap<RoleSet> getInvertedRoleClosure(RoleMap<RoleSet> rc, 
+    private RoleMap<RoleSet> getInvertedRoleClosure(RoleMap<RoleSet> rc, 
             int numRoles) {
         RoleMap<RoleSet> irc = new RoleMap<RoleSet>(numRoles);
         for(int i = 0; i < numRoles; i++) {
@@ -275,55 +280,5 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         }
         return irc;
     }
-    
-    /*
-    interface I_Callback {
-        void addRelationship(String conceptId1, String roleId, 
-                String conceptId2, int group);
-    }
-    
-    private void getDistributionRelationshipsForConcept(final String concept, 
-            final I_Callback callback) {
-        assert factory.conceptExists(concept);
-        final int conceptId = factory.getConcept(concept);
-
-        final R rels = no.getRelationships();
-        PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
-        ppd.computeDag(no.getSubsumptions(), null);
-        final IConceptMap<IConceptSet> filteredSubsumptions = 
-                ppd.getParents(factory);
-        
-        // Look for new is-a relationships (inferred)
-        returnIsaRelationships(callback, filteredSubsumptions, conceptId);
-        
-        // Look for other inferred relationships
-        returnOtherRelationships(callback, conceptId, true);
-
-        // handle ROLE_GROUP special case
-        final IntIterator roleValues = rels.lookupB(conceptId, ROLE_GROUP);
-        final IConceptSet candidateValues = getLeaves(roleValues);
-        returnGroupedRelationships(callback, classification, rels, conceptId, candidateValues, true);
-    }
-    
-    private R getDistributionRelationshipsForConcept(final T concept) {
-        final int conceptId = factory.getConcept(concept);
-
-        final R rels = no.getRelationships();
-        PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
-        ppd.computeDag(no.getSubsumptions(), null);
-        final IConceptMap<IConceptSet> filteredSubsumptions = ppd.getParents(factory);
-        
-        // Look for new inferred relationships
-        returnIsaRelationships(callback, filteredSubsumptions, conceptId);
-        
-        // 
-        returnOtherRelationships(callback, conceptId, true);
-
-        // handle ROLE_GROUP special case
-        final IntIterator roleValues = rels.lookupB(conceptId, ROLE_GROUP);
-        final IConceptSet candidateValues = getLeaves(roleValues);
-        returnGroupedRelationships(callback, classification, rels, conceptId, candidateValues, true);
-    }
-    */
 
 }
