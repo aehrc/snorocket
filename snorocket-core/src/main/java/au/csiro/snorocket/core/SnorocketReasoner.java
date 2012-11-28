@@ -21,6 +21,7 @@
 
 package au.csiro.snorocket.core;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,7 +33,6 @@ import java.util.Set;
 import au.csiro.ontology.IOntology;
 import au.csiro.ontology.Node;
 import au.csiro.ontology.Ontology;
-import au.csiro.ontology.Taxonomy;
 import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IReasoner;
@@ -112,9 +112,44 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
     }
 
     @Override
-    public Taxonomy<T> getTaxonomy() {
-        if(no == null)
-            return null;
+    public IOntology<T> getClassifiedOntology(boolean includeTaxonomy,
+            boolean includeStatedAxioms, boolean includeInferredAxioms) {
+        // Check ontology is classified
+        if(!isClassified) return null;
+        
+        if(!includeTaxonomy && !includeStatedAxioms && !includeInferredAxioms) {
+            throw new IllegalArgumentException("The method must be called" +
+            		"with at least one flag set to true");
+        }
+        
+        Map<T, Node<T>> t = getTaxonomy();
+        
+        // Optimisation for the scenario where only the taxonomy is needed
+        if(includeTaxonomy && !includeStatedAxioms && !includeInferredAxioms) {
+            return new Ontology<T>(null, null, t);
+        }
+        
+        Collection<IAxiom> statedAxioms = null;
+        Collection<IAxiom> inferredAxioms = null;
+        
+        if(includeStatedAxioms) {
+            statedAxioms = getStatedAxioms();
+        }
+        
+        if(includeInferredAxioms) {
+            inferredAxioms = getInferredAxioms(t);
+        }
+        
+        if(!includeTaxonomy) {
+            t = null;
+        }
+        
+        IOntology<T> res = new Ontology<T>(statedAxioms, inferredAxioms, t);
+        return res;
+    }
+    
+    private Map<T, Node<T>> getTaxonomy() {
+        assert(no != null);
         
         PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
         ppd.computeDag(no.getSubsumptions(), null);
@@ -156,19 +191,18 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             }
         }
         
-        return new Taxonomy<T>(res);
+        return res;
     }
-
+    
+    private Collection<IAxiom> getStatedAxioms() {
+        return no.getStatedAxioms();
+    }
+    
     @SuppressWarnings("unchecked")
-    @Override
-    public IOntology<T> getClassifiedOntology() {
-        // Check ontology is classified
-        if(!isClassified) return null;
-        
+    private Collection<IAxiom> getInferredAxioms(Map<T, Node<T>> t) {
         // Get the is-a relationships that correspond to the proximal super type
         // view
-        Taxonomy<T> t = getTaxonomy();
-        Node<T> top = t.getNode(factory.lookupConceptId(IFactory.TOP_CONCEPT));
+        Node<T> top = t.get(factory.lookupConceptId(IFactory.TOP_CONCEPT));
         
         Queue<Node<T>> todo = new LinkedList<>();
         todo.add(top);
@@ -255,9 +289,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
                 }
             }
         }
-        
-        IOntology<T> res = new Ontology<T>(null, axioms);
-        return res;
+        return axioms;
     }
     
     private RoleMap<RoleSet> getInvertedRoleClosure(RoleMap<RoleSet> rc, 
@@ -279,6 +311,11 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             }
         }
         return irc;
+    }
+
+    @Override
+    public IOntology<T> getClassifiedOntology() {
+        return getClassifiedOntology(true,  true,  true);
     }
 
 }
