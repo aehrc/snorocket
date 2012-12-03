@@ -57,27 +57,29 @@ public class Context {
      * Queue (List) of ConjunctionQueueEntries indicating work to be done for
      * this concept.
      */
-    private Queue<IConjunctionQueueEntry> conceptQueue = new ConcurrentLinkedQueue<>();
+    private Queue<IConjunctionQueueEntry> conceptQueue = 
+            new ConcurrentLinkedQueue<>();
 
     /**
      * Queue (List) of RoleQueueEntries indicating work to be done for this
      * concept.
      */
-    private final IQueue<IRoleQueueEntry> roleQueue = new QueueImpl<IRoleQueueEntry>(
-            IRoleQueueEntry.class);
+    private final IQueue<IRoleQueueEntry> roleQueue = 
+            new QueueImpl<IRoleQueueEntry>(IRoleQueueEntry.class);
 
     /**
      * Queue (List) of FeatureQueueEntries indicating work to be done for this
      * concept. Queue entries of the form A [ f.(o, v).
      */
-    private final IQueue<IFeatureQueueEntry> featureQueue = new QueueImpl<IFeatureQueueEntry>(
-            IFeatureQueueEntry.class);
+    private final IQueue<IFeatureQueueEntry> featureQueue = 
+            new QueueImpl<IFeatureQueueEntry>(IFeatureQueueEntry.class);
 
     /**
      * Queue used to process entries from other contexts that trigger calls to
      * processNewEdge.
      */
-    private final Queue<IRoleQueueEntry> externalQueue = new ConcurrentLinkedQueue<>();
+    private final Queue<IRoleQueueEntry> externalQueue = 
+            new ConcurrentLinkedQueue<>();
 
     /**
      * Keeps track of the parents of this concept.
@@ -136,7 +138,8 @@ public class Context {
      * 
      * These terms are of the form A n Ai [ B and are indexed by A.
      */
-    private static IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> ontologyNF1;
+    private static IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> 
+        ontologyNF1;
 
     /**
      * The set of NF2 terms in the ontology.
@@ -150,7 +153,8 @@ public class Context {
      * 
      * These terms are of the form r.A [ b and indexed by A.
      */
-    private static IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> ontologyNF3;
+    private static IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>>
+        ontologyNF3;
 
     /**
      * The set of NF4 terms in the ontology
@@ -433,8 +437,8 @@ public class Context {
                         continue;
 
                     // Evaluate to determine the ones that match
-                    MonotonicCollection<IConjunctionQueueEntry> res = new MonotonicCollection<IConjunctionQueueEntry>(
-                            2);
+                    MonotonicCollection<IConjunctionQueueEntry> res = 
+                            new MonotonicCollection<IConjunctionQueueEntry>(2);
                     for (final NF8 e : entries) {
                         Datatype d2 = e.lhsD;
 
@@ -480,8 +484,8 @@ public class Context {
 
     private void processNewSubsumption(final int b) {
         // Get the set of parent concepts of (b n x) in the ontology
-        final MonotonicCollection<IConjunctionQueueEntry> bConceptEntries = ontologyNF1
-                .get(b);
+        final MonotonicCollection<IConjunctionQueueEntry> bConceptEntries = 
+                ontologyNF1.get(b);
         if (null != bConceptEntries && bConceptEntries.size() > 0) {
             // Add these to the queue of a
             addToConceptQueue(bConceptEntries);
@@ -494,8 +498,8 @@ public class Context {
         // inlined ontHat(conceptQueues.get(pairA(p)), r, b) in following
         // to move test and fetch outside innermost loop
         //
-        final RoleMap<Collection<IConjunctionQueueEntry>> map = ontologyNF3
-                .get(b);
+        final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+                ontologyNF3.get(b);
         if (null != map) {
             final RoleSet keySet = map.keySet();
             for (int r = keySet.first(); r >= 0; r = keySet.next(r + 1)) {
@@ -687,8 +691,8 @@ public class Context {
         // Computes the minimal set of QueueEntries from s.a [ bb is in O
         for (IntIterator itr = sb.iterator(); itr.hasNext();) {
             final int bb = itr.next();
-            final RoleMap<Collection<IConjunctionQueueEntry>> map = ontologyNF3
-                    .get(bb);
+            final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+                    ontologyNF3.get(bb);
 
             if (null != map) {
                 final Collection<IConjunctionQueueEntry> entries = map.get(s);
@@ -727,7 +731,8 @@ public class Context {
                 final IConceptSet bUPrimes = contextIndex.get(b).getPred()
                         .lookupConcept(u);
 
-                for (final IntIterator itr = aTPrimes.iterator(); itr.hasNext();) {
+                for (final IntIterator itr = aTPrimes.iterator(); 
+                        itr.hasNext();) {
                     final int aa = itr.next();
 
                     if (!bUPrimes.contains(aa)) {
@@ -761,7 +766,8 @@ public class Context {
                         .lookupConcept(t);
                 final IConceptSet aUPrimes = succ.lookupConcept(u);
 
-                for (final IntIterator itr = bTPrimes.iterator(); itr.hasNext();) {
+                for (final IntIterator itr = bTPrimes.iterator(); 
+                        itr.hasNext();) {
                     final int bb = itr.next();
 
                     if (!aUPrimes.contains(bb)) {
@@ -858,15 +864,15 @@ public class Context {
 
                     // Get right hand sides from NF8 expressions that
                     // match d on their left hand side
-                    MonotonicCollection<NF8> entries = ontologyNF8.get(d
-                            .getFeature());
+                    MonotonicCollection<NF8> entries = 
+                            ontologyNF8.get(d.getFeature());
 
                     if (entries == null)
                         continue;
 
                     // Evaluate to determine the ones that match
-                    MonotonicCollection<IConjunctionQueueEntry> res = new MonotonicCollection<IConjunctionQueueEntry>(
-                            2);
+                    MonotonicCollection<IConjunctionQueueEntry> res = 
+                            new MonotonicCollection<IConjunctionQueueEntry>(2);
                     for (final NF8 e : entries) {
                         Datatype d2 = e.lhsD;
 
@@ -912,8 +918,8 @@ public class Context {
 
     private void processNewSubsumptionTracking(final int b) {
         // Get the set of parent concepts of (b n x) in the ontology
-        final MonotonicCollection<IConjunctionQueueEntry> bConceptEntries = ontologyNF1
-                .get(b);
+        final MonotonicCollection<IConjunctionQueueEntry> bConceptEntries = 
+                ontologyNF1.get(b);
         if (null != bConceptEntries && bConceptEntries.size() > 0) {
             // Add these to the queue of a
             addToConceptQueue(bConceptEntries);
@@ -983,8 +989,8 @@ public class Context {
         // Computes the minimal set of QueueEntries from s.a [ bb is in O
         for (IntIterator itr = sb.iterator(); itr.hasNext();) {
             final int bb = itr.next();
-            final RoleMap<Collection<IConjunctionQueueEntry>> map = ontologyNF3
-                    .get(bb);
+            final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+                    ontologyNF3.get(bb);
 
             if (null != map) {
                 final Collection<IConjunctionQueueEntry> entries = map.get(s);
@@ -1022,10 +1028,11 @@ public class Context {
 
                 // Again in this case there is a dependency with the
                 // predecessors of an external context.
-                final IConceptSet bUPrimes = contextIndex.get(b).getPred()
-                        .lookupConcept(u);
+                final IConceptSet bUPrimes = 
+                        contextIndex.get(b).getPred().lookupConcept(u);
 
-                for (final IntIterator itr = aTPrimes.iterator(); itr.hasNext();) {
+                for (final IntIterator itr = aTPrimes.iterator(); 
+                        itr.hasNext();) {
                     final int aa = itr.next();
 
                     if (!bUPrimes.contains(aa)) {
@@ -1061,7 +1068,8 @@ public class Context {
                         .lookupConcept(t);
                 final IConceptSet aUPrimes = succ.lookupConcept(u);
 
-                for (final IntIterator itr = bTPrimes.iterator(); itr.hasNext();) {
+                for (final IntIterator itr = bTPrimes.iterator(); 
+                        itr.hasNext();) {
                     final int bb = itr.next();
 
                     if (!aUPrimes.contains(bb)) {

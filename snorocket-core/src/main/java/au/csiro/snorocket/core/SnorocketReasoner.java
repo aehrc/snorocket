@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import au.csiro.ontology.IOntology;
 import au.csiro.ontology.Node;
 import au.csiro.ontology.Ontology;
@@ -54,6 +56,8 @@ import au.csiro.snorocket.core.util.RoleSet;
  *
  */
 final public class SnorocketReasoner<T extends Comparable<T>> implements IReasoner<T> {
+    
+    private final static Logger log = Logger.getLogger(SnorocketReasoner.class);
     
     public static final int BUFFER_SIZE = 10;
     
@@ -122,6 +126,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             		"with at least one flag set to true");
         }
         
+        log.info("Building taxonomy");
         Map<T, Node<T>> t = getTaxonomy();
         
         // Optimisation for the scenario where only the taxonomy is needed
@@ -133,10 +138,12 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         Collection<IAxiom> inferredAxioms = null;
         
         if(includeStatedAxioms) {
+            log.info("Building stated axioms");
             statedAxioms = getStatedAxioms();
         }
         
         if(includeInferredAxioms) {
+            log.info("Building inferred axioms");
             inferredAxioms = getInferredAxioms(t);
         }
         
@@ -209,8 +216,14 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         
         Set<IAxiom> axioms = new HashSet<>();
         
-        while(!todo.isEmpty()) {
-            Node<T> node = todo.poll();
+        // TODO: fix this! This is not working properly
+        
+        Set<Node<T>> processed = new HashSet<>();
+        
+        Node<T> node = todo.poll();
+        while(node != null) {
+            processed.add(node);
+            
             Set<T> equivs = node.getEquivalentConcepts();
             Object[] equivsArray = equivs.toArray();
             
@@ -229,7 +242,8 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             // Add is-a relationships
             Set<Node<T>> parents = node.getParents();
             for(Node<T> parent : parents) {
-                Object[] parentsEquivsArray = parent.getEquivalentConcepts().toArray();
+                Object[] parentsEquivsArray = 
+                        parent.getEquivalentConcepts().toArray();
                 // Create an is-a relationship between each equivalent concept
                 // and each equivalent parent
                 for(int i = 0; i < equivsArray.length; i++) {
@@ -243,8 +257,16 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
                 }
             }
             
-            todo.addAll(node.getChildren());
+            for(Node<T> child : node.getChildren()) {
+                if(!processed.contains(child)) {
+                    todo.add(child);
+                }
+            }
+            node = todo.poll();
         }
+        
+        processed.clear();
+        processed = null;
         
         // Get all the other relationships that correspond to the distribution
         // view
