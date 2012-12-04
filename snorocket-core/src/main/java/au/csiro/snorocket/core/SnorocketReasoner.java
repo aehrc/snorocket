@@ -216,8 +216,6 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         
         Set<IAxiom> axioms = new HashSet<>();
         
-        // TODO: fix this! This is not working properly
-        
         Set<Node<T>> processed = new HashSet<>();
         
         Node<T> node = todo.poll();
@@ -277,7 +275,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         // We need the inverted role closure to make sure redundant 
         // relationships are filtered
         RoleMap<RoleSet> irc = getInvertedRoleClosure(rc, numRoles);
-       
+        
         int numConcepts = factory.getTotalConcepts();
         for(int i = 0; i < numRoles; i++) {
             for(int j = 0; j < numConcepts; j++) {
@@ -304,14 +302,18 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
                         T role = factory.lookupRoleId(i);
                         T A = factory.lookupConceptId(j);
                         T B = factory.lookupConceptId(b);
-                        axioms.add(new ConceptInclusion(new Concept<T>(A), 
-                                new Existential<>(new Role<T>(role), 
-                                        new Concept<T>(B))));
+                        axioms.add(buildAxiom(A, B, role));
                     }
                 }
             }
         }
+        
         return axioms;
+    }
+    
+    private IAxiom buildAxiom(T a, T b, T r) {
+        return new ConceptInclusion(no.transform(a), 
+                new Existential<>(new Role<T>(r), no.transform(b)));
     }
     
     private RoleMap<RoleSet> getInvertedRoleClosure(RoleMap<RoleSet> rc, 
