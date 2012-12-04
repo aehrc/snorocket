@@ -1429,14 +1429,19 @@ public class NormalisedOntology<T extends Comparable<T>> {
     }
     
     @SuppressWarnings("unchecked")
-    private IConcept transform(Object o) {
+    public IConcept transform(Object o) {
         if(o instanceof Conjunction) {
             Conjunction con = (Conjunction)o;
             List<IConcept> concepts = new ArrayList<>();
             for(AbstractConcept ac : con.getConcepts()) {
                 concepts.add(transform(ac));
             }
+            try{
             return new au.csiro.ontology.model.Conjunction(concepts);
+            }catch(Exception e){ 
+                System.out.println(concepts); 
+                throw e;
+            }
         } else if(o instanceof Existential) {
             Existential e = (Existential)o;
             AbstractConcept c = e.getConcept();
@@ -1478,6 +1483,9 @@ public class NormalisedOntology<T extends Comparable<T>> {
             }
             return new au.csiro.ontology.model.Datatype<T>(
                     new Feature<T>(feature), op, iliteral);
+        } else if(o instanceof Concept) {
+            Object obj = factory.lookupConceptId(((Concept)o).hashCode());
+            return transform(obj);
         } else if(o instanceof Comparable<?>) {
             return new au.csiro.ontology.model.Concept<T>((T)o);
         } else {
