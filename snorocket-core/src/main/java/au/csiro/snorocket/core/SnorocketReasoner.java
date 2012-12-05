@@ -35,6 +35,7 @@ import org.apache.log4j.Logger;
 import au.csiro.ontology.IOntology;
 import au.csiro.ontology.Node;
 import au.csiro.ontology.Ontology;
+import au.csiro.ontology.Taxonomy;
 import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IReasoner;
@@ -55,6 +56,7 @@ import au.csiro.snorocket.core.util.RoleSet;
  * @author Alejandro Metke
  *
  */
+@SuppressWarnings("deprecation")
 final public class SnorocketReasoner<T extends Comparable<T>> implements IReasoner<T> {
     
     private final static Logger log = Logger.getLogger(SnorocketReasoner.class);
@@ -127,7 +129,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         }
         
         log.info("Building taxonomy");
-        Map<T, Node<T>> t = getTaxonomy();
+        Map<T, Node<T>> t = getInternalTaxonomy();
         
         // Optimisation for the scenario where only the taxonomy is needed
         if(includeTaxonomy && !includeStatedAxioms && !includeInferredAxioms) {
@@ -155,7 +157,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         return res;
     }
     
-    private Map<T, Node<T>> getTaxonomy() {
+    private Map<T, Node<T>> getInternalTaxonomy() {
         assert(no != null);
         
         PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
@@ -341,5 +343,57 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
     public IOntology<T> getClassifiedOntology() {
         return getClassifiedOntology(true,  true,  true);
     }
-
+    
+    /**
+     * @deprecated Use {@link SnorocketReasoner#getClassifiedOntology()} 
+     * instead.
+     */
+    @Override
+    public Taxonomy<T> getTaxonomy() {
+        if(no == null)
+            return null;
+        
+        PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
+        ppd.computeDag(no.getSubsumptions(), null);
+        
+        Map<T, Node<T>> res = new HashMap<>();
+        
+        // Two pass approach - first create the map with the new nodes without
+        // connections and then add the connections
+        ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
+        Queue<ClassNode> todo = new LinkedList<>();
+        todo.add(top);
+        
+        Map<ClassNode, Node<T>> nodeToNodeMap = new HashMap<>();
+        
+        while(!todo.isEmpty()) {
+            ClassNode node = todo.poll();
+            Node<T> newNode = new Node<T>();
+            nodeToNodeMap.put(node, newNode);
+            IConceptSet equivs = node.getEquivalentConcepts();
+            for(IntIterator it = equivs.iterator(); it.hasNext(); ) {
+                newNode.getEquivalentConcepts().add(
+                        factory.lookupConceptId(it.next()));
+            }
+            
+            for(T key : newNode.getEquivalentConcepts()) {
+                res.put(key, newNode);
+            }
+            todo.addAll(node.getChildren());
+        }
+        
+        for(ClassNode key : nodeToNodeMap.keySet()) {
+            Node<T> node = nodeToNodeMap.get(key);
+            for(ClassNode parent : key.getParents()) {
+                node.getParents().add(nodeToNodeMap.get(parent));
+            }
+            
+            for(ClassNode child : key.getChildren()) {
+                node.getChildren().add(nodeToNodeMap.get(child));
+            }
+        }
+        
+        return new Taxonomy<T>(res);
+    }
+    
 }
