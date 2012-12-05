@@ -21,10 +21,12 @@
 
 package au.csiro.snorocket.core;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -34,13 +36,18 @@ import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
 
+import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.axioms.IConceptInclusion;
 import au.csiro.ontology.axioms.IRoleInclusion;
+import au.csiro.ontology.axioms.RoleInclusion;
+import au.csiro.ontology.model.Feature;
 import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.ILiteral;
 import au.csiro.ontology.model.INamedRole;
 import au.csiro.ontology.model.IRole;
+import au.csiro.ontology.model.Operator;
+import au.csiro.ontology.model.Role;
 import au.csiro.snorocket.core.axioms.GCI;
 import au.csiro.snorocket.core.axioms.IConjunctionQueueEntry;
 import au.csiro.snorocket.core.axioms.IRoleQueueEntry;
@@ -56,9 +63,11 @@ import au.csiro.snorocket.core.axioms.NF7;
 import au.csiro.snorocket.core.axioms.NF8;
 import au.csiro.snorocket.core.axioms.NormalFormGCI;
 import au.csiro.snorocket.core.axioms.RI;
+import au.csiro.snorocket.core.concurrent.CR;
 import au.csiro.snorocket.core.concurrent.Context;
 import au.csiro.snorocket.core.concurrent.Worker;
 import au.csiro.snorocket.core.model.AbstractConcept;
+import au.csiro.snorocket.core.model.AbstractLiteral;
 import au.csiro.snorocket.core.model.BooleanLiteral;
 import au.csiro.snorocket.core.model.Concept;
 import au.csiro.snorocket.core.model.Conjunction;
@@ -1202,11 +1211,44 @@ public class NormalisedOntology<T extends Comparable<T>> {
         }
         return res;
     }
-
+    
+    /**
+     * Collects all the information contained in the concurrent R structures in
+     * every context and returns a single R structure with all their content.
+     * 
+     * @return R
+     */
     public R getRelationships() {
-        // Collect relationships from context index
-        // TODO: implement or check if needed.
-        return null;
+        R r = new R(factory.getTotalConcepts(), factory.getTotalRoles());
+        
+        // Collect subsumptions from context index
+        for (IntIterator it = contextIndex.keyIterator(); it.hasNext();) {
+            int key = it.next();
+            Context ctx = contextIndex.get(key);
+            int concept = ctx.getConcept();
+            CR pred = ctx.getPred();
+            CR succ = ctx.getSucc();
+            
+            int[] predRoles = pred.getRoles();
+            for(int i = 0; i < predRoles.length; i++) {
+                IConceptSet cs = pred.lookupConcept(predRoles[i]);
+                for(IntIterator it2 = cs.iterator(); it2.hasNext(); ) {
+                    int predC = it2.next();
+                    r.store(predC, predRoles[i], concept);
+                }
+            }
+            
+            int[] succRoles = succ.getRoles();
+            for(int i = 0; i < succRoles.length; i++) {
+                IConceptSet cs = succ.lookupConcept(succRoles[i]);
+                for(IntIterator it2 = cs.iterator(); it2.hasNext(); ) {
+                    int succC = it2.next();
+                    r.store(concept, succRoles[i], succC);
+                }
+            }
+        }
+        
+        return r;
     }
 
     /**
@@ -1244,6 +1286,212 @@ public class NormalisedOntology<T extends Comparable<T>> {
 
     public IFactory<T> getFactory() {
         return factory;
+    }
+    
+    /**
+     * Returns the stated axioms in the ontology.
+     * 
+     * @return
+     */
+    public Set<IAxiom> getStatedAxioms() {
+        Set<IAxiom> res = new HashSet<>();
+        // These terms are of the form A n Bi [ B and are indexed by A.
+        for(IntIterator it = ontologyNF1.keyIterator(); it.hasNext(); ) {
+            int a = it.next();
+            MonotonicCollection<IConjunctionQueueEntry> mc = ontologyNF1.get(a);
+            for(Iterator<IConjunctionQueueEntry> it2 = mc.iterator(); 
+                    it2.hasNext(); ) {
+                IConjunctionQueueEntry nf1 = it2.next();
+                int bi = nf1.getBi();
+                int b = nf1.getB();
+                // Build the axiom
+                Object oa = factory.lookupConceptId(a);
+                Object ob = factory.lookupConceptId(b);
+                if(bi == IFactory.TOP_CONCEPT) {
+                    res.add(new ConceptInclusion(transform(oa), transform(ob)));
+                } else {
+                    Object obi = factory.lookupConceptId(bi);
+                    res.add(new ConceptInclusion(
+                        new au.csiro.ontology.model.Conjunction(
+                            new IConcept[] {transform(oa), transform(obi)}),
+                        transform(ob)
+                    ));
+                }
+            }
+        }
+        
+        // These terms are of the form A [ r.B and are indexed by A.
+        for(IntIterator it = ontologyNF2.keyIterator(); it.hasNext(); ) {
+            int a = it.next();
+            MonotonicCollection<NF2> mc = ontologyNF2.get(a);
+            for(Iterator<NF2> it2 = mc.iterator(); it2.hasNext(); ) {
+                NF2 nf2 = it2.next();
+                Object oa = factory.lookupConceptId(nf2.lhsA);
+                T r = factory.lookupRoleId(nf2.rhsR);
+                Object ob = factory.lookupConceptId(nf2.rhsB);
+                res.add(new ConceptInclusion(
+                    transform(oa),
+                    new au.csiro.ontology.model.Existential<T>(
+                            new Role<T>(r), transform(ob))
+                ));
+            }
+        }
+        
+        // These terms are of the form r.A [ b and indexed by A.
+        for(IntIterator it = ontologyNF3.keyIterator(); it.hasNext(); ) {
+            int a = it.next();
+            RoleMap<Collection<IConjunctionQueueEntry>> mc = ontologyNF3.get(a);
+            RoleSet keys = mc.keySet();
+            for (int i = keys.nextSetBit(0); i >= 0; i = keys.nextSetBit(i+1)) {
+                Collection<IConjunctionQueueEntry> cc = mc.get(i);
+                for(Iterator<IConjunctionQueueEntry> it2 = cc.iterator(); 
+                        it2.hasNext(); ) {
+                    IConjunctionQueueEntry nf3 = it2.next();
+                    Object oa = factory.lookupConceptId(a);
+                    T r = factory.lookupRoleId(i);
+                    Object ob = factory.lookupConceptId(nf3.getB());
+                    res.add(new ConceptInclusion(
+                        new au.csiro.ontology.model.Existential<T>(
+                            new Role<T>(r), transform(ob)),
+                        transform(oa)  
+                    ));
+                }
+            }
+        }
+        
+        for(Iterator<NF4> it = ontologyNF4.iterator(); it.hasNext(); ) {
+            NF4 nf4 = it.next();
+            int r = nf4.getR();
+            int s = nf4.getS();
+            
+            res.add(
+                new RoleInclusion(
+                    new Role<T>(factory.lookupRoleId(r)),
+                    new Role<T>(factory.lookupRoleId(s))
+                )
+            );
+        }
+        
+        for(Iterator<NF5> it = ontologyNF5.iterator(); it.hasNext(); ) {
+            NF5 nf5 = it.next();
+            int r = nf5.getR();
+            int s = nf5.getS();
+            int t = nf5.getT();
+            
+            res.add(
+                new RoleInclusion(
+                    new IRole[] {
+                            new Role<T>(factory.lookupRoleId(r)),
+                            new Role<T>(factory.lookupRoleId(s))
+                    },
+                    new Role<T>(factory.lookupRoleId(t))
+                )
+            );
+        }
+        
+        for(IntIterator it = reflexiveRoles.iterator(); it.hasNext(); ) {
+            int r = it.next();
+            res.add(
+                new RoleInclusion(
+                    new IRole[] {},
+                    new Role<T>(factory.lookupRoleId(r))
+                )
+            );
+        }
+        
+        // These terms are of the form A [ f.(o, v) and are indexed by A.
+        for(IntIterator it = ontologyNF7.keyIterator(); it.hasNext(); ) {
+            int a = it.next();
+            MonotonicCollection<NF7> mc = ontologyNF7.get(a);
+            for(Iterator<NF7> it2 = mc.iterator(); it2.hasNext(); ) {
+                NF7 nf7 = it2.next();
+                res.add(new ConceptInclusion(
+                    transform(factory.lookupConceptId(a)),
+                    transform(nf7.rhsD)
+                ));
+            }
+        }
+        
+        // These terms are of the form f.(o, v) [ A. These are indexed by f.
+        FeatureSet keys = ontologyNF8.keySet();
+        for (int i = keys.nextSetBit(0); i >= 0; i = keys.nextSetBit(i+1)) {
+            MonotonicCollection<NF8> mc = ontologyNF8.get(i);
+            for(Iterator<NF8> it2 = mc.iterator(); it2.hasNext(); ) {
+                NF8 nf8 = it2.next();
+                res.add(new ConceptInclusion(
+                    transform(nf8.lhsD),
+                    transform(factory.lookupConceptId(i))
+                ));
+            }
+        }
+        
+        return res;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public IConcept transform(Object o) {
+        if(o instanceof Conjunction) {
+            Conjunction con = (Conjunction)o;
+            List<IConcept> concepts = new ArrayList<>();
+            for(AbstractConcept ac : con.getConcepts()) {
+                concepts.add(transform(ac));
+            }
+            try{
+            return new au.csiro.ontology.model.Conjunction(concepts);
+            }catch(Exception e){ 
+                System.out.println(concepts); 
+                throw e;
+            }
+        } else if(o instanceof Existential) {
+            Existential e = (Existential)o;
+            AbstractConcept c = e.getConcept();
+            IConcept iconcept = transform(c);
+            int role = e.getRole();
+            INamedRole<T> irole = new Role<>(factory.lookupRoleId(role));
+            return new au.csiro.ontology.model.Existential<T>(irole, iconcept);
+        } else if(o instanceof Datatype) {
+            Datatype d = (Datatype)o;
+            T feature = factory.lookupFeatureId(d.getFeature());
+            Operator op = d.getOperator();
+            AbstractLiteral literal = d.getLiteral();
+            
+            ILiteral iliteral = null;
+            if(literal instanceof BooleanLiteral) {
+                iliteral = new au.csiro.ontology.model.BooleanLiteral(
+                        ((BooleanLiteral)literal).getValue());
+            } else if(literal instanceof DateLiteral) {
+                iliteral = new au.csiro.ontology.model.DateLiteral(
+                        ((DateLiteral)literal).getValue());
+            } else if(literal instanceof DoubleLiteral) {
+                iliteral = new au.csiro.ontology.model.DoubleLiteral(
+                        ((DoubleLiteral)literal).getValue());
+            } else if(literal instanceof FloatLiteral) {
+                iliteral = new au.csiro.ontology.model.FloatLiteral(
+                        ((FloatLiteral)literal).getValue());
+            } else if(literal instanceof IntegerLiteral) {
+                iliteral = new au.csiro.ontology.model.IntegerLiteral(
+                        ((IntegerLiteral)literal).getValue());
+            } else if(literal instanceof LongLiteral) {
+                iliteral = new au.csiro.ontology.model.LongLiteral(
+                        ((LongLiteral)literal).getValue());
+            } else if(literal instanceof StringLiteral) {
+                iliteral = new au.csiro.ontology.model.StringLiteral(
+                        ((StringLiteral)literal).getValue());
+            } else {
+                throw new RuntimeException("Unexpected literal "+
+                        literal.getClass().getName());
+            }
+            return new au.csiro.ontology.model.Datatype<T>(
+                    new Feature<T>(feature), op, iliteral);
+        } else if(o instanceof Concept) {
+            Object obj = factory.lookupConceptId(((Concept)o).hashCode());
+            return transform(obj);
+        } else if(o instanceof Comparable<?>) {
+            return new au.csiro.ontology.model.Concept<T>((T)o);
+        } else {
+            throw new RuntimeException("Unexpected object with class "+
+                    o.getClass().getName());
+        }
     }
 
 }
