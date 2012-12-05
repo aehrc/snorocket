@@ -21,7 +21,9 @@
 
 package au.csiro.snorocket.core.concurrent;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.ReadonlyConceptSet;
@@ -79,24 +81,6 @@ public final class CR {
         }
     }
 
-    /**
-     * Returns the set of concepts associated to the concept in a
-     * {@link Context} by role r.
-     * 
-     * @param r
-     *            The role
-     * @return The set of concepts associated to the concept in the context.
-     */
-    /*
-     * public IConceptSet lookupConceptCopy(int r) { if (r >= data.length) {
-     * return IConceptSet.EMPTY_SET; }
-     * 
-     * if (null == data[r]) { return IConceptSet.EMPTY_SET; } else { try { //
-     * Awful double cast! return new ReadonlyConceptSet((SparseConceptSet)
-     * ((SparseConceptSet)data[r]).clone()); } catch (CloneNotSupportedException
-     * e) { throw new RuntimeException(e); } } }
-     */
-
     public void clear() {
         Arrays.fill(data, null);
     }
@@ -129,6 +113,25 @@ public final class CR {
      */
     synchronized void store(int r, int B) {
         getConcept(r).add(B);
+    }
+    
+    /**
+     * Returns the roles stored in this data structure.
+     * @return
+     */
+    public int[] getRoles() {
+        List<Integer> roles = new ArrayList<>();
+        for(int i = 0; i < data.length; i++) {
+            if(data[i] != null) {
+                roles.add(i);
+            }
+        }
+        
+        int[] res = new int[roles.size()];
+        for(int i = 0; i < res.length; i++) {
+            res[i] = roles.get(i);
+        }
+        return res;
     }
 
 }

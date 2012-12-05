@@ -277,8 +277,8 @@ abstract class R1 extends AR {
         }
     }
 
-    public void grow(int newTotalCocepts) {
-        resizeConcepts(newTotalCocepts);
+    public void grow(int newTotalConcepts) {
+        resizeConcepts(newTotalConcepts);
     }
 
     public String toString() {
