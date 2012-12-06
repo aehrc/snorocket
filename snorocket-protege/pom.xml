@@ -36,12 +36,12 @@
     <dependency>
       <groupId>au.csiro</groupId>
       <artifactId>ontology-model</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>${ontology.version}</version>
     </dependency>
     <dependency>
       <groupId>au.csiro</groupId>
       <artifactId>ontology-import</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>${ontology.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
