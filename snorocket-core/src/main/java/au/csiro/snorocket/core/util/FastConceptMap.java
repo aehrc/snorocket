@@ -25,6 +25,11 @@ import java.util.Arrays;
 
 public final class FastConceptMap<V> implements IConceptMap<V> {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private final static int EMPTY = -1;
     private final static Object TOMBSTOMB = null;
 

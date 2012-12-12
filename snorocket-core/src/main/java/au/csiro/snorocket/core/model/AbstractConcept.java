@@ -21,13 +21,20 @@
 
 package au.csiro.snorocket.core.model;
 
+import java.io.Serializable;
+
 /**
  * Represents a simple concept.
  * 
  * @author law223
  * 
  */
-public abstract class AbstractConcept implements Comparable<AbstractConcept> {
+public abstract class AbstractConcept implements Comparable<AbstractConcept>, Serializable {
+
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
 
     @Override
     abstract public String toString();

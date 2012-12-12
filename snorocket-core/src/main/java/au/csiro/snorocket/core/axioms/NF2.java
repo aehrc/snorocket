@@ -30,6 +30,11 @@ package au.csiro.snorocket.core.axioms;
  */
 public final class NF2 extends NormalFormGCI implements IRoleQueueEntry {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final public int lhsA;
     final public int rhsB;
     final public int rhsR;

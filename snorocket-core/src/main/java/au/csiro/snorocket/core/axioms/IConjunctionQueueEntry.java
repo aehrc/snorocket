@@ -21,6 +21,8 @@
 
 package au.csiro.snorocket.core.axioms;
 
+import java.io.Serializable;
+
 /**
  * Represents a queue entry of the form A n Bi [ B, where A is not represented
  * explicitly in the entry but rather in the queue it belongs to.
@@ -28,7 +30,7 @@ package au.csiro.snorocket.core.axioms;
  * @author Michael Lawley
  * 
  */
-public interface IConjunctionQueueEntry {
+public interface IConjunctionQueueEntry extends Serializable {
     /**
      * The right hand side of the entry.
      * 

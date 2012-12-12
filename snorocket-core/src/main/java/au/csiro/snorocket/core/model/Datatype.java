@@ -16,6 +16,11 @@ import au.csiro.ontology.model.Operator;
  */
 public class Datatype extends AbstractConcept {
     
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private int feature;
     private Operator operator;
     private AbstractLiteral literal;

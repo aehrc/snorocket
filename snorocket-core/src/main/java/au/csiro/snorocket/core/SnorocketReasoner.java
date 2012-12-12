@@ -21,6 +21,12 @@
 
 package au.csiro.snorocket.core;
 
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +49,7 @@ import au.csiro.ontology.model.Concept;
 import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.Role;
+import au.csiro.snorocket.core.concurrent.Context;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
 import au.csiro.snorocket.core.util.RoleMap;
@@ -57,8 +64,13 @@ import au.csiro.snorocket.core.util.RoleSet;
  *
  */
 @SuppressWarnings("deprecation")
-final public class SnorocketReasoner<T extends Comparable<T>> implements IReasoner<T> {
+final public class SnorocketReasoner<T extends Comparable<T>> implements IReasoner<T>, Serializable {
     
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+
     private final static Logger log = Logger.getLogger(SnorocketReasoner.class);
     
     public static final int BUFFER_SIZE = 10;
@@ -66,6 +78,30 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
     private NormalisedOntology<T> no = null;
     private IFactory<T> factory = null;
     private boolean isClassified = false;
+    
+    /**
+     * Loads a saved instance of a {@link SnorocketReasoner} from an input
+     * stream.
+     * 
+     * @param in
+     * @return
+     */
+    @SuppressWarnings("rawtypes")
+    public static SnorocketReasoner load(InputStream in) {
+        SnorocketReasoner res; 
+        try(ObjectInputStream ois = new ObjectInputStream(in); ) { 
+            res = (SnorocketReasoner)ois.readObject();  
+        } 
+        catch(Exception e) { 
+            log.error("Problem loading reasoner." + e);
+            throw new RuntimeException(e);
+        }
+        Concept.reconnectTopBottom(
+                (IConcept)res.factory.lookupConceptId(Factory.TOP_CONCEPT), 
+                (IConcept)res.factory.lookupConceptId(Factory.BOTTOM_CONCEPT));
+        Context.init(res.no);
+        return res;
+    }
     
     /**
      * Creates an instance of Snorocket using the given base ontology.
@@ -394,6 +430,17 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         }
         
         return new Taxonomy<T>(res);
+    }
+
+    @Override
+    public void save(OutputStream out) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(out)){
+            oos.writeObject(this); 
+            oos.flush();
+        } catch(Exception e) {
+            log.error("Problem saving reasoner.", e);
+            throw new RuntimeException(e);
+        }
     }
     
 }

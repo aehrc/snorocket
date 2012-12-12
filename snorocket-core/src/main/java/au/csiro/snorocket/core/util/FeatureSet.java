@@ -21,16 +21,20 @@
 
 package au.csiro.snorocket.core.util;
 
+import java.io.Serializable;
+import java.util.BitSet;
+
 /**
  * Stores a set of Feature indexes in the range 0..127 using the bits of two
  * longs.
  * 
  * @author Alejandro Metke
  */
-final public class FeatureSet extends java.util.BitSet {
+final public class FeatureSet extends BitSet implements Serializable {
+    
     /**
-	 * 
-	 */
+     * Serialisation version.
+     */
     private static final long serialVersionUID = 1L;
 
     public FeatureSet() {

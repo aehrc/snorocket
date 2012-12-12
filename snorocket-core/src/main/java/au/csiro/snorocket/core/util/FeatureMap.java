@@ -21,9 +21,15 @@
 
 package au.csiro.snorocket.core.util;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class FeatureMap<V> {
+public class FeatureMap<V> implements Serializable {
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final private FeatureSet keySet;
     private V[] members;
 

@@ -21,6 +21,8 @@
 
 package au.csiro.snorocket.core.concurrent;
 
+import java.io.Serializable;
+
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.SparseConceptSet;
@@ -30,8 +32,12 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  * 
  * @author Alejandro Metke
  */
-public final class CS {
-
+public final class CS implements Serializable {
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private IConceptSet set;
 
     CS(final int cid) {

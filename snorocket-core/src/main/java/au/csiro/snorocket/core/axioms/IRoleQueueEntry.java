@@ -21,12 +21,14 @@
 
 package au.csiro.snorocket.core.axioms;
 
+import java.io.Serializable;
+
 /**
  * Represents queue entry: -> r.B
  * 
  * @author law223
  */
-public interface IRoleQueueEntry {
+public interface IRoleQueueEntry extends Serializable {
 
     int getR();
 

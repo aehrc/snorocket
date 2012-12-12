@@ -34,6 +34,11 @@ import org.apache.log4j.Logger;
  */
 public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
     
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+
     // Logger
     private final static Logger log = Logger.getLogger(
             MonotonicCollection.class);

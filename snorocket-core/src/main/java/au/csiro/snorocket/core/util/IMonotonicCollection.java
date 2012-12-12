@@ -21,7 +21,9 @@
 
 package au.csiro.snorocket.core.util;
 
-public interface IMonotonicCollection<T> extends Iterable<T> {
+import java.io.Serializable;
+
+public interface IMonotonicCollection<T> extends Iterable<T>, Serializable {
 
     public void add(T element);
 

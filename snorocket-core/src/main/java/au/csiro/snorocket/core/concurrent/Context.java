@@ -1,5 +1,6 @@
 package au.csiro.snorocket.core.concurrent;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -42,7 +43,12 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  * @author Alejandro Metke
  * 
  */
-public class Context {
+public class Context implements Serializable {
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+
     /**
      * The internal concept id.
      */
@@ -57,7 +63,7 @@ public class Context {
      * Queue (List) of ConjunctionQueueEntries indicating work to be done for
      * this concept.
      */
-    private Queue<IConjunctionQueueEntry> conceptQueue = 
+    private final transient Queue<IConjunctionQueueEntry> conceptQueue = 
             new ConcurrentLinkedQueue<>();
 
     /**
@@ -368,6 +374,11 @@ public class Context {
      */
     public void processExternalEdge(final int role, final int src) {
         externalQueue.add(new IRoleQueueEntry() {
+            /**
+             * Serialisation version.
+             */
+            private static final long serialVersionUID = 1L;
+
             @Override
             public int getR() {
                 return role;
@@ -446,6 +457,11 @@ public class Context {
                         // to queueA
                         if (datatypeMatches(d, d2)) {
                             res.add(new IConjunctionQueueEntry() {
+                                /**
+                                 * Serialisation version.
+                                 */
+                                private static final long serialVersionUID = 1L;
+
                                 @Override
                                 public int getBi() {
                                     return Factory.TOP_CONCEPT;
@@ -825,9 +841,9 @@ public class Context {
         return changed;
     }
 
-    // //////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     // Tracking versions of the methods
-    // //////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
     private void processOntologyTracking() {
         boolean done;
@@ -880,6 +896,11 @@ public class Context {
                         // to queueA
                         if (datatypeMatches(d, d2)) {
                             res.add(new IConjunctionQueueEntry() {
+                                /**
+                                 * Serialisation version.
+                                 */
+                                private static final long serialVersionUID = 1L;
+
                                 @Override
                                 public int getBi() {
                                     return Factory.TOP_CONCEPT;

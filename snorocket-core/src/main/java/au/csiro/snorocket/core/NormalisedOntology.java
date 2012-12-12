@@ -21,6 +21,7 @@
 
 package au.csiro.snorocket.core;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -100,7 +101,12 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  * @author law223
  * 
  */
-public class NormalisedOntology<T extends Comparable<T>> {
+public class NormalisedOntology<T extends Comparable<T>> implements Serializable {
+
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
 
     // Logger
     private final static Logger log = Logger.getLogger(
@@ -187,18 +193,25 @@ public class NormalisedOntology<T extends Comparable<T>> {
      * A set of new contexts added in an incremental classification.
      */
     private final Set<Context> newContexts = new HashSet<>();
+    
+    
+    private static class ContextComparator implements Comparator<Context>, Serializable {
+        /**
+         * Serialisation version.
+         */
+        private static final long serialVersionUID = 1L;
 
+        @Override
+        public int compare(Context o1, Context o2) {
+            return Integer.compare(o1.getConcept(), o2.getConcept());
+        }
+    }
+    
     /**
      * A set of contexts potentially affected by an incremental classification.
      */
     private final Set<Context> affectedContexts = new ConcurrentSkipListSet<>(
-            new Comparator<Context>() {
-
-                @Override
-                public int compare(Context arg0, Context arg1) {
-                    return Integer.compare(arg0.getConcept(), arg1.getConcept());
-                }
-            });
+            new ContextComparator());
 
     public IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> getOntologyNF1() {
         return ontologyNF1;
@@ -801,14 +814,13 @@ public class NormalisedOntology<T extends Comparable<T>> {
         int size = as.getNf2Axioms().size();
         if (size == 0)
             return;
-        IConceptMap<MonotonicCollection<NF2>> deltaNF2 = new SparseConceptMap<MonotonicCollection<NF2>>(
-                size);
+        IConceptMap<MonotonicCollection<NF2>> deltaNF2 = 
+                new SparseConceptMap<MonotonicCollection<NF2>>(size);
         for (NF2 nf2 : as.getNf2Axioms()) {
             addTerms(deltaNF2, nf2);
         }
 
-        for (final IntIterator aItr = subsumptions.keyIterator(); aItr
-                .hasNext();) {
+        for (final IntIterator aItr = subsumptions.keyIterator(); aItr.hasNext();) {
             final int a = aItr.next();
             Context ctx = contextIndex.get(a);
 
@@ -839,8 +851,8 @@ public class NormalisedOntology<T extends Comparable<T>> {
         int size = as.getNf3Axioms().size();
         if (size == 0)
             return;
-        IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> deltaNF3 = new SparseConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>>(
-                size);
+        IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> deltaNF3 = 
+                new SparseConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>>(size);
         for (NF3 nf3 : as.getNf3Axioms()) {
             addTerms(deltaNF3, nf3);
         }
@@ -909,6 +921,11 @@ public class NormalisedOntology<T extends Comparable<T>> {
                     final int b = bItr.next();
 
                     IRoleQueueEntry entry = new IRoleQueueEntry() {
+                        /**
+                         * Serialisation version.
+                         */
+                        private static final long serialVersionUID = 1L;
+
                         @Override
                         public int getR() {
                             return nf4.getS();
@@ -958,13 +975,16 @@ public class NormalisedOntology<T extends Comparable<T>> {
 
                     Context bCtx = contextIndex.get(b);
 
-                    for (final IntIterator cItr = bCtx.getSucc()
-                            .lookupConcept(nf5.getS()).iterator(); cItr
-                            .hasNext();) {
+                    for (final IntIterator cItr = bCtx.getSucc().lookupConcept(nf5.getS()).iterator(); cItr.hasNext();) {
                         final int c = cItr.next();
 
                         if (!aCtx.getSucc().lookupConcept(t).contains(c)) {
                             final IRoleQueueEntry entry = new IRoleQueueEntry() {
+
+                                /**
+                                 * Serialisation version.
+                                 */
+                                private static final long serialVersionUID = 1L;
 
                                 @Override
                                 public int getR() {
@@ -1011,8 +1031,7 @@ public class NormalisedOntology<T extends Comparable<T>> {
             for (IntIterator it2 = contextIndex.keyIterator(); it2.hasNext();) {
                 int concept = it2.next();
                 Context ctx = contextIndex.get(concept);
-                if (ctx.getSucc().containsRole(role)
-                        && !ctx.getSucc().lookupConcept(role).contains(concept)) {
+                if (ctx.getSucc().containsRole(role) && !ctx.getSucc().lookupConcept(role).contains(concept)) {
                     ctx.processExternalEdge(role, concept);
                     affectedContexts.add(ctx);
                     ctx.startTracking();
@@ -1036,8 +1055,7 @@ public class NormalisedOntology<T extends Comparable<T>> {
         int size = as.getNf7Axioms().size();
         if (size == 0)
             return;
-        IConceptMap<MonotonicCollection<NF7>> deltaNF7 = new SparseConceptMap<MonotonicCollection<NF7>>(
-                size);
+        IConceptMap<MonotonicCollection<NF7>> deltaNF7 = new SparseConceptMap<MonotonicCollection<NF7>>(size);
         for (NF7 nf7 : as.getNf7Axioms()) {
             addTerms(deltaNF7, nf7);
         }
@@ -1095,8 +1113,7 @@ public class NormalisedOntology<T extends Comparable<T>> {
                 int a = it.next();
                 Context aCtx = contextIndex.get(a);
 
-                for (Iterator<NF7> i = ontologyNF7.get(a).iterator(); i
-                        .hasNext();) {
+                for (Iterator<NF7> i = ontologyNF7.get(a).iterator(); i.hasNext();) {
                     NF7 nf7 = i.next();
                     if (nf7.rhsD.getFeature() == fid) {
                         aCtx.addFeatureQueueEntry(nf7);

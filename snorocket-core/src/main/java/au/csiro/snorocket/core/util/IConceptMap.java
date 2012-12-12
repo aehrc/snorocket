@@ -21,7 +21,9 @@
 
 package au.csiro.snorocket.core.util;
 
-public interface IConceptMap<V> {
+import java.io.Serializable;
+
+public interface IConceptMap<V> extends Serializable {
     public boolean containsKey(int key);
 
     public V get(int key);
@@ -59,6 +61,11 @@ public interface IConceptMap<V> {
 
 final class ReadonlyConceptMap<V> implements IConceptMap<V> {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final private IConceptMap<V> map;
 
     public ReadonlyConceptMap(final IConceptMap<V> map) {

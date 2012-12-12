@@ -4,6 +4,11 @@ import java.util.Iterator;
 
 public final class DuoMonotonicCollection<T> implements IMonotonicCollection<T> {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final private IMonotonicCollection<T> base;
     final private IMonotonicCollection<T> overlay;
 

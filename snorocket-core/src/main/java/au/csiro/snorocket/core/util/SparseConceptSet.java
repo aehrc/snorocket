@@ -32,6 +32,12 @@ package au.csiro.snorocket.core.util;
  * 
  */
 final public class SparseConceptSet implements IConceptSet {
+    
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private int[] items;
     private int size;
 

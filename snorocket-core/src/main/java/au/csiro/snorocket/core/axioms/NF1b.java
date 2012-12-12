@@ -31,6 +31,11 @@ package au.csiro.snorocket.core.axioms;
  */
 public final class NF1b extends NormalFormGCI {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final private int lhsA1;
     final private int lhsA2;
     final private int rhsB;
@@ -45,6 +50,11 @@ public final class NF1b extends NormalFormGCI {
         lhsA2 = lhs2;
 
         entryA1 = new IConjunctionQueueEntry() {
+            /**
+             * Serialisation version.
+             */
+            private static final long serialVersionUID = 1L;
+
             public int getB() {
                 return rhsB;
             }
@@ -60,6 +70,11 @@ public final class NF1b extends NormalFormGCI {
         };
 
         entryA2 = new IConjunctionQueueEntry() {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+
             public int getB() {
                 return rhsB;
             }

@@ -30,6 +30,11 @@ import java.util.ArrayList;
  */
 public final class SparseConceptHashSet implements IConceptSet {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private static final int TOMBSTOMB = -2;
     private static final int EMPTY = -1;
 
