@@ -30,6 +30,11 @@ package au.csiro.snorocket.core.axioms;
  */
 public final class NF6 extends NormalFormGCI {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final private int lhsR;
 
     public NF6(int r) {

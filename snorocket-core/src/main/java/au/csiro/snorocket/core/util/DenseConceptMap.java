@@ -31,6 +31,11 @@ import java.util.Arrays;
  * @param <V>
  */
 public final class DenseConceptMap<V> extends AbstractConceptMap<V> {
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private V[] members;
 
     /**

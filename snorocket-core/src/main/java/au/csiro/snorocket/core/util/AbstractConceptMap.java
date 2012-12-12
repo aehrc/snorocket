@@ -23,4 +23,9 @@ package au.csiro.snorocket.core.util;
 
 public abstract class AbstractConceptMap<T> implements IConceptMap<T> {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+
 }

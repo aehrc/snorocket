@@ -21,9 +21,15 @@
 
 package au.csiro.snorocket.core.util;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class SparseArray<T> {
+public class SparseArray<T> implements Serializable {
+
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
 
     private static final int M = 16;
 

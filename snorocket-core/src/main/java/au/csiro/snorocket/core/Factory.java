@@ -33,7 +33,14 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
 
 final public class Factory<T> implements IFactory<T> {
     
-    // Logger
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Logger.
+     */
     private final static Logger log = Logger.getLogger(Factory.class);
     
     private static final int SIZE_ESTIMATE = 3000;

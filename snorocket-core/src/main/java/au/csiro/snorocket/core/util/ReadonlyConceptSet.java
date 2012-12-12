@@ -2,6 +2,11 @@ package au.csiro.snorocket.core.util;
 
 public final class ReadonlyConceptSet implements IConceptSet {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private IConceptSet set;
 
     public ReadonlyConceptSet(IConceptSet set) {

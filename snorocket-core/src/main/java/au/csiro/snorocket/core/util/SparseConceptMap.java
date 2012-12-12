@@ -22,6 +22,11 @@
 package au.csiro.snorocket.core.util;
 
 public final class SparseConceptMap<V> extends AbstractConceptMap<V> {
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final private IConceptSet keySet;
     protected SparseArray<V> members;
     protected String lbl;

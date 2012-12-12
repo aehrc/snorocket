@@ -23,6 +23,11 @@ package au.csiro.snorocket.core.model;
 
 public class Existential extends AbstractConcept {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private int role;
     private AbstractConcept concept;
 

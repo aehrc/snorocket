@@ -29,6 +29,11 @@ package au.csiro.snorocket.core.model;
  */
 final public class Concept extends AbstractConcept {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final private int _hashcode;
 
     public Concept(final int id) {

@@ -21,9 +21,15 @@
 
 package au.csiro.snorocket.core.util;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class RoleMap<V> {
+public class RoleMap<V> implements Serializable {
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final private RoleSet keySet;
     private V[] members;
 

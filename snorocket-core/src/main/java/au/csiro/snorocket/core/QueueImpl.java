@@ -21,6 +21,8 @@
 
 package au.csiro.snorocket.core;
 
+import java.io.Serializable;
+
 import au.csiro.snorocket.core.util.MonotonicCollection;
 
 /**
@@ -35,7 +37,13 @@ import au.csiro.snorocket.core.util.MonotonicCollection;
  * 
  * @param <QueueEntry>
  */
-public final class QueueImpl<QueueEntry> implements IQueue<QueueEntry> {
+public final class QueueImpl<QueueEntry> implements IQueue<QueueEntry>, Serializable {
+    
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private static final int DEFAULT_ALLOC_SIZE = 4;
     private static final Object[] EMPTY = {};
 

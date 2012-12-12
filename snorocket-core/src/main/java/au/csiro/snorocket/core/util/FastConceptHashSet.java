@@ -28,6 +28,11 @@ package au.csiro.snorocket.core.util;
  */
 public final class FastConceptHashSet implements IConceptSet {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private static final int TOMBSTOMB = -2;
     private static final int EMPTY = -1;
 

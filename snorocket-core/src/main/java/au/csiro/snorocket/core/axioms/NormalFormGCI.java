@@ -21,13 +21,20 @@
 
 package au.csiro.snorocket.core.axioms;
 
+import java.io.Serializable;
+
 /**
  * Base class for normalised axioms.
  * 
  * @author law223
  * 
  */
-public abstract class NormalFormGCI {
+public abstract class NormalFormGCI implements Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     /**
      * Returns an array with all the concept ids in the axiom.

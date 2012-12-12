@@ -14,6 +14,11 @@ import au.csiro.snorocket.core.model.Datatype;
  */
 public final class NF7 extends NormalFormGCI implements IFeatureQueueEntry {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final public int lhsA;
     final public Datatype rhsD;
 

@@ -2,6 +2,11 @@ package au.csiro.snorocket.core.util;
 
 public final class DuoConceptMap<V> implements IConceptMap<V> {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final private IConceptMap<V> base;
     final private IConceptMap<V> overlay;
 

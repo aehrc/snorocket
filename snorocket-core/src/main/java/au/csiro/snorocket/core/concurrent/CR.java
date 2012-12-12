@@ -21,6 +21,7 @@
 
 package au.csiro.snorocket.core.concurrent;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +36,12 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  * @author Alejandro Metke
  * 
  */
-public final class CR {
+public final class CR implements Serializable {
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     private IConceptSet[] data;
 
     public CR(final int roles) {

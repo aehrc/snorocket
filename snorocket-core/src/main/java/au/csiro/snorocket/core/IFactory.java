@@ -21,6 +21,8 @@
 
 package au.csiro.snorocket.core;
 
+import java.io.Serializable;
+
 /**
  * Interface for the factory used to create concepts, roles and features
  * internally.
@@ -30,7 +32,7 @@ package au.csiro.snorocket.core;
  * @param <T> The typeof the key used in the factory. The type should support
  * identity based on equals and hashcode.
  */
-public interface IFactory<T> {
+public interface IFactory<T> extends Serializable {
     
     /**
      * Internal id used for the top concept.

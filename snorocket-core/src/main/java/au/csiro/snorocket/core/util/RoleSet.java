@@ -21,6 +21,9 @@
 
 package au.csiro.snorocket.core.util;
 
+import java.io.Serializable;
+import java.util.BitSet;
+
 /**
  * Stores a set of Role indexes in the range 0..127 using the bits of two longs.
  * 
@@ -30,11 +33,12 @@ package au.csiro.snorocket.core.util;
  * 
  * @author law223
  */
-final public class RoleSet extends java.util.BitSet {
+final public class RoleSet extends BitSet implements Serializable {
+    
     /**
-	 * 
-	 */
-    private static final long serialVersionUID = 3307286235156743593L;
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
 
     public RoleSet() {
     }

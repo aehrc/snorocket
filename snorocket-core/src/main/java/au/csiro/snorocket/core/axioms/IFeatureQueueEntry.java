@@ -4,6 +4,8 @@
  */
 package au.csiro.snorocket.core.axioms;
 
+import java.io.Serializable;
+
 import au.csiro.snorocket.core.model.Datatype;
 
 /**
@@ -12,7 +14,7 @@ import au.csiro.snorocket.core.model.Datatype;
  * @author Alejandro Metke
  * 
  */
-public interface IFeatureQueueEntry {
+public interface IFeatureQueueEntry extends Serializable {
 
     /**
      * Returns the datatype.

@@ -21,9 +21,11 @@
 
 package au.csiro.snorocket.core.util;
 
+import java.io.Serializable;
+
 import au.csiro.snorocket.core.ConceptSetFactory;
 
-public interface IConceptSet {
+public interface IConceptSet extends Serializable {
     final static IConceptSet EMPTY_SET = new EmptyConceptSet();
 
     public static ConceptSetFactory FACTORY = new ConceptSetFactory() {
@@ -81,6 +83,11 @@ public interface IConceptSet {
 
 final class EmptyConceptSet implements IConceptSet {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final static IntIterator EMPTY_ITERATOR = new IntIterator() {
 
         public boolean hasNext() {

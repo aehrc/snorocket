@@ -32,6 +32,11 @@ import au.csiro.snorocket.core.IFactory;
  */
 public final class NF3 extends NormalFormGCI {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final public int lhsR;
     final public int lhsA;
     final public int rhsB;
@@ -52,6 +57,11 @@ public final class NF3 extends NormalFormGCI {
 
     public IConjunctionQueueEntry getQueueEntry() {
         return new IConjunctionQueueEntry() {
+
+            /**
+             * Serialisation version.
+             */
+            private static final long serialVersionUID = 1L;
 
             public int getB() {
                 return rhsB;

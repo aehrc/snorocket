@@ -28,6 +28,11 @@ import java.util.TreeSet;
 
 public class Conjunction extends AbstractConcept {
 
+    /**
+     * Serialisation version.
+     */
+    private static final long serialVersionUID = 1L;
+    
     final private AbstractConcept[] concepts;
     final private int hashCode;
 
