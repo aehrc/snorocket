@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Snorocket for OWLAPI3 including Protege plugin support
+Bundle-SymbolicName: au.csiro.snorocket.owlapi3;singleton:=true
+Bundle-Category: protege
+Bundle-Description: An OWLAPI3 wrapper for Snorocket
+Bundle-Vendor: The Australian e-Health Research Centre, CSIRO
+Bundle-DocURL: 
+Bundle-ClassPath: .
+Import-Package: org.osgi.framework,
+ org.apache.log4j
+Bundle-Version: 1.3.4.alpha4
+Bundle-Activator: org.protege.editor.core.plugin.DefaultPluginActivator
+Update-Url: http://research.ict.csiro.au/software/snorocket/update-owlapi3.properties
+Require-Bundle: org.protege.editor.core.application,
+ org.protege.editor.owl,
+ org.semanticweb.owl.owlapi
