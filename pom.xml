@@ -101,6 +101,6 @@
   </distributionManagement>
 
   <properties>
-    <ontology.version>0.0.1-uat-build-iteration-2</ontology.version>
+    <ontology.version>0.0.1-SNAPSHOT</ontology.version>
   </properties>
 </project>
