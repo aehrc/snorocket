@@ -173,7 +173,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
                 reasoner.loadAxioms(new HashSet<IAxiom>(axioms));
             }
         }
-        manager.removeOntology(owlOntology);
+        //manager.removeOntology(owlOntology);
     }
 
     /**
@@ -401,7 +401,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         } else {
             // If the node that contains OWLNothing contains this OWLClass then
             // it is not satisfiable
-            int c = factory.getConcept(classExpression.asOWLClass()
+            int c = getConceptId(classExpression.asOWLClass()
                     .toStringID());
             ClassNode bottom = ppd.getEquivalents(IFactory.BOTTOM_CONCEPT);
             return !bottom.getEquivalentConcepts().contains(c);
@@ -467,7 +467,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         OWLClass c = ce.asOWLClass();
 
         // Get the corresponding concept in the internal representation
-        int cc = factory.getConcept(c.toStringID());
+        int cc = getConceptId(c.toStringID());
 
         // Use the post processed data to answer the query
         ClassNode n = ppd.getEquivalents(cc);
@@ -510,7 +510,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         OWLClass c = ce.asOWLClass();
         
         // Get the corresponding concept in the internal representation
-        int cc = factory.getConcept(c.toStringID());
+        int cc = getConceptId(c.toStringID());
 
         // Use the post processed data to answer the query
 
@@ -556,10 +556,16 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         }
         OWLClass c = ce.asOWLClass();
         // Get the corresponding concept in the internal representation
-        int cc = factory.getConcept(c.toStringID());
+        int cc = getConceptId(c.toStringID());
 
         // Use the post processed data to answer the query
         ClassNode n = ppd.getEquivalents(cc);
+        
+        // TODO remove
+        if(n == null) {
+            System.out.println("cc: "+cc+", id: "+c.toStringID());
+        }
+        
         return nodeToOwlClassNode(n);
     }
 
@@ -805,6 +811,8 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      */
     private Node<OWLClass> nodeToOwlClassNode(ClassNode n) {
         org.semanticweb.owlapi.reasoner.Node<OWLClass> node = new OWLClassNode();
+        
+        try {
 
         for (IntIterator it = n.getEquivalentConcepts().iterator(); it
                 .hasNext();) {
@@ -812,6 +820,11 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             node.getEntities().add(getOWLClass(eq));
         }
         return node;
+        
+        } catch(Throwable t) {
+            t.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -826,6 +839,17 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             temp.add(nodeToOwlClassNode(n));
         }
         return new OWLClassNodeSet(temp);
+    }
+    
+    private int getConceptId(String cid) {
+        // Special cases
+        if("http://www.w3.org/2002/07/owl#Thing".equals(cid)) {
+            return 0;
+        } else if("http://www.w3.org/2002/07/owl#Nothing".equals(cid)) {
+            return 1;
+        } else {
+            return factory.getConcept(cid);
+        }
     }
 
     // //////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+
+<plugin>
+    <extension point="org.protege.editor.owl.inference_reasonerfactory"
+               id="Snorocket-factory">
+        <name value="Snorocket"/>
+        <class value="au.csiro.snorocket.protege.ProtegeReasonerFactory"/>
+    </extension>
+    <!--extension id="Snorocket-BaseState-factory"
+               point="org.protege.editor.core.application.EditorKitMenuAction">
+        <name value="Generate Snorocket base state..."/> 
+        <toolTip value="Generate and save the inferred ontology state for incremental classification."/>
+        <class value="au.csiro.snorocket.protege.SnorocketBaseStateAction"/>
+        <path value="org.protege.editor.owl.menu.tools/SlotB-A"/>
+        <editorKitId value="OWLEditorKit"/>
+    </extension-->
+
+</plugin>

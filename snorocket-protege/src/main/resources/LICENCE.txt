@@ -1,0 +1,197 @@
+﻿
+CSIRO SOFTWARE END USER LICENCE AGREEMENT
+
+
+IMPORTANT - PLEASE READ CAREFULLY
+
+BY SELECTING THE "I AGREE" ICON YOU INDICATE YOUR ACCEPTANCE OF ALL
+THE TERMS AND CONDITIONS OF THIS AGREEMENT. THIS AGREEMENT WILL BE
+LEGALLY ENFORCEABLE AGAINST YOU AND ANY ENTITY THAT OBTAINED THE
+SOFTWARE AND ON WHOSE BEHALF IT IS USED.
+
+IF YOU ARE EMPLOYED AND INTEND USING THE SOFTWARE IN CONNECTION
+WITH YOUR EMPLOYMENT DUTIES THEN YOU SHOULD ONLY ACCEPT THIS AGREEMENT
+IF YOUR EMPLOYER HAS AUTHORISED YOU TO DO SO ON ITS BEHALF.  BY
+ACCEPTING THIS LICENCE ON SUCH BASIS, YOU ARE WARRANTING TO CSIRO
+THAT YOU ARE AUTHORISED TO DO SO ON BEHALF OF YOUR EMPLOYER.
+
+
+1. Meaning of Words
+
+'CSIRO' means the Commonwealth Scientific and Industrial Research
+Organisation ABN 41 687 119 230 acting through its Information and
+Communication Technologies Centre, Corner Vimiera and Pembroke
+Roads, Marsfield, New South Wales 2122, Australia.
+
+'Licence' means this licence agreement between you and CSIRO
+comprising the terms that you accept by selecting the "I Agree"
+icon.
+
+'Software' means the current executable code version of the computer
+program owned by CSIRO and identified above.
+
+'Software Website' means the CSIRO ICT Centre Software Downloads
+website.
+
+'you' means you the user and licensee.
+
+2. The Licence
+
+CSIRO grants you a non-exclusive and non-transferable right to use
+the Software in accordance with the terms of this Licence.  CSIRO
+reserves the right to refuse to license the Software to any person
+or terminate any licence, without giving reasons for such refusal
+or termination.
+
+This Licence is formed after you have selected the "I Agree" icon.
+
+3. Payment
+
+The Software is provided free of charge in consideration of you
+using it strictly in accordance with the terms of this Licence.
+
+4. Your Use of the Software
+
+You may only use the Software in strict accordance with the terms
+of this Licence.
+
+You may only use the Software as a plug-in to the Protege ontology
+editor developed by the Stanford Center for Biomedical Informatics
+Research.
+
+The Software should only be operated with at least the minimum
+equipment configuration and requirements specified in any instructions
+provided.
+
+Unless you first have written consent from CSIRO, you must not:
+
+(a)     reverse engineer, decompile, disassemble or otherwise attempt
+	to discover the source code of the Software except to the extent
+	you may be expressly permitted to decompile under applicable law;
+(b)     adapt, extend, enhance or make any other improvements to
+	the Software;
+(c)     distribute, sell, sublicense or otherwise make the whole
+	or part of the Software available for use by a third party;
+(d)     allow the Software to be combined with or incorporated into
+	other software; or
+(e)     release the Software on the Internet or any other public
+	communication network.
+
+If you become aware that any other person wishes to use the Software,
+then you should refer that person to the Software Website.
+
+You must not remove, alter or otherwise interfere with any warning
+or disclaimer statement affixed to, incorporated in or otherwise
+applied in connection with the Software.
+
+5. CSIRO makes no representations
+
+The Software is provided 'as is' and CSIRO disclaims any express
+or implied warranties including, without limitation, any warranties
+or representations:
+
+(a)     that the Software is of merchantable quality, suitable for
+	your use, or is fit for any other purpose;
+(b)     that operation of the Software will be-uninterrupted or
+	that the Software is error-free;
+(c)     regarding the results of any use of the Software;
+(d)     as to the accuracy, reliability or content of any data,
+	information, service or goods obtained through any use of the
+	of the Software;
+(e)     as to the accuracy, reliability or content of any Internet
+	sites addressed by the URLs in the database forming part of the
+	Software; or
+(f)     that the use of the Software will not infringe the intellectual
+	property rights of a third party.  If you are in a jurisdiction
+	where the disclaimer of implied warranties is not allowed, then
+	the above applies to you only to the extent permissible by the
+	applicable law.
+
+6. CSIRO limits its liability
+
+You are responsible for ensuring the Software is suitable for your
+own use or purpose, including compatibility with your computer
+programs or equipment.
+
+You assume all risk for any loss or damage resulting directly or
+indirectly from your downloading the Software into your equipment
+and from your use of or inability to use the Software.
+
+TO THE EXTENT PERMITTED BY LAW, CSIRO EXCLUDES ALL LIABILITY FOR
+ANY LOSS OR DAMAGE (INCLUDING DIRECT, INDIRECT, SPECIAL OR CONSEQUENTIAL
+LOSS OR DAMAGE) ARISING FROM YOUR USE OF THE SOFTWARE OR OTHERWISE
+IN CONNECTION WITH THIS LICENCE.
+
+WHERE ANY STATUTE OR LAW IMPLIES WARRANTIES OR CONDITIONS INTO THIS
+LICENCE, WHICH CANNOT BE LAWFULLY MODIFIED OR EXCLUDED UNDER THIS
+LICENCE ('NON-EXCLUDABLE CONDITION') THEN THIS LICENCE WILL BE READ
+SUBJECT TO SUCH NON-EXCLUDABLE CONDITION.  WHERE SUCH STATUTE OR
+LAW PERMITS, CSIRO LIMITS ITS LIABILITY TO YOU FOR BREACH OF SUCH
+NON-EXCLUDABLE CONDITION TO RE-SUPPLYING THE SOFTWARE.
+
+IF YOU ARE IN A JURISDICTION WHERE ANY OF THE ABOVE LIMITATION OF
+LIABILITY IS NOT PERMITTED, THEN THE PROHIBITED LIMITATION DOES NOT
+APPLY TO YOU.
+
+7. The end of the Licence
+
+This Licence is effective until terminated.
+
+CSIRO may terminate this Licence:
+
+(a)     immediately if you breach any of the Licence terms; or
+(b)     by giving 30 days notice on the Software Website.
+
+On termination, all your rights to use the Software cease and you
+must destroy all copies of the Software in your possession.
+
+8. No Use of CSIRO name
+
+You must not without written permission from CSIRO use the name,
+any trademark or logo of CSIRO to claim any sponsorship, endorsement,
+approval or affiliation or other association with CSIRO by virtue
+of this Licence.
+
+9. No Proprietary Rights Transferred
+
+Ownership and intellectual property rights in the Software remain
+with CSIRO. Nothing in this Licence grants to you ownership or
+intellectual property rights in the Software apart from the limited
+licence to use described in these terms.  You must not remove, alter
+or otherwise interfere with any trademark, logo, copyright or other
+proprietary notices, symbols or labels or copyright protection
+devices that may be incorporated in the Software.
+
+10. Resolving disputes
+
+In any dispute arising out of or in connection with this Licence,
+you agree to first negotiate in good faith with a senior CSIRO
+officer to resolve it.  If the dispute is not resolved by those
+negotiations within 30 days, you agree that the matter will be
+referred to the Australian Commercial Dispute Centre Limited ('ACDC')
+for resolution by mediation in accordance with the ACDC Guidelines
+on Mediation. However, this does not prevent CSIRO from seeking any
+urgent interlocutory relief.
+
+11. Entire agreement
+
+This Licence records the entire agreement between CSIRO and you and
+supersedes all earlier agreements and representations that may have
+been made by CSIRO to you about the Software.
+
+All international conventions that might import contractual terms
+into this Licence are excluded, including the United Nations
+Convention on Contracts for the International Sale of Goods.
+
+CSIRO may at any time and from time to time publish on the Software
+Website of its intention to vary the terms of the Licence (such
+notice will be posted no less than 30 days prior to the variation
+taking effect). If it does so, the variation specified will become
+effective on expiry of the notice period.
+
+12. The Governing law
+
+This Licence is governed by and construed in accordance with the
+laws of New South Wales, Australia and you agree to submit to the
+jurisdiction of the courts in that State.
+

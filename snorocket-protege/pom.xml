@@ -64,10 +64,45 @@
       <version>3.3</version>
     </dependency>
     <dependency>
+    	<groupId>org.protege</groupId>
+    	<artifactId>protege-editor-owl</artifactId>
+    	<version>4.1.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.protege</groupId>
+    	<artifactId>protege-editor-core-application</artifactId>
+    	<version>4.1.0</version>
+    </dependency>
+    <dependency>
 	  <groupId>log4j</groupId>
 	  <artifactId>log4j</artifactId>
 	  <version>1.2.16</version>
 	</dependency>
   </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+          <configuration>
+            <descriptors>
+              <descriptor>src/main/assembly/dist.xml</descriptor>
+            </descriptors>
+            <archive>
+              <manifestFile>src/main/assembly/MANIFEST.MF</manifestFile>
+            </archive>
+          </configuration>
+          <executions>
+            <execution>
+              <id>stage-assembly</id>
+              <phase>package</phase>
+              <goals>
+               	<goal>single</goal>
+              </goals>
+           </execution>
+         </executions>
+        </plugin>
+    </plugins>
+  </build>
 </project>
 
