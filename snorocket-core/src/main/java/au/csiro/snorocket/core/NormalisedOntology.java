@@ -1453,12 +1453,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             for(AbstractConcept ac : con.getConcepts()) {
                 concepts.add(transform(ac));
             }
-            try{
             return new au.csiro.ontology.model.Conjunction(concepts);
-            }catch(Exception e){ 
-                System.out.println(concepts); 
-                throw e;
-            }
         } else if(o instanceof Existential) {
             Existential e = (Existential)o;
             AbstractConcept c = e.getConcept();
