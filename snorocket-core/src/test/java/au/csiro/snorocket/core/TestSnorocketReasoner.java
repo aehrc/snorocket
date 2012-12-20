@@ -111,8 +111,6 @@ public class TestSnorocketReasoner {
             ex.printStackTrace();
             assertTrue(false);
         }
-        
-        // TODO: fix problem with TOP and BOTTOM
 
         // Add delta axioms and classify incrementally
         Concept<String> endocardium = new Concept<>("Endocardium");
