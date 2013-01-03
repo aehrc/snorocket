@@ -30,41 +30,20 @@ import au.csiro.snorocket.core.IFactory;
  * @author Michael Lawley
  * 
  */
-public final class NF1a extends NormalFormGCI {
+public final class NF1a extends NormalFormGCI implements IConjunctionQueueEntry {
 
     /**
      * Serialisation version.
      */
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     
     final private int lhsA;
     final private int rhsB;
-
-    private IConjunctionQueueEntry entry;
 
     private NF1a(final int lhs, final int rhs) {
         rhsB = rhs;
 
         lhsA = lhs;
-
-        entry = new IConjunctionQueueEntry() {
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 1L;
-
-            public int getB() {
-                return rhsB;
-            }
-
-            public int getBi() {
-                return IFactory.TOP_CONCEPT;
-            }
-
-            public String toString() {
-                return "ConjunctionQueueEntry[ [ " + rhsB + ": " + lhsA + "]";
-            }
-        };
     }
 
     static public NF1a getInstance(final int lhs, final int rhs) {
@@ -72,7 +51,7 @@ public final class NF1a extends NormalFormGCI {
     }
 
     public IConjunctionQueueEntry getQueueEntry() {
-        return entry;
+        return this;
     }
 
     public String toString() {
@@ -83,6 +62,14 @@ public final class NF1a extends NormalFormGCI {
         sb.append(rhsB);
 
         return sb.toString();
+    }
+
+    public int getB() {
+        return rhsB;
+    }
+
+    public int getBi() {
+        return IFactory.TOP_CONCEPT;
     }
 
     public int lhsA() {

@@ -29,6 +29,7 @@ import java.util.Set;
 import au.csiro.ontology.classification.IProgressMonitor;
 import au.csiro.ontology.classification.NullProgressMonitor;
 import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.util.Statistics;
 import au.csiro.snorocket.core.util.DenseConceptMap;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
@@ -350,6 +351,7 @@ public class PostProcessedData<T> {
     public void computeDag(
             final IConceptMap<IConceptSet> subsumptions,
             IProgressMonitor monitor) {
+        long start = System.currentTimeMillis();
         if (monitor == null)
             monitor = new NullProgressMonitor();
         conceptNodeIndex = new DenseConceptMap<>(factory.getTotalConcepts());
@@ -551,6 +553,8 @@ public class PostProcessedData<T> {
         // TODO: deal with special case where only top and bottom are present.
 
         monitor.taskEnded();
+        Statistics.INSTANCE.setTime("taxonomy construction",
+                System.currentTimeMillis() - start);
     }
 
     public void computeDeltaDag(final IFactory<T> factory,

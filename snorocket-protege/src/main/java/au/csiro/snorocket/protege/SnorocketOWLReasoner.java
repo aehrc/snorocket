@@ -122,6 +122,8 @@ public class SnorocketOWLReasoner implements OWLReasoner {
 
     // List of raw changes to the ontology
     private final List<OWLOntologyChange> rawChanges = new ArrayList<OWLOntologyChange>();
+    
+    private int numThreads = 1;
 
     /**
      * 
@@ -184,6 +186,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         problems.clear();
         factory = new Factory<>();
         reasoner = new NormalisedOntology<>(factory);
+        reasoner.setNumThreads(numThreads);
         ppd = new PostProcessedData<>(factory);
         monitor.taskEnded();
     }
@@ -231,6 +234,16 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private OWLDataProperty getOWLDataProperty(int f) {
         String iri = factory.lookupFeatureId(f);
         return owlFactory.getOWLDataProperty(IRI.create(iri));
+    }
+    
+    /**
+     * Sets the number of threads to be used by the reasoner.
+     * 
+     * @param numThreads
+     */
+    public void setNumThreads(int numThreads) {
+        this.numThreads = numThreads;
+        reasoner.setNumThreads(numThreads);
     }
 
     // //////////////////////////////////////////////////////////////////////////

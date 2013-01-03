@@ -173,8 +173,8 @@ final public class Factory<T> implements IFactory<T> {
                 final Object[] newConcepts = new Object[conceptIdCounter * 2];
                 System.arraycopy(concepts, 0, newConcepts, 0, conceptIdCounter);
                 concepts = newConcepts;
-                if (log.isDebugEnabled())
-                    log.debug("concept resize to: " + concepts.length);
+                if (log.isTraceEnabled())
+                    log.trace("Resizing concepts array to: " + concepts.length);
             }
             concepts[conceptIdCounter] = key;
             result = conceptIdCounter++;
@@ -191,8 +191,8 @@ final public class Factory<T> implements IFactory<T> {
                 final Object[] newRoles = new Object[roleIdCounter * 2];
                 System.arraycopy(roles, 0, newRoles, 0, roleIdCounter);
                 roles = newRoles;
-                if (log.isInfoEnabled()) {
-                    log.info("role resize to: " + roles.length);
+                if (log.isTraceEnabled()) {
+                    log.trace("role resize to: " + roles.length);
                 }
             }
             roles[roleIdCounter] = key;
@@ -210,8 +210,8 @@ final public class Factory<T> implements IFactory<T> {
                 final Object[] newFeatures = new Object[featureIdCounter * 2];
                 System.arraycopy(features, 0, newFeatures, 0, featureIdCounter);
                 features = newFeatures;
-                if (log.isInfoEnabled()) {
-                    log.info("feature resize to: " + features.length);
+                if (log.isTraceEnabled()) {
+                    log.trace("feature resize to: " + features.length);
                 }
             }
             features[featureIdCounter] = key;

@@ -49,6 +49,7 @@ import au.csiro.ontology.model.Concept;
 import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.Role;
+import au.csiro.ontology.util.Statistics;
 import au.csiro.snorocket.core.concurrent.Context;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
@@ -199,6 +200,8 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
         ppd.computeDag(no.getSubsumptions(), null);
         
+        long start = System.currentTimeMillis();
+        
         Map<T, Node<T>> res = new HashMap<>();
         
         // Two pass approach - first create the map with the new nodes without
@@ -236,6 +239,8 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             }
         }
         
+        Statistics.INSTANCE.setTime("taxonomy transformation",
+                System.currentTimeMillis() - start);
         return res;
     }
     

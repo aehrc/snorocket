@@ -49,6 +49,7 @@ import au.csiro.ontology.model.INamedRole;
 import au.csiro.ontology.model.IRole;
 import au.csiro.ontology.model.Operator;
 import au.csiro.ontology.model.Role;
+import au.csiro.ontology.util.Statistics;
 import au.csiro.snorocket.core.axioms.GCI;
 import au.csiro.snorocket.core.axioms.IConjunctionQueueEntry;
 import au.csiro.snorocket.core.axioms.IRoleQueueEntry;
@@ -194,6 +195,11 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      */
     private final Set<Context> newContexts = new HashSet<>();
     
+    /**
+     * The number of threads to use.
+     */
+    private int numThreads = 1;
+
     
     private static class ContextComparator implements Comparator<Context>, Serializable {
         /**
@@ -338,15 +344,21 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * @param inclusions
      */
     public void loadAxioms(final Set<? extends IAxiom> inclusions) {
+        long start = System.currentTimeMillis();
         if(log.isInfoEnabled())
             log.info("Loading " + inclusions.size() + " axioms");
         Set<Inclusion<T>> normInclusions = normalise(inclusions);
         if(log.isInfoEnabled())
             log.info("Processing " + normInclusions.size()
                 + " normalised axioms");
+        Statistics.INSTANCE.setTime("normalisation",
+                System.currentTimeMillis() - start);
+        start = System.currentTimeMillis();
         for (Inclusion<T> i : normInclusions) {
             addTerm(i.getNormalForm());
         }
+        Statistics.INSTANCE.setTime("indexing", 
+                System.currentTimeMillis() - start);
     }
     
     /**
@@ -452,7 +464,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * Returns a set of Inclusions in normal form suitable for classifying.
      */
     public Set<Inclusion<T>> normalise(final Set<? extends IAxiom> inclusions) {
-
+        
         // Exhaustively apply NF1 to NF4
         final Set<Inclusion<T>> done = new HashSet<>();
         Set<Inclusion<T>> oldIs = new HashSet<>();
@@ -501,7 +513,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                 }
             }
         } while (!newIs.isEmpty());
-
+        
         return done;
     }
 
@@ -1132,7 +1144,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * Starts the concurrent classification process.
      */
     public void classify() {
-        int numThreads = Runtime.getRuntime().availableProcessors();
+        long start = System.currentTimeMillis();
         if(log.isInfoEnabled())
             log.info("Classifying with " + numThreads + " threads");
 
@@ -1173,6 +1185,8 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         if (log.isTraceEnabled()) {
             log.trace("Processed " + contextIndex.size() + " contexts");
         }
+        Statistics.INSTANCE.setTime("classification",
+                System.currentTimeMillis() - start);
     }
 
     public IConceptMap<IConceptSet> getSubsumptions() {
@@ -1506,4 +1520,11 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         }
     }
 
+    /**
+     * @param numThreads the numThreads to set
+     */
+    public void setNumThreads(int numThreads) {
+        this.numThreads = numThreads;
+    }
+    
 }
