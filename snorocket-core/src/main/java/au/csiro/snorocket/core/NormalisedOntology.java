@@ -1196,7 +1196,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         for (IntIterator it = contextIndex.keyIterator(); it.hasNext();) {
             int key = it.next();
             Context ctx = contextIndex.get(key);
-            res.put(key, ctx.getS().getSet());
+            res.put(key, ctx.getS());
         }
         return res;
     }
@@ -1212,7 +1212,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                 newContexts.size());
         // Collect subsumptions from new contexts
         for (Context ctx : newContexts) {
-            res.put(ctx.getConcept(), ctx.getS().getSet());
+            res.put(ctx.getConcept(), ctx.getS());
         }
         return res;
     }
@@ -1237,7 +1237,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             int key = it.next();
             Context ctx = contextIndex.get(key);
             if (ctx.hasNewSubsumptions()) {
-                res.put(key, ctx.getS().getSet());
+                res.put(key, ctx.getS());
             }
         }
         return res;
