@@ -198,7 +198,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * The number of threads to use.
      */
-    private int numThreads = 1;
+    private int numThreads = Runtime.getRuntime().availableProcessors();
 
     
     private static class ContextComparator implements Comparator<Context>, Serializable {
@@ -714,7 +714,6 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         rePrimeNF8(as, subsumptions);
 
         // Classify
-        int numThreads = Runtime.getRuntime().availableProcessors();
         if(log.isInfoEnabled())
             log.info("Classifying incrementally with " + numThreads + 
                     " threads");
