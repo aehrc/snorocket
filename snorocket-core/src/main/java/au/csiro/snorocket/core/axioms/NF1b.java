@@ -29,7 +29,7 @@ package au.csiro.snorocket.core.axioms;
  * @author law223
  * 
  */
-public final class NF1b extends NormalFormGCI {
+public final class NF1b extends NormalFormGCI implements IConjunctionQueueEntry {
 
     /**
      * Serialisation version.
@@ -40,7 +40,6 @@ public final class NF1b extends NormalFormGCI {
     final private int lhsA2;
     final private int rhsB;
 
-    private IConjunctionQueueEntry entryA1;
     private IConjunctionQueueEntry entryA2;
 
     private NF1b(final int lhs1, final int lhs2, final int rhs) {
@@ -48,26 +47,6 @@ public final class NF1b extends NormalFormGCI {
 
         lhsA1 = lhs1;
         lhsA2 = lhs2;
-
-        entryA1 = new IConjunctionQueueEntry() {
-            /**
-             * Serialisation version.
-             */
-            private static final long serialVersionUID = 1L;
-
-            public int getB() {
-                return rhsB;
-            }
-
-            public int getBi() {
-                return lhsA2;
-            }
-
-            public String toString() {
-                return "ConjunctionQueueEntry[" + (lhsA2 < 0 ? "" : lhsA2)
-                        + " [ " + rhsB + ": " + lhsA1 + "]";
-            }
-        };
 
         entryA2 = new IConjunctionQueueEntry() {
             /**
@@ -95,7 +74,7 @@ public final class NF1b extends NormalFormGCI {
     }
 
     public IConjunctionQueueEntry getQueueEntry1() {
-        return entryA1;
+        return this;
     }
 
     public IConjunctionQueueEntry getQueueEntry2() {
@@ -131,6 +110,16 @@ public final class NF1b extends NormalFormGCI {
     @Override
     public int[] getConceptsInAxiom() {
         return new int[] { lhsA1, lhsA2, rhsB };
+    }
+
+    @Override
+    public int getB() {
+        return rhsB;
+    }
+
+    @Override
+    public int getBi() {
+        return lhsA2;
     }
 
 }
