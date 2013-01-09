@@ -65,7 +65,7 @@ import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IProgressMonitor;
 import au.csiro.ontology.importer.owl.OWLImporter;
 import au.csiro.snorocket.core.ClassNode;
-import au.csiro.snorocket.core.Factory;
+import au.csiro.snorocket.core.CoreFactory;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.PostProcessedData;
@@ -109,7 +109,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private final boolean buffering;
 
     // The reasoner's factory
-    private IFactory<String> factory = new Factory<>();
+    private IFactory<String> factory = new CoreFactory<>();
 
     // The core reasoner
     private NormalisedOntology<String> reasoner = new NormalisedOntology<>(factory);
@@ -152,7 +152,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         loadAxioms();
         reasoner.classify();
         final IConceptMap<IConceptSet> s = reasoner.getSubsumptions();
-        ppd.computeDag(s, monitor);
+        ppd.computeDag(s, false, monitor);
     }
 
     /**
@@ -184,7 +184,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private void reset() {
         monitor.taskStarted("Clearing state");
         problems.clear();
-        factory = new Factory<>();
+        factory = new CoreFactory<>();
         reasoner = new NormalisedOntology<>(factory);
         reasoner.setNumThreads(numThreads);
         ppd = new PostProcessedData<>(factory);
@@ -308,7 +308,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             final IConceptMap<IConceptSet> n = reasoner.getNewSubsumptions();
             final IConceptMap<IConceptSet> a = reasoner
                     .getAffectedSubsumptions();
-            ppd.computeDagIncremental(n, a, monitor);
+            ppd.computeDagIncremental(n, a, false, monitor);
         }
 
         rawChanges.clear();

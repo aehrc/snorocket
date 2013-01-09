@@ -98,8 +98,8 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             throw new RuntimeException(e);
         }
         Concept.reconnectTopBottom(
-                (IConcept)res.factory.lookupConceptId(Factory.TOP_CONCEPT), 
-                (IConcept)res.factory.lookupConceptId(Factory.BOTTOM_CONCEPT));
+                (IConcept)res.factory.lookupConceptId(CoreFactory.TOP_CONCEPT), 
+                (IConcept)res.factory.lookupConceptId(CoreFactory.BOTTOM_CONCEPT));
         Context.init(res.no);
         return res;
     }
@@ -116,7 +116,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
     @Override
     public IReasoner<T> classify(Set<IAxiom> axioms) {
         if(!isClassified) {
-            factory = new Factory<T>();
+            factory = new CoreFactory<T>();
             no = new NormalisedOntology<T>(factory);
             no.loadAxioms(new HashSet<IAxiom>(axioms));
             no.classify();
@@ -166,7 +166,9 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         }
         
         log.info("Building taxonomy");
-        Map<T, Node<T>> t = getInternalTaxonomy();
+        // We only get the full taxonomy, including the virtual concepts if we
+        // need the inferred axioms
+        Map<T, Node<T>> t = getInternalTaxonomy(includeInferredAxioms);
         
         // Optimisation for the scenario where only the taxonomy is needed
         if(includeTaxonomy && !includeStatedAxioms && !includeInferredAxioms) {
@@ -194,11 +196,12 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         return res;
     }
     
-    private Map<T, Node<T>> getInternalTaxonomy() {
+    private Map<T, Node<T>> getInternalTaxonomy(
+            boolean includeVirtualConcepts) {
         assert(no != null);
         
         PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
-        ppd.computeDag(no.getSubsumptions(), null);
+        ppd.computeDag(no.getSubsumptions(), includeVirtualConcepts, null);
         
         long start = System.currentTimeMillis();
         
@@ -250,6 +253,14 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
     
     @SuppressWarnings("unchecked")
     private Collection<IAxiom> getInferredAxioms(Map<T, Node<T>> t) {
+        
+        // TODO: missing all the axioms where the LHS is complex!!!
+        // In Endocarditis i.e.  HeartDisease n hasLoc.HeartValve [ CriticalDisease
+        
+        // The problem is that the taxonomy does not include "complex" concepts
+        // and the factory is storing not only T's but also model objects. How
+        // do we deal with this?
+        
         // Get the is-a relationships that correspond to the proximal super type
         // view
         Node<T> top = t.get(factory.lookupConceptId(IFactory.TOP_CONCEPT));
@@ -395,7 +406,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             return null;
         
         PostProcessedData<T> ppd = new PostProcessedData<T>(factory);
-        ppd.computeDag(no.getSubsumptions(), null);
+        ppd.computeDag(no.getSubsumptions(), false, null);
         
         Map<T, Node<T>> res = new HashMap<>();
         
