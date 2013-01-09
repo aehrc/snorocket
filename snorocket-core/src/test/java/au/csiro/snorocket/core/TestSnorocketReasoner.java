@@ -9,12 +9,14 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
 
 import au.csiro.ontology.IOntology;
+import au.csiro.ontology.IOntology.AxiomForm;
 import au.csiro.ontology.Node;
 import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
@@ -288,7 +290,7 @@ public class TestSnorocketReasoner {
         
         IOntology<String> ont = sr.getClassifiedOntology(true, true, true);
         
-        // Test results
+        // Test taxonomy results
         Node<String> bottomNode = ont.getBottomNode();
         Set<Node<String>> bottomRes = bottomNode.getParents();
 
@@ -360,6 +362,14 @@ public class TestSnorocketReasoner {
         Set<Node<String>> criticalDiseaseRes = criticalDiseaseNode.getParents();
         assertTrue(criticalDiseaseRes.size() == 1);
         assertTrue(criticalDiseaseRes.contains(ont.getTopNode()));
+        
+        // Test inferred axioms
+        Collection<IAxiom> ias = ont.getAxioms(AxiomForm.INFERRED);
+        for(IAxiom ia : ias) {
+            System.out.println(ia);
+        }
+        
+        // TODO: finish this test
     }
 
 }

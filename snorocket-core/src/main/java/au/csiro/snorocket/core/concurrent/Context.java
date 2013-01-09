@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import au.csiro.ontology.model.Operator;
-import au.csiro.snorocket.core.Factory;
+import au.csiro.snorocket.core.CoreFactory;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.IQueue;
 import au.csiro.snorocket.core.NormalisedOntology;
@@ -466,7 +466,7 @@ public class Context implements Serializable {
 
                                 @Override
                                 public int getBi() {
-                                    return Factory.TOP_CONCEPT;
+                                    return CoreFactory.TOP_CONCEPT;
                                 }
 
                                 @Override
@@ -904,7 +904,7 @@ public class Context implements Serializable {
 
                                 @Override
                                 public int getBi() {
-                                    return Factory.TOP_CONCEPT;
+                                    return CoreFactory.TOP_CONCEPT;
                                 }
 
                                 @Override

@@ -699,7 +699,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         
         if(log.isInfoEnabled()) 
             log.info("Added " + numNewConcepts + 
-                    " new concepts to the ontology.");
+                    " new concepts to the ontology");
 
         // TODO: this is potentially slow
         IConceptMap<IConceptSet> subsumptions = getSubsumptions();
