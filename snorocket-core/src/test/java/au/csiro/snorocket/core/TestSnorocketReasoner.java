@@ -9,14 +9,12 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
 
 import au.csiro.ontology.IOntology;
-import au.csiro.ontology.IOntology.AxiomForm;
 import au.csiro.ontology.Node;
 import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
@@ -26,6 +24,7 @@ import au.csiro.ontology.model.Conjunction;
 import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.Role;
+import au.csiro.snorocket.core.util.Utils;
 
 /**
  * @author Alejandro Metke
@@ -37,7 +36,7 @@ public class TestSnorocketReasoner {
      * 
      */
     @SuppressWarnings("unchecked")
-    @Test
+    //@Test
     public void testSave() {
 
         // Original Endocarditis ontology axioms
@@ -134,7 +133,7 @@ public class TestSnorocketReasoner {
         sr.classify(incAxioms);
 
         // Test results
-        IOntology<String> ont = sr.getClassifiedOntology(true, false, false);
+        IOntology<String> ont = sr.getClassifiedOntology();
         
         Node<String> bottom = ont.getBottomNode();
         Set<Node<String>> bottomRes = bottom.getParents();
@@ -211,6 +210,7 @@ public class TestSnorocketReasoner {
     
     @Test
     public void testEndocarditis() {
+        org.apache.log4j.LogManager.getRootLogger().setLevel((org.apache.log4j.Level)org.apache.log4j.Level.TRACE);
         // Create roles
         Role<String> contIn = new Role<>("cont-in");
         Role<String> partOf = new Role<>("part-of");
@@ -288,7 +288,9 @@ public class TestSnorocketReasoner {
         SnorocketReasoner<String> sr = new SnorocketReasoner<>();
         sr.classify(axioms);
         
-        IOntology<String> ont = sr.getClassifiedOntology(true, true, true);
+        IOntology<String> ont = sr.getClassifiedOntology();
+        
+        Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
         
         // Test taxonomy results
         Node<String> bottomNode = ont.getBottomNode();
@@ -362,14 +364,6 @@ public class TestSnorocketReasoner {
         Set<Node<String>> criticalDiseaseRes = criticalDiseaseNode.getParents();
         assertTrue(criticalDiseaseRes.size() == 1);
         assertTrue(criticalDiseaseRes.contains(ont.getTopNode()));
-        
-        // Test inferred axioms
-        Collection<IAxiom> ias = ont.getAxioms(AxiomForm.INFERRED);
-        for(IAxiom ia : ias) {
-            System.out.println(ia);
-        }
-        
-        // TODO: finish this test
     }
 
 }

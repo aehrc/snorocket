@@ -463,6 +463,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * Returns a set of Inclusions in normal form suitable for classifying.
      */
+    @SuppressWarnings("rawtypes")
     public Set<Inclusion<T>> normalise(final Set<? extends IAxiom> inclusions) {
         
         // Exhaustively apply NF1 to NF4
@@ -514,7 +515,86 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             }
         } while (!newIs.isEmpty());
         
+        if(log.isTraceEnabled()) {
+            log.trace("Normalised axioms:");
+            for(Inclusion<T> inc : done) {
+                StringBuilder sb = new StringBuilder();
+                if(inc instanceof GCI) {
+                    GCI gci = (GCI)inc;
+                    sb.append(printInternalObject(gci.lhs()));
+                    sb.append(" [ ");
+                    sb.append(printInternalObject(gci.rhs()));
+                } else if(inc instanceof RI) {
+                    RI ri = (RI)inc;
+                    int[] lhs = ri.getLhs();
+                    sb.append(factory.lookupRoleId(lhs[0]));
+                    for(int i = 1; i < lhs.length; i++) {
+                        sb.append(" * ");
+                        sb.append(factory.lookupRoleId(lhs[i]));
+                    }
+                    sb.append(" [ ");
+                    sb.append(factory.lookupRoleId(ri.getRhs()));
+                }
+                log.trace(sb.toString());
+            }
+        }
+        
         return done;
+    }
+    
+    /**
+     * Prints an object of the internal model using the string representation
+     * of the corresponding object in the external model.
+     * 
+     * @param o
+     * @return
+     */
+    private String printInternalObject(Object o) {
+        if(o instanceof Conjunction) {
+            Conjunction con = (Conjunction)o;
+            StringBuilder sb = new StringBuilder();
+            AbstractConcept[] cons = con.getConcepts();
+            sb.append(printInternalObject(cons[0]));
+            for(int i = 1; i < cons.length; i++) {
+                sb.append(" + ");
+                sb.append(printInternalObject(cons[i]));
+            }
+            return sb.toString();
+        } else if(o instanceof Existential) {
+            Existential e = (Existential)o;
+            AbstractConcept c = e.getConcept();
+            int role = e.getRole();
+            return factory.lookupRoleId(role)+"."+printInternalObject(c);
+        } else if(o instanceof Datatype) {
+            StringBuilder sb = new StringBuilder();
+            Datatype d = (Datatype)o;
+            T feature = factory.lookupFeatureId(d.getFeature());
+            sb.append(feature.toString());
+            sb.append(".(");
+            Operator op = d.getOperator();
+            sb.append(op.toString());
+            sb.append(",");
+            AbstractLiteral literal = d.getLiteral();
+            sb.append(literal);
+            sb.append(")");
+            return sb.toString();
+        } else if(o instanceof Concept) {
+            Object obj = factory.lookupConceptId(((Concept)o).hashCode());
+            if(obj == au.csiro.ontology.model.Concept.TOP) {
+                return "TOP";
+            } else if(obj == au.csiro.ontology.model.Concept.BOTTOM) {
+                return "BOTTOM";
+            } else if(obj instanceof AbstractConcept) {
+                return "<"+printInternalObject(obj)+">";
+            } else {
+                return obj.toString();
+            }
+        } else if(o instanceof Comparable<?>) {
+            return o.toString();
+        } else {
+            throw new RuntimeException("Unexpected object with class "+
+                    o.getClass().getName());
+        }
     }
 
     /**
@@ -687,7 +767,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                         todo.add(c);
                     }
                     if (log.isTraceEnabled()) {
-                        log.trace("Added context " + c);
+                        log.trace("Added context " + cid);
                     }
 
                     // Keep track of the newly added contexts
@@ -1158,7 +1238,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                 todo.add(c);
             }
             if(log.isTraceEnabled()) {
-                log.trace("Added context " + c);
+                log.trace("Added context " + i);
             }
         }
         

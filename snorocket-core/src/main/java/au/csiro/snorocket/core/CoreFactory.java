@@ -130,8 +130,6 @@ final public class CoreFactory<T> implements IFactory<T> {
     @SuppressWarnings("unchecked")
     @Override
     public T lookupRoleId(final int id) {
-        // FIXME: why is this assertion failing with Endocarditis example +
-        // logging
         assert id >= roleBase && id <= roleIdCounter + roleBase;
         return (T) roles[id - roleBase];
     }
