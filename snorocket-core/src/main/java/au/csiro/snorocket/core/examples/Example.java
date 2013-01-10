@@ -9,7 +9,6 @@ import java.util.Set;
 
 import au.csiro.ontology.Factory;
 import au.csiro.ontology.IOntology;
-import au.csiro.ontology.Node;
 import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IReasoner;
@@ -18,6 +17,7 @@ import au.csiro.ontology.model.INamedFeature;
 import au.csiro.ontology.model.INamedRole;
 import au.csiro.ontology.model.Operator;
 import au.csiro.snorocket.core.SnorocketReasoner;
+import au.csiro.snorocket.core.util.Utils;
 
 /**
  * This class contains several examples of how to use the Snorocket API for
@@ -180,35 +180,8 @@ public class Example {
         r = r.classify(axioms);
         
         // Get only the taxonomy
-        IOntology<String> res = r.getClassifiedOntology(true, false, false);
-        printTaxonomy(res.getTopNode(), res.getBottomNode());
-    }
-    
-    ////////////////////////////////////////////////////////////////////////////
-    // Helper Methods
-    ////////////////////////////////////////////////////////////////////////////
-    
-    private static void printTaxonomy(Node<String> top, Node<String> bottom) {
-        for(Node<String> child : top.getChildren()) {
-            printTaxonomyLevel(child, bottom, 0);
-        }
-    }
-    
-    private static void printTaxonomyLevel(Node<String> root, 
-            Node<String> bottom, int level) {
-        if(root.equals(bottom)) return;
-        System.out.println(spaces(level)+root.toString());
-        for(Node<String> child : root.getChildren()) {
-            printTaxonomyLevel(child, bottom, level+1);
-        }
-    }
-    
-    private static String spaces(int num) {
-        StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < num; i++) {
-            sb.append("  ");
-        }
-        return sb.toString();
+        IOntology<String> res = r.getClassifiedOntology();
+        Utils.printTaxonomy(res.getTopNode(), res.getBottomNode());
     }
     
     /**
