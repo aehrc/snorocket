@@ -18,7 +18,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>snorocket-core</artifactId>
   <packaging>jar</packaging>
-  <name>Snorocket Classifier Implementation</name>
+  <name>${branch}: Classifier Implementation</name>
 
   <parent>
     <groupId>au.csiro</groupId>
