@@ -31,7 +31,7 @@ import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.RoleSet;
 import au.csiro.snorocket.core.util.SparseConceptSet;
 
-final public class Factory<T> implements IFactory<T> {
+final public class CoreFactory<T> implements IFactory<T> {
     
     /**
      * Serialisation version.
@@ -41,7 +41,7 @@ final public class Factory<T> implements IFactory<T> {
     /**
      * Logger.
      */
-    private final static Logger log = Logger.getLogger(Factory.class);
+    private final static Logger log = Logger.getLogger(CoreFactory.class);
     
     private static final int SIZE_ESTIMATE = 3000;
 
@@ -82,7 +82,7 @@ final public class Factory<T> implements IFactory<T> {
      * @param bottom The object to represent bottom.
      * @param roleGroup The object to represent role group.
      */
-    public Factory() {
+    public CoreFactory() {
         this(0, 0, 0);
 
         final int topId = getConcept(Concept.TOP);
@@ -92,7 +92,7 @@ final public class Factory<T> implements IFactory<T> {
         assert BOTTOM_CONCEPT == bottomId;
     }
 
-    Factory(final int conceptBase, final int roleBase, final int featureBase) {
+    CoreFactory(final int conceptBase, final int roleBase, final int featureBase) {
         this.conceptBase = conceptBase;
         this.roleBase = roleBase;
         this.featureBase = featureBase;
@@ -130,9 +130,7 @@ final public class Factory<T> implements IFactory<T> {
     @SuppressWarnings("unchecked")
     @Override
     public T lookupRoleId(final int id) {
-        // FIXME: why is this assertion failing with Endocarditis example +
-        // logging
-        // assert id >= roleBase && id <= roleIdCounter + roleBase;
+        assert id >= roleBase && id <= roleIdCounter + roleBase;
         return (T) roles[id - roleBase];
     }
 
@@ -173,8 +171,8 @@ final public class Factory<T> implements IFactory<T> {
                 final Object[] newConcepts = new Object[conceptIdCounter * 2];
                 System.arraycopy(concepts, 0, newConcepts, 0, conceptIdCounter);
                 concepts = newConcepts;
-                if (log.isDebugEnabled())
-                    log.debug("concept resize to: " + concepts.length);
+                if (log.isTraceEnabled())
+                    log.trace("Resizing concepts array to: " + concepts.length);
             }
             concepts[conceptIdCounter] = key;
             result = conceptIdCounter++;
@@ -191,8 +189,8 @@ final public class Factory<T> implements IFactory<T> {
                 final Object[] newRoles = new Object[roleIdCounter * 2];
                 System.arraycopy(roles, 0, newRoles, 0, roleIdCounter);
                 roles = newRoles;
-                if (log.isInfoEnabled()) {
-                    log.info("role resize to: " + roles.length);
+                if (log.isTraceEnabled()) {
+                    log.trace("role resize to: " + roles.length);
                 }
             }
             roles[roleIdCounter] = key;
@@ -210,8 +208,8 @@ final public class Factory<T> implements IFactory<T> {
                 final Object[] newFeatures = new Object[featureIdCounter * 2];
                 System.arraycopy(features, 0, newFeatures, 0, featureIdCounter);
                 features = newFeatures;
-                if (log.isInfoEnabled()) {
-                    log.info("feature resize to: " + features.length);
+                if (log.isTraceEnabled()) {
+                    log.trace("feature resize to: " + features.length);
                 }
             }
             features[featureIdCounter] = key;

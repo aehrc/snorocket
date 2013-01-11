@@ -29,6 +29,7 @@ import java.util.Set;
 import au.csiro.ontology.classification.IProgressMonitor;
 import au.csiro.ontology.classification.NullProgressMonitor;
 import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.util.Statistics;
 import au.csiro.snorocket.core.util.DenseConceptMap;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
@@ -94,6 +95,7 @@ public class PostProcessedData<T> {
     public void computeDagIncremental(
             final IConceptMap<IConceptSet> newConceptSubs,
             final IConceptMap<IConceptSet> affectedConceptSubs,
+            boolean includeVirtualConcepts,
             IProgressMonitor monitor) {
 
         // 1. Keep only the subsumptions that involve real atomic concepts
@@ -105,13 +107,14 @@ public class PostProcessedData<T> {
 
         for (IntIterator itr = newConceptSubs.keyIterator(); itr.hasNext();) {
             final int x = itr.next();
-            if (!factory.isVirtualConcept(x)) {
+            if (!factory.isVirtualConcept(x) || includeVirtualConcepts) {
                 IConceptSet set = new SparseConceptHashSet();
                 allNew.put(x, set);
                 for (IntIterator it = newConceptSubs.get(x).iterator(); it
                         .hasNext();) {
                     int next = it.next();
-                    if (!factory.isVirtualConcept(next)) {
+                    if (!factory.isVirtualConcept(next) || 
+                            includeVirtualConcepts) {
                         set.add(next);
                     }
                 }
@@ -120,13 +123,14 @@ public class PostProcessedData<T> {
 
         for (IntIterator itr = affectedConceptSubs.keyIterator(); itr.hasNext();) {
             final int x = itr.next();
-            if (!factory.isVirtualConcept(x)) {
+            if (!factory.isVirtualConcept(x) || includeVirtualConcepts) {
                 IConceptSet set = new SparseConceptHashSet();
                 allAffected.put(x, set);
                 for (IntIterator it = affectedConceptSubs.get(x).iterator(); it
                         .hasNext();) {
                     int next = it.next();
-                    if (!factory.isVirtualConcept(next)) {
+                    if (!factory.isVirtualConcept(next) || 
+                            includeVirtualConcepts) {
                         set.add(next);
                     }
                 }
@@ -348,8 +352,10 @@ public class PostProcessedData<T> {
     }
 
     public void computeDag(
-            final IConceptMap<IConceptSet> subsumptions,
+            final IConceptMap<IConceptSet> subsumptions, 
+            boolean includeVirtualConcepts,
             IProgressMonitor monitor) {
+        long start = System.currentTimeMillis();
         if (monitor == null)
             monitor = new NullProgressMonitor();
         conceptNodeIndex = new DenseConceptMap<>(factory.getTotalConcepts());
@@ -360,13 +366,14 @@ public class PostProcessedData<T> {
 
         for (IntIterator itr = subsumptions.keyIterator(); itr.hasNext();) {
             final int X = itr.next();
-            if (!factory.isVirtualConcept(X)) {
+            if (!factory.isVirtualConcept(X) || includeVirtualConcepts) {
                 IConceptSet set = new SparseConceptHashSet();
                 cis.put(X, set);
                 for (IntIterator it = subsumptions.get(X).iterator(); it
                         .hasNext();) {
                     int next = it.next();
-                    if (!factory.isVirtualConcept(next)) {
+                    if (!factory.isVirtualConcept(next) || 
+                            includeVirtualConcepts) {
                         set.add(next);
                     }
                 }
@@ -421,12 +428,12 @@ public class PostProcessedData<T> {
             }
         }
 
-        int bottomConcept = Factory.BOTTOM_CONCEPT;
+        int bottomConcept = CoreFactory.BOTTOM_CONCEPT;
         if (!equiv.containsKey(bottomConcept)) {
             addToSet(equiv, bottomConcept, bottomConcept);
         }
 
-        int topConcept = Factory.TOP_CONCEPT;
+        int topConcept = CoreFactory.TOP_CONCEPT;
         if (!equiv.containsKey(topConcept)) {
             addToSet(equiv, topConcept, topConcept);
         }
@@ -463,9 +470,9 @@ public class PostProcessedData<T> {
             n.getEquivalentConcepts().addAll(equivs);
             for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
                 int e = it2.next();
-                if (e == Factory.TOP_CONCEPT)
+                if (e == CoreFactory.TOP_CONCEPT)
                     top = n;
-                if (e == Factory.BOTTOM_CONCEPT)
+                if (e == CoreFactory.BOTTOM_CONCEPT)
                     bottom = n;
                 conceptNodeIndex.put(e, n);
             }
@@ -512,10 +519,10 @@ public class PostProcessedData<T> {
 
         for (IntIterator it = conceptNodeIndex.keyIterator(); it.hasNext();) {
             int key = it.next();
-            if (key == Factory.BOTTOM_CONCEPT || key == Factory.TOP_CONCEPT)
+            if (key == CoreFactory.BOTTOM_CONCEPT || key == CoreFactory.TOP_CONCEPT)
                 continue;
             ClassNode node = (ClassNode) conceptNodeIndex.get(key);
-            if (node.getEquivalentConcepts().contains(Factory.BOTTOM_CONCEPT))
+            if (node.getEquivalentConcepts().contains(CoreFactory.BOTTOM_CONCEPT))
                 continue;
             if (node.getChildren().isEmpty()) {
                 bottom.getParents().add(node);
@@ -534,7 +541,7 @@ public class PostProcessedData<T> {
 
         for (IntIterator it = conceptNodeIndex.keyIterator(); it.hasNext();) {
             int key = it.next();
-            if (key == Factory.BOTTOM_CONCEPT || key == Factory.TOP_CONCEPT)
+            if (key == CoreFactory.BOTTOM_CONCEPT || key == CoreFactory.TOP_CONCEPT)
                 continue;
             ClassNode node = (ClassNode) conceptNodeIndex.get(key);
             if (node.getParents().isEmpty()) {
@@ -551,13 +558,8 @@ public class PostProcessedData<T> {
         // TODO: deal with special case where only top and bottom are present.
 
         monitor.taskEnded();
-    }
-
-    public void computeDeltaDag(final IFactory<T> factory,
-            final IConceptMap<IConceptSet> subsumptions,
-            final IConceptMap<IConceptSet> baseSubsumptions,
-            IProgressMonitor monitor) {
-        // TODO: implement - used by SNAPI
+        Statistics.INSTANCE.setTime("taxonomy construction",
+                System.currentTimeMillis() - start);
     }
 
     public IConceptMap<IConceptSet> getParents(final IFactory<T> factory) {
