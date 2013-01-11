@@ -50,7 +50,7 @@ public class TestConcreteDomains {
      */
     @Test
     public void testConcreteDomainsEqualityInts() {
-        IFactory<String> factory = new Factory<>();
+        IFactory<String> factory = new CoreFactory<>();
 
         // Add roles
         Role<String> container = new Role<>("container");
@@ -117,13 +117,13 @@ public class TestConcreteDomains {
 
         // Build taxonomy
         PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-        ppd.computeDag(s, null);
+        ppd.computeDag(s, false, null);
 
         // Test results
         ClassNode panadolNode = ppd.getEquivalents(panadol.getId());
         Set<ClassNode> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
-        assertTrue(panadolRes.contains(ppd.getEquivalents(Factory.TOP_CONCEPT)));
+        assertTrue(panadolRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
 
         ClassNode panadol_250mgNode = ppd.getEquivalents(panadol_250mg.getId());
         Set<ClassNode> panadol_250mgRes = panadol_250mgNode.getParents();
@@ -149,12 +149,12 @@ public class TestConcreteDomains {
         Set<ClassNode> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
         assertTrue(paracetamolRes.contains(ppd
-                .getEquivalents(Factory.TOP_CONCEPT)));
+                .getEquivalents(CoreFactory.TOP_CONCEPT)));
 
         ClassNode bottleNode = ppd.getEquivalents(bottle.getId());
         Set<ClassNode> bottleRes = bottleNode.getParents();
         assertTrue(bottleRes.size() == 1);
-        assertTrue(bottleRes.contains(ppd.getEquivalents(Factory.TOP_CONCEPT)));
+        assertTrue(bottleRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
     }
 
     /**
@@ -172,7 +172,7 @@ public class TestConcreteDomains {
      */
     @Test
     public void testConcreteDomainsEqualityFloats() {
-        IFactory<String> factory = new Factory<>();
+        IFactory<String> factory = new CoreFactory<>();
 
         // Add roles
         Role<String> container = new Role<>("container");
@@ -239,13 +239,13 @@ public class TestConcreteDomains {
 
         // Build taxonomy
         PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-        ppd.computeDag(s, null);
+        ppd.computeDag(s, false, null);
 
         // Test results
         ClassNode panadolNode = ppd.getEquivalents(panadol.getId());
         Set<ClassNode> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
-        assertTrue(panadolRes.contains(ppd.getEquivalents(Factory.TOP_CONCEPT)));
+        assertTrue(panadolRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
 
         ClassNode panadol_250mgNode = ppd.getEquivalents(panadol_250mg.getId());
         Set<ClassNode> panadol_250mgRes = panadol_250mgNode.getParents();
@@ -271,12 +271,12 @@ public class TestConcreteDomains {
         Set<ClassNode> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
         assertTrue(paracetamolRes.contains(ppd
-                .getEquivalents(Factory.TOP_CONCEPT)));
+                .getEquivalents(CoreFactory.TOP_CONCEPT)));
 
         ClassNode bottleNode = ppd.getEquivalents(bottle.getId());
         Set<ClassNode> bottleRes = bottleNode.getParents();
         assertTrue(bottleRes.size() == 1);
-        assertTrue(bottleRes.contains(ppd.getEquivalents(Factory.TOP_CONCEPT)));
+        assertTrue(bottleRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
     }
 
     /**
@@ -294,7 +294,7 @@ public class TestConcreteDomains {
      */
     @Test
     public void testConcreteDomainsEqualityStrings() {
-        IFactory<String> factory = new Factory<>();
+        IFactory<String> factory = new CoreFactory<>();
 
         // Add roles
         Role<String> container = new Role<>("container");
@@ -361,13 +361,13 @@ public class TestConcreteDomains {
 
         // Build taxonomy
         PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-        ppd.computeDag(s, null);
+        ppd.computeDag(s, false, null);
 
         // Test results
         ClassNode panadolNode = ppd.getEquivalents(panadol.getId());
         Set<ClassNode> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
-        assertTrue(panadolRes.contains(ppd.getEquivalents(Factory.TOP_CONCEPT)));
+        assertTrue(panadolRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
 
         ClassNode panadol_250mgNode = ppd.getEquivalents(panadol_250mg.getId());
         Set<ClassNode> panadol_250mgRes = panadol_250mgNode.getParents();
@@ -393,12 +393,12 @@ public class TestConcreteDomains {
         Set<ClassNode> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
         assertTrue(paracetamolRes.contains(ppd
-                .getEquivalents(Factory.TOP_CONCEPT)));
+                .getEquivalents(CoreFactory.TOP_CONCEPT)));
 
         ClassNode bottleNode = ppd.getEquivalents(bottle.getId());
         Set<ClassNode> bottleRes = bottleNode.getParents();
         assertTrue(bottleRes.size() == 1);
-        assertTrue(bottleRes.contains(ppd.getEquivalents(Factory.TOP_CONCEPT)));
+        assertTrue(bottleRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
     }
 
     /**
@@ -408,7 +408,7 @@ public class TestConcreteDomains {
      */
     @Test
     public void testConcreteDomainsOperators() {
-        IFactory<String> factory = new Factory<>();
+        IFactory<String> factory = new CoreFactory<>();
 
         // Add roles
         Role<String> contains = new Role<>("contains");
@@ -464,7 +464,7 @@ public class TestConcreteDomains {
 
         // Build taxonomy
         PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-        ppd.computeDag(s, null);
+        ppd.computeDag(s, false, null);
 
         // Test results
         ClassNode panadolNode = ppd.getEquivalents(panadol.getId());

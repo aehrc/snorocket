@@ -1,0 +1,60 @@
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)
+Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+Prefix(:=<>)
+
+Ontology(<http://www.semanticweb.org/ontologies/2012/12/concrete_domains.owl>
+
+Declaration(Class(:Panadol))
+Declaration(Class(:Paracetamol))
+Declaration(Class(:Patient))
+Declaration(Class(:X))
+Declaration(ObjectProperty(:contains))
+Declaration(ObjectProperty(:hasPrescription))
+Declaration(DataProperty(:mgPerTablet))
+Declaration(DataProperty(:hasAge))
+SubClassOf(
+	:Panadol 
+	ObjectSomeValuesFrom(
+		:contains 
+		ObjectIntersectionOf( 
+			:Paracetamol
+			DataSomeValuesFrom(:mgPerTablet DataOneOf("500"^^xsd:integer))
+		)
+	)
+) 
+SubClassOf(
+	ObjectIntersectionOf(
+		:Patient 
+		DataSomeValuesFrom(
+			:hasAge 
+			DatatypeRestriction( xsd:integer xsd:maxExclusive "6"^^xsd:integer ) 
+		) 
+		ObjectSomeValuesFrom(
+			:hasPrescription 
+			ObjectSomeValuesFrom(
+				:contains 
+				ObjectIntersectionOf(
+					:Paracetamol 
+					DataSomeValuesFrom(:mgPerTablet DatatypeRestriction( xsd:integer xsd:minExclusive "250"^^xsd:integer))
+				)
+			)
+		)
+	)			
+	owl:Nothing
+)
+
+SubClassOf(
+	:X
+	ObjectIntersectionOf(
+		:Patient
+		DataHasValue(:hasAge "3"^^xsd:integer)
+		ObjectSomeValuesFrom(
+			:hasPrescription
+			:Panadol
+		)
+	)
+)
+)

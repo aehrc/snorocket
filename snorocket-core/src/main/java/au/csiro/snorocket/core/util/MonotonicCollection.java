@@ -61,8 +61,8 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
         if (count == data.length) {
             final int newSize = count < 134217728 ? count << 1
                     : count + 10000000;
-            if (log.isDebugEnabled() && count > 1024)
-                log.debug(hashCode() + "\t"
+            if (log.isTraceEnabled() && count > 1024)
+                log.trace(hashCode() + "\t"
                         + getClass().getSimpleName() + " resize to: "
                         + (newSize));
             // For SNOMED 20061230, only a couple of these grow to 2048 entries

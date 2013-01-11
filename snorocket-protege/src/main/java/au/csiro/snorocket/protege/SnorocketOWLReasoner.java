@@ -60,12 +60,11 @@ import org.semanticweb.owlapi.reasoner.impl.OWLObjectPropertyNode;
 import org.semanticweb.owlapi.util.Version;
 
 import au.csiro.ontology.IOntology;
-import au.csiro.ontology.IOntology.AxiomForm;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IProgressMonitor;
 import au.csiro.ontology.importer.owl.OWLImporter;
 import au.csiro.snorocket.core.ClassNode;
-import au.csiro.snorocket.core.Factory;
+import au.csiro.snorocket.core.CoreFactory;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.NormalisedOntology;
 import au.csiro.snorocket.core.PostProcessedData;
@@ -109,7 +108,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private final boolean buffering;
 
     // The reasoner's factory
-    private IFactory<String> factory = new Factory<>();
+    private IFactory<String> factory = new CoreFactory<>();
 
     // The core reasoner
     private NormalisedOntology<String> reasoner = new NormalisedOntology<>(factory);
@@ -122,6 +121,8 @@ public class SnorocketOWLReasoner implements OWLReasoner {
 
     // List of raw changes to the ontology
     private final List<OWLOntologyChange> rawChanges = new ArrayList<OWLOntologyChange>();
+    
+    private int numThreads = 1;
 
     /**
      * 
@@ -150,7 +151,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         loadAxioms();
         reasoner.classify();
         final IConceptMap<IConceptSet> s = reasoner.getSubsumptions();
-        ppd.computeDag(s, monitor);
+        ppd.computeDag(s, false, monitor);
     }
 
     /**
@@ -169,7 +170,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             Map<String, IOntology<String>> map = res.get(key);
             for(String ikey : map.keySet()) {
                 IOntology<String> o = map.get(ikey);
-                Collection<IAxiom> axioms = o.getAxioms(AxiomForm.STATED);
+                Collection<IAxiom> axioms = o.getStatedAxioms();
                 reasoner.loadAxioms(new HashSet<IAxiom>(axioms));
             }
         }
@@ -182,8 +183,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private void reset() {
         monitor.taskStarted("Clearing state");
         problems.clear();
-        factory = new Factory<>();
+        factory = new CoreFactory<>();
         reasoner = new NormalisedOntology<>(factory);
+        reasoner.setNumThreads(numThreads);
         ppd = new PostProcessedData<>(factory);
         monitor.taskEnded();
     }
@@ -231,6 +233,16 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private OWLDataProperty getOWLDataProperty(int f) {
         String iri = factory.lookupFeatureId(f);
         return owlFactory.getOWLDataProperty(IRI.create(iri));
+    }
+    
+    /**
+     * Sets the number of threads to be used by the reasoner.
+     * 
+     * @param numThreads
+     */
+    public void setNumThreads(int numThreads) {
+        this.numThreads = numThreads;
+        reasoner.setNumThreads(numThreads);
     }
 
     // //////////////////////////////////////////////////////////////////////////
@@ -287,7 +299,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
                 Map<String, IOntology<String>> map = res.get(key);
                 for(String ikey : map.keySet()) {
                     IOntology<String> o = map.get(ikey);
-                    Collection<IAxiom> axioms = o.getAxioms(AxiomForm.STATED);
+                    Collection<IAxiom> axioms = o.getStatedAxioms();
                     reasoner.classifyIncremental(new HashSet<IAxiom>(axioms));
                 }
             }
@@ -295,7 +307,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             final IConceptMap<IConceptSet> n = reasoner.getNewSubsumptions();
             final IConceptMap<IConceptSet> a = reasoner
                     .getAffectedSubsumptions();
-            ppd.computeDagIncremental(n, a, monitor);
+            ppd.computeDagIncremental(n, a, false, monitor);
         }
 
         rawChanges.clear();

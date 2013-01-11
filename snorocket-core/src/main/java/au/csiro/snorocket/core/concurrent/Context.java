@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import au.csiro.ontology.model.Operator;
-import au.csiro.snorocket.core.Factory;
+import au.csiro.snorocket.core.CoreFactory;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.IQueue;
 import au.csiro.snorocket.core.NormalisedOntology;
@@ -90,7 +90,7 @@ public class Context implements Serializable {
     /**
      * Keeps track of the parents of this concept.
      */
-    private final CS s;
+    private final IConceptSet s;
 
     /**
      * Keeps track of the concepts that are linked this concept through some
@@ -225,7 +225,10 @@ public class Context implements Serializable {
      */
     public Context(int concept) {
         this.concept = concept;
-        s = new CS(concept);
+        s = new SparseConceptSet();
+        s.add(concept);
+        s.add(IFactory.TOP_CONCEPT);
+
         pred = new CR(factory.getTotalRoles());
         succ = new CR(factory.getTotalRoles());
 
@@ -285,7 +288,7 @@ public class Context implements Serializable {
      * 
      * @return
      */
-    public CS getS() {
+    public IConceptSet getS() {
         return s;
     }
 
@@ -420,11 +423,10 @@ public class Context implements Serializable {
                     final IConjunctionQueueEntry entry = conceptQueue.remove();
                     final int b = entry.getB();
 
-                    final IConceptSet sa = s.getSet();
-                    if (!sa.contains(b)) {
+                    if (!s.contains(b)) {
                         final int bi = entry.getBi();
-                        if (sa.contains(bi)) {
-                            s.put(b);
+                        if (s.contains(bi)) {
+                            s.add(b);
                             processNewSubsumption(b);
                         }
                     }
@@ -464,7 +466,7 @@ public class Context implements Serializable {
 
                                 @Override
                                 public int getBi() {
-                                    return Factory.TOP_CONCEPT;
+                                    return CoreFactory.TOP_CONCEPT;
                                 }
 
                                 @Override
@@ -702,7 +704,7 @@ public class Context implements Serializable {
         bContext.getPred().store(s, concept);
 
         // queue(A) := queue(A) u U{B'|B' in S(B)}.O^(s.B')
-        final IConceptSet sb = contextIndex.get(b).getS().getSet();
+        final IConceptSet sb = contextIndex.get(b).getS();
 
         // Computes the minimal set of QueueEntries from s.a [ bb is in O
         for (IntIterator itr = sb.iterator(); itr.hasNext();) {
@@ -858,11 +860,10 @@ public class Context implements Serializable {
                     final IConjunctionQueueEntry entry = conceptQueue.remove();
                     final int b = entry.getB();
 
-                    final IConceptSet sa = s.getSet();
-                    if (!sa.contains(b)) {
+                    if (!s.contains(b)) {
                         final int bi = entry.getBi();
-                        if (sa.contains(bi)) {
-                            s.put(b);
+                        if (s.contains(bi)) {
+                            s.add(b);
                             changed = true;
                             processNewSubsumptionTracking(b);
                         }
@@ -903,7 +904,7 @@ public class Context implements Serializable {
 
                                 @Override
                                 public int getBi() {
-                                    return Factory.TOP_CONCEPT;
+                                    return CoreFactory.TOP_CONCEPT;
                                 }
 
                                 @Override
@@ -1005,7 +1006,7 @@ public class Context implements Serializable {
         bContext.getPred().store(s, concept);
 
         // queue(A) := queue(A) u U{B'|B' in S(B)}.O^(s.B')
-        final IConceptSet sb = contextIndex.get(b).getS().getSet();
+        final IConceptSet sb = contextIndex.get(b).getS();
 
         // Computes the minimal set of QueueEntries from s.a [ bb is in O
         for (IntIterator itr = sb.iterator(); itr.hasNext();) {

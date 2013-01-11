@@ -30,7 +30,7 @@ import au.csiro.snorocket.core.IFactory;
  * @author law223
  * 
  */
-public final class NF3 extends NormalFormGCI {
+public final class NF3 extends NormalFormGCI implements IConjunctionQueueEntry {
 
     /**
      * Serialisation version.
@@ -56,28 +56,7 @@ public final class NF3 extends NormalFormGCI {
     }
 
     public IConjunctionQueueEntry getQueueEntry() {
-        return new IConjunctionQueueEntry() {
-
-            /**
-             * Serialisation version.
-             */
-            private static final long serialVersionUID = 1L;
-
-            public int getB() {
-                return rhsB;
-            }
-
-            public int getBi() {
-                return IFactory.TOP_CONCEPT;
-            }
-
-            public String toString() {
-                return "ConjunctionQueueEntry[" + rhsB + ", []] r=" + lhsR
-                        + ", a=" + lhsA;
-            }
-
-        };
-
+        return this;
     }
 
     public String toString() {
@@ -91,6 +70,16 @@ public final class NF3 extends NormalFormGCI {
     @Override
     public int[] getConceptsInAxiom() {
         return new int[] { lhsA, rhsB };
+    }
+
+    @Override
+    public int getB() {
+        return rhsB;
+    }
+
+    @Override
+    public int getBi() {
+        return IFactory.TOP_CONCEPT;
     }
 
 }

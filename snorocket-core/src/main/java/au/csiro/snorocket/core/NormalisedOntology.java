@@ -49,6 +49,7 @@ import au.csiro.ontology.model.INamedRole;
 import au.csiro.ontology.model.IRole;
 import au.csiro.ontology.model.Operator;
 import au.csiro.ontology.model.Role;
+import au.csiro.ontology.util.Statistics;
 import au.csiro.snorocket.core.axioms.GCI;
 import au.csiro.snorocket.core.axioms.IConjunctionQueueEntry;
 import au.csiro.snorocket.core.axioms.IRoleQueueEntry;
@@ -194,6 +195,11 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      */
     private final Set<Context> newContexts = new HashSet<>();
     
+    /**
+     * The number of threads to use.
+     */
+    private int numThreads = Runtime.getRuntime().availableProcessors();
+
     
     private static class ContextComparator implements Comparator<Context>, Serializable {
         /**
@@ -338,15 +344,21 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * @param inclusions
      */
     public void loadAxioms(final Set<? extends IAxiom> inclusions) {
+        long start = System.currentTimeMillis();
         if(log.isInfoEnabled())
             log.info("Loading " + inclusions.size() + " axioms");
         Set<Inclusion<T>> normInclusions = normalise(inclusions);
         if(log.isInfoEnabled())
             log.info("Processing " + normInclusions.size()
                 + " normalised axioms");
+        Statistics.INSTANCE.setTime("normalisation",
+                System.currentTimeMillis() - start);
+        start = System.currentTimeMillis();
         for (Inclusion<T> i : normInclusions) {
             addTerm(i.getNormalForm());
         }
+        Statistics.INSTANCE.setTime("indexing", 
+                System.currentTimeMillis() - start);
     }
     
     /**
@@ -451,8 +463,9 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * Returns a set of Inclusions in normal form suitable for classifying.
      */
+    @SuppressWarnings("rawtypes")
     public Set<Inclusion<T>> normalise(final Set<? extends IAxiom> inclusions) {
-
+        
         // Exhaustively apply NF1 to NF4
         final Set<Inclusion<T>> done = new HashSet<>();
         Set<Inclusion<T>> oldIs = new HashSet<>();
@@ -501,8 +514,87 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                 }
             }
         } while (!newIs.isEmpty());
-
+        
+        if(log.isTraceEnabled()) {
+            log.trace("Normalised axioms:");
+            for(Inclusion<T> inc : done) {
+                StringBuilder sb = new StringBuilder();
+                if(inc instanceof GCI) {
+                    GCI gci = (GCI)inc;
+                    sb.append(printInternalObject(gci.lhs()));
+                    sb.append(" [ ");
+                    sb.append(printInternalObject(gci.rhs()));
+                } else if(inc instanceof RI) {
+                    RI ri = (RI)inc;
+                    int[] lhs = ri.getLhs();
+                    sb.append(factory.lookupRoleId(lhs[0]));
+                    for(int i = 1; i < lhs.length; i++) {
+                        sb.append(" * ");
+                        sb.append(factory.lookupRoleId(lhs[i]));
+                    }
+                    sb.append(" [ ");
+                    sb.append(factory.lookupRoleId(ri.getRhs()));
+                }
+                log.trace(sb.toString());
+            }
+        }
+        
         return done;
+    }
+    
+    /**
+     * Prints an object of the internal model using the string representation
+     * of the corresponding object in the external model.
+     * 
+     * @param o
+     * @return
+     */
+    private String printInternalObject(Object o) {
+        if(o instanceof Conjunction) {
+            Conjunction con = (Conjunction)o;
+            StringBuilder sb = new StringBuilder();
+            AbstractConcept[] cons = con.getConcepts();
+            sb.append(printInternalObject(cons[0]));
+            for(int i = 1; i < cons.length; i++) {
+                sb.append(" + ");
+                sb.append(printInternalObject(cons[i]));
+            }
+            return sb.toString();
+        } else if(o instanceof Existential) {
+            Existential e = (Existential)o;
+            AbstractConcept c = e.getConcept();
+            int role = e.getRole();
+            return factory.lookupRoleId(role)+"."+printInternalObject(c);
+        } else if(o instanceof Datatype) {
+            StringBuilder sb = new StringBuilder();
+            Datatype d = (Datatype)o;
+            T feature = factory.lookupFeatureId(d.getFeature());
+            sb.append(feature.toString());
+            sb.append(".(");
+            Operator op = d.getOperator();
+            sb.append(op.toString());
+            sb.append(",");
+            AbstractLiteral literal = d.getLiteral();
+            sb.append(literal);
+            sb.append(")");
+            return sb.toString();
+        } else if(o instanceof Concept) {
+            Object obj = factory.lookupConceptId(((Concept)o).hashCode());
+            if(obj == au.csiro.ontology.model.Concept.TOP) {
+                return "TOP";
+            } else if(obj == au.csiro.ontology.model.Concept.BOTTOM) {
+                return "BOTTOM";
+            } else if(obj instanceof AbstractConcept) {
+                return "<"+printInternalObject(obj)+">";
+            } else {
+                return obj.toString();
+            }
+        } else if(o instanceof Comparable<?>) {
+            return o.toString();
+        } else {
+            throw new RuntimeException("Unexpected object with class "+
+                    o.getClass().getName());
+        }
     }
 
     /**
@@ -675,7 +767,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                         todo.add(c);
                     }
                     if (log.isTraceEnabled()) {
-                        log.trace("Added context " + c);
+                        log.trace("Added context " + cid);
                     }
 
                     // Keep track of the newly added contexts
@@ -687,7 +779,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         
         if(log.isInfoEnabled()) 
             log.info("Added " + numNewConcepts + 
-                    " new concepts to the ontology.");
+                    " new concepts to the ontology");
 
         // TODO: this is potentially slow
         IConceptMap<IConceptSet> subsumptions = getSubsumptions();
@@ -702,7 +794,6 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         rePrimeNF8(as, subsumptions);
 
         // Classify
-        int numThreads = Runtime.getRuntime().availableProcessors();
         if(log.isInfoEnabled())
             log.info("Classifying incrementally with " + numThreads + 
                     " threads");
@@ -1132,7 +1223,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * Starts the concurrent classification process.
      */
     public void classify() {
-        int numThreads = Runtime.getRuntime().availableProcessors();
+        long start = System.currentTimeMillis();
         if(log.isInfoEnabled())
             log.info("Classifying with " + numThreads + " threads");
 
@@ -1147,7 +1238,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                 todo.add(c);
             }
             if(log.isTraceEnabled()) {
-                log.trace("Added context " + c);
+                log.trace("Added context " + i);
             }
         }
         
@@ -1173,6 +1264,8 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         if (log.isTraceEnabled()) {
             log.trace("Processed " + contextIndex.size() + " contexts");
         }
+        Statistics.INSTANCE.setTime("classification",
+                System.currentTimeMillis() - start);
     }
 
     public IConceptMap<IConceptSet> getSubsumptions() {
@@ -1182,7 +1275,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         for (IntIterator it = contextIndex.keyIterator(); it.hasNext();) {
             int key = it.next();
             Context ctx = contextIndex.get(key);
-            res.put(key, ctx.getS().getSet());
+            res.put(key, ctx.getS());
         }
         return res;
     }
@@ -1198,7 +1291,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                 newContexts.size());
         // Collect subsumptions from new contexts
         for (Context ctx : newContexts) {
-            res.put(ctx.getConcept(), ctx.getS().getSet());
+            res.put(ctx.getConcept(), ctx.getS());
         }
         return res;
     }
@@ -1223,7 +1316,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             int key = it.next();
             Context ctx = contextIndex.get(key);
             if (ctx.hasNewSubsumptions()) {
-                res.put(key, ctx.getS().getSet());
+                res.put(key, ctx.getS());
             }
         }
         return res;
@@ -1506,4 +1599,11 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         }
     }
 
+    /**
+     * @param numThreads the numThreads to set
+     */
+    public void setNumThreads(int numThreads) {
+        this.numThreads = numThreads;
+    }
+    
 }
