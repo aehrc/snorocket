@@ -18,7 +18,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>snorocket-protege</artifactId>
   <packaging>jar</packaging>
-  <name>Snorocket Protege Plugin</name>
+  <name>${branch}: Protege Plugin</name>
 
   <parent>
     <groupId>au.csiro</groupId>

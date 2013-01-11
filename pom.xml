@@ -20,7 +20,7 @@
 	<artifactId>snorocket-parent</artifactId>
 	<packaging>pom</packaging>
 	<version>1.4.0-SNAPSHOT</version>
-	<name>IHTSDO Classifier (based on Snorocket) Parent POM</name>
+	<name>${branch}: (MMP) Classifier Parent POM</name>
 	<scm>
 		<connection>scm:svn:https://csfe.aceworkspace.net/svn/repos/sim-classifier/trunk/sim-classifier</connection>
 		<developerConnection>scm:svn:https://csfe.aceworkspace.net/svn/repos/sim-classifier/trunk/sim-classifier</developerConnection>
@@ -101,6 +101,8 @@
   </distributionManagement>
 
   <properties>
+      <branch>sim-clx</branch>
     <ontology.version>0.0.1-SNAPSHOT</ontology.version>
+    <!--ontology.version>0.0.1-uat-build-iteration-3</ontology.version-->
   </properties>
 </project>
