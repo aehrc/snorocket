@@ -25,9 +25,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -37,6 +40,7 @@ import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
 
+import au.csiro.ontology.Node;
 import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.axioms.IConceptInclusion;
@@ -93,6 +97,7 @@ import au.csiro.snorocket.core.util.IntIterator;
 import au.csiro.snorocket.core.util.MonotonicCollection;
 import au.csiro.snorocket.core.util.RoleMap;
 import au.csiro.snorocket.core.util.RoleSet;
+import au.csiro.snorocket.core.util.SparseConceptHashSet;
 import au.csiro.snorocket.core.util.SparseConceptMap;
 import au.csiro.snorocket.core.util.SparseConceptSet;
 
@@ -199,6 +204,10 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * The number of threads to use.
      */
     private int numThreads = Runtime.getRuntime().availableProcessors();
+    
+    private boolean hasBeenIncrementallyClassified = false;
+    
+    protected Map<T, Node<T>> conceptNodeIndex;
 
     
     private static class ContextComparator implements Comparator<Context>, Serializable {
@@ -823,7 +832,9 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         }
 
         affectedContexts.removeAll(newContexts);
-
+        
+        hasBeenIncrementallyClassified = true;
+        
         if(log.isTraceEnabled())
             log.trace("Processed " + contextIndex.size() + " contexts");
     }
@@ -1264,6 +1275,8 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         if (log.isTraceEnabled()) {
             log.trace("Processed " + contextIndex.size() + " contexts");
         }
+        
+        hasBeenIncrementallyClassified = false;
         Statistics.INSTANCE.setTime("classification",
                 System.currentTimeMillis() - start);
     }
@@ -1604,6 +1617,641 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      */
     public void setNumThreads(int numThreads) {
         this.numThreads = numThreads;
+    }
+    
+    /**
+     * Calculates the taxonomy after classification.
+     * 
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public void buildTaxonomy() {
+        
+        final IConceptMap<IConceptSet> subsumptions = getSubsumptions();
+        
+        // Determine if a full or incremental calculation is required
+        if(!hasBeenIncrementallyClassified) {
+            long start = System.currentTimeMillis();
+
+            // Keep only the subsumptions that involve real atomic concepts
+            IConceptMap<IConceptSet> cis = new SparseConceptMap<IConceptSet>(
+                    factory.getTotalConcepts());
+
+            for (IntIterator itr = subsumptions.keyIterator(); itr.hasNext();) {
+                final int X = itr.next();
+                if (!factory.isVirtualConcept(X)) {
+                    IConceptSet set = new SparseConceptHashSet();
+                    cis.put(X, set);
+                    for (IntIterator it = subsumptions.get(X).iterator(); it
+                            .hasNext();) {
+                        int next = it.next();
+                        if (!factory.isVirtualConcept(next)) {
+                            set.add(next);
+                        }
+                    }
+                }
+            }
+
+            IConceptMap<IConceptSet> equiv = new SparseConceptMap<IConceptSet>(
+                    factory.getTotalConcepts());
+            IConceptMap<IConceptSet> direc = new SparseConceptMap<IConceptSet>(
+                    factory.getTotalConcepts());
+
+            // Build equivalent and direct concept sets
+            for (IntIterator itr = cis.keyIterator(); itr.hasNext();) {
+                final int a = itr.next();
+
+                for (IntIterator itr2 = cis.get(a).iterator(); itr2.hasNext();) {
+                    int c = itr2.next();
+                    IConceptSet cs = cis.get(c);
+
+                    if (c == IFactory.BOTTOM_CONCEPT) {
+                        addToSet(equiv, a, c);
+                    } else if (cs != null && cs.contains(a)) {
+                        addToSet(equiv, a, c);
+                    } else {
+                        boolean isDirect = true;
+                        IConceptSet d = direc.get(a);
+                        if (d != null) {
+                            IConceptSet toRemove = new SparseConceptHashSet();
+                            for (IntIterator itr3 = d.iterator(); itr3.hasNext();) {
+                                int b = itr3.next();
+                                IConceptSet bs = cis.get(b);
+                                if (bs != null && bs.contains(c)) {
+                                    isDirect = false;
+                                    break;
+                                }
+                                if (cs != null && cs.contains(b)) {
+                                    toRemove.add(b);
+                                }
+                            }
+                            d.removeAll(toRemove);
+                        }
+                        if (isDirect) {
+                            addToSet(direc, a, c);
+                        }
+                    };
+                }
+            }
+
+            int bottomConcept = CoreFactory.BOTTOM_CONCEPT;
+            if (!equiv.containsKey(bottomConcept)) {
+                addToSet(equiv, bottomConcept, bottomConcept);
+            }
+
+            int topConcept = CoreFactory.TOP_CONCEPT;
+            if (!equiv.containsKey(topConcept)) {
+                addToSet(equiv, topConcept, topConcept);
+            }
+
+            // Introduce one taxonomy node for each distinct class of equivalent
+            // concepts
+            conceptNodeIndex = new HashMap<>();
+            
+            Node<T> top = new Node<>();
+            top.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.TOP);
+            
+            Node<T> bottom = new Node<>();
+            bottom.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.BOTTOM);
+
+            for (IntIterator it = equiv.keyIterator(); it.hasNext();) {
+                int key = it.next();
+                IConceptSet equivs = equiv.get(key);
+                // Check if any of the equivalent classes is already part of an
+                // equivalent node
+                Node<T> n = null;
+                for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
+                    T e = factory.lookupConceptId(it2.next());
+                    if (conceptNodeIndex.containsKey(e)) {
+                        n = conceptNodeIndex.get(e);
+                        break;
+                    }
+                }
+
+                if (n == null) {
+                    n = new Node<T>();
+                }
+                n.getEquivalentConcepts().add(factory.lookupConceptId(key));
+                for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
+                    n.getEquivalentConcepts().add(factory.lookupConceptId(it2.next()));
+                }
+                
+                for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
+                    int e = it2.next();
+                    if (e == CoreFactory.TOP_CONCEPT)
+                        top = n;
+                    if (e == CoreFactory.BOTTOM_CONCEPT)
+                        bottom = n;
+                    conceptNodeIndex.put(factory.lookupConceptId(e), n);
+                }
+            }
+
+            // Connect the nodes according to the direct super-concept relationships
+            Set<Node<T>> processed = new HashSet<>();
+            for (T key : conceptNodeIndex.keySet()) {
+                Node<T> node = conceptNodeIndex.get(key);
+                if (processed.contains(node) || node == top || node == bottom)
+                    continue;
+                processed.add(node);
+                for (T c : node.getEquivalentConcepts()) {
+                    // Get direct super-concepts
+                    IConceptSet dc = direc.get(factory.getConcept(c));
+                    if (dc != null) {
+                        for (IntIterator it3 = dc.iterator(); it3.hasNext();) {
+                            int d = it3.next();
+                            Node<T> parent = conceptNodeIndex.get(factory.lookupConceptId(d));
+                            if (parent != null) {
+                                node.getParents().add(parent);
+                                parent.getChildren().add(node);
+                            }
+                        }
+                    }
+                }
+            }
+            processed = null;
+
+            // Add bottom
+            if (bottom == null) {
+                bottom = new Node<T>();
+                bottom.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.BOTTOM);
+                conceptNodeIndex.put((T)au.csiro.ontology.model.Concept.BOTTOM, bottom);
+            }
+
+            for (T key : conceptNodeIndex.keySet()) {
+                if (key == au.csiro.ontology.model.Concept.TOP || key == au.csiro.ontology.model.Concept.BOTTOM)
+                    continue;
+                Node<T> node = conceptNodeIndex.get(key);
+                if (node.getEquivalentConcepts().contains(au.csiro.ontology.model.Concept.BOTTOM))
+                    continue;
+                if (node.getChildren().isEmpty()) {
+                    bottom.getParents().add(node);
+                    node.getChildren().add(bottom);
+                }
+            }
+
+            // Add top
+            if (top == null) {
+                top = new Node<T>();
+                top.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.TOP);
+                conceptNodeIndex.put((T)au.csiro.ontology.model.Concept.TOP, top);
+            }
+
+            for (T key : conceptNodeIndex.keySet()) {
+                if (key == au.csiro.ontology.model.Concept.TOP || key == au.csiro.ontology.model.Concept.BOTTOM)
+                    continue;
+                Node<T> node = conceptNodeIndex.get(key);
+                if (node.getParents().isEmpty()) {
+                    node.getParents().add(top);
+                    top.getChildren().add(node);
+                }
+            }
+
+            equiv = null;
+            direc = null;
+
+            // TODO: deal with special case where only top and bottom are present.
+            Statistics.INSTANCE.setTime("taxonomy construction",
+                    System.currentTimeMillis() - start);
+        } else {
+            final IConceptMap<IConceptSet> newConceptSubs = getNewSubsumptions();
+            final IConceptMap<IConceptSet> affectedConceptSubs = getAffectedSubsumptions();
+            
+            // 1. Keep only the subsumptions that involve real atomic concepts
+            IConceptMap<IConceptSet> allNew = new SparseConceptMap<IConceptSet>(
+                    newConceptSubs.size());
+
+            IConceptMap<IConceptSet> allAffected = new SparseConceptMap<IConceptSet>(
+                    newConceptSubs.size());
+
+            for (IntIterator itr = newConceptSubs.keyIterator(); itr.hasNext();) {
+                final int x = itr.next();
+                if (!factory.isVirtualConcept(x)) {
+                    IConceptSet set = new SparseConceptHashSet();
+                    allNew.put(x, set);
+                    for (IntIterator it = newConceptSubs.get(x).iterator(); it
+                            .hasNext();) {
+                        int next = it.next();
+                        if (!factory.isVirtualConcept(next)) {
+                            set.add(next);
+                        }
+                    }
+                }
+            }
+
+            for (IntIterator itr = affectedConceptSubs.keyIterator(); itr.hasNext();) {
+                final int x = itr.next();
+                if (!factory.isVirtualConcept(x)) {
+                    IConceptSet set = new SparseConceptHashSet();
+                    allAffected.put(x, set);
+                    for (IntIterator it = affectedConceptSubs.get(x).iterator(); it
+                            .hasNext();) {
+                        int next = it.next();
+                        if (!factory.isVirtualConcept(next)) {
+                            set.add(next);
+                        }
+                    }
+                }
+            }
+            
+            // 2. Create nodes for new concepts and connect to node hierarchy
+            // a. First create the nodes and add to index
+            for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
+                final T key = factory.lookupConceptId(itr.next());
+                Node<T> cn = new Node<>();
+                cn.getEquivalentConcepts().add(key);
+                conceptNodeIndex.put(key, cn);
+            }
+
+            // b. Now connect the nodes disregarding redundant connections
+            Node<T> bottomNode = conceptNodeIndex.get(au.csiro.ontology.model.Concept.BOTTOM);
+            for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
+                int id = itr.next();
+                final T key = factory.lookupConceptId(id);
+                Node<T> cn = conceptNodeIndex.get(key);
+                IConceptSet parents = allNew.get(id);
+                for (IntIterator itr2 = parents.iterator(); itr2.hasNext();) {
+                    // Create a connection to each parent
+                    int parentId = itr2.next();
+                    if (parentId == id)
+                        continue;
+                    Node<T> parent = conceptNodeIndex.get(factory.lookupConceptId(parentId));
+                    cn.getParents().add(parent);
+                    parent.getChildren().add(cn);
+                    // All nodes that get new children and are connected to BOTTOM
+                    // must be disconnected
+                    if (parent.getChildren().contains(bottomNode)) {
+                        parent.getChildren().remove(bottomNode);
+                        bottomNode.getParents().remove(parent);
+                    }
+                }
+            }
+
+            for (IntIterator itr = allAffected.keyIterator(); itr.hasNext();) {
+                final int id = itr.next();
+                final T key = factory.lookupConceptId(id);
+                Node<T> cn = conceptNodeIndex.get(key);
+                IConceptSet parents = allAffected.get(id);
+                for (IntIterator itr2 = parents.iterator(); itr2.hasNext();) {
+                    // Create a connection to each parent
+                    int parentId = itr2.next();
+                    if (parentId == id)
+                        continue;
+                    Node<T> parent = conceptNodeIndex.get(factory.lookupConceptId(parentId));
+                    cn.getParents().add(parent);
+                    parent.getChildren().add(cn);
+                    // All nodes that get new children and are connected to BOTTOM
+                    // must be disconnected
+                    if (parent.getChildren().contains(bottomNode)) {
+                        parent.getChildren().remove(bottomNode);
+                        bottomNode.getParents().remove(parent);
+                    }
+                }
+            }
+
+            // 3. Connect new nodes without parents to TOP
+            Node<T> topNode = conceptNodeIndex.get(au.csiro.ontology.model.Concept.TOP);
+
+            for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
+                final T key = factory.lookupConceptId(itr.next());
+                Node<T> cn = conceptNodeIndex.get(key);
+                if (cn.getParents().isEmpty()) {
+                    cn.getParents().add(topNode);
+                    topNode.getChildren().add(cn);
+                }
+            }
+
+            // 4. Fix connections for new and affected concepts
+            // a. Check for equivalents
+            Set<Pair> pairsToMerge = new HashSet<>();
+            for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
+                final T key = factory.lookupConceptId(itr.next());
+                Node<T> cn = conceptNodeIndex.get(key);
+                for (Node<T> parent : cn.getParents()) {
+                    if (parent.getParents().contains(cn)) {
+                        pairsToMerge.add(new Pair(cn, parent));
+                    }
+                }
+            }
+            for (IntIterator itr = allAffected.keyIterator(); itr.hasNext();) {
+                final T key = factory.lookupConceptId(itr.next());
+                Node<T> cn = conceptNodeIndex.get(key);
+                for (Node<T> parent : cn.getParents()) {
+                    if (parent.getParents().contains(cn)) {
+                        pairsToMerge.add(new Pair(cn, parent));
+                    }
+                }
+            }
+
+            Set<Node<T>> affectedByMerge = new HashSet<>();
+
+            // Merge equivalents
+            for (Pair p : pairsToMerge) {
+                Node<T> cn1 = p.getA();
+                Node<T> cn2 = p.getB();
+
+                affectedByMerge.addAll(cn1.getChildren());
+                affectedByMerge.addAll(cn2.getChildren());
+
+                // Merge into cn1 - remove cn2 from index and replace with cn1
+                for (T n : cn2.getEquivalentConcepts()) {
+                    conceptNodeIndex.put(n, cn1);
+                }
+
+                cn1.getEquivalentConcepts().addAll(cn2.getEquivalentConcepts());
+
+                // Remove relationships between merged concepts
+                cn1.getParents().remove(cn2);
+                cn2.getChildren().remove(cn1);
+                cn2.getParents().remove(cn1);
+                cn1.getChildren().remove(cn2);
+
+                // Taxonomy is bidirectional
+                cn1.getParents().addAll(cn2.getParents());
+                for (Node<T> parent : cn2.getParents()) {
+                    parent.getChildren().remove(cn2);
+                    parent.getChildren().add(cn1);
+                }
+                cn1.getChildren().addAll(cn2.getChildren());
+                for (Node<T> child : cn2.getChildren()) {
+                    child.getParents().remove(cn2);
+                    child.getParents().add(cn1);
+                }
+
+                cn2 = null; // nothing should reference cn2 now
+            }
+
+            // b. Fix all new and affected nodes
+            Set<Node<T>> all = new HashSet<>();
+            for (IntIterator it = allNew.keyIterator(); it.hasNext();) {
+                all.add(conceptNodeIndex.get(factory.lookupConceptId(it.next())));
+            }
+
+            for (IntIterator it = allAffected.keyIterator(); it.hasNext();) {
+                all.add(conceptNodeIndex.get(factory.lookupConceptId(it.next())));
+            }
+
+            for (Node<T> cn : affectedByMerge) {
+                all.add(cn);
+            }
+
+            // Add also the children of the affected nodes
+            Set<Node<T>> childrenToAdd = new HashSet<>();
+            for (Node<T> cn : all) {
+                for (Node<T> ccn : cn.getChildren()) {
+                    if (ccn.equals(bottomNode))
+                        continue;
+                    childrenToAdd.add(ccn);
+                }
+            }
+            all.addAll(childrenToAdd);
+
+            // Find redundant relationships
+            for (Node<T> cn : all) {
+                Set<Node<T>> ps = cn.getParents();
+
+                Object[] parents = ps.toArray(new Object[ps.size()]);
+                Set<Node<T>> toRemove = new HashSet<>();
+                for (int i = 0; i < parents.length; i++) {
+                    for (int j = i + 1; j < parents.length; j++) {
+                        if (isChild((Node<T>)parents[j], (Node<T>)parents[i])) {
+                            toRemove.add((Node<T>)parents[i]);
+                            continue;
+                        }
+                        if (isChild((Node<T>)parents[i], (Node<T>)parents[j])) {
+                            toRemove.add((Node<T>)parents[j]);
+                            continue;
+                        }
+                    }
+                }
+                for (Node<T> tr : toRemove) {
+                    cn.getParents().remove(tr);
+                    tr.getChildren().remove(cn);
+                }
+            }
+
+            // 5. Connect bottom to new and affected concepts with no children
+            for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
+                final int key = itr.next();
+                Node<T> cn = conceptNodeIndex.get(factory.lookupConceptId(key));
+                if (cn.getChildren().isEmpty()) {
+                    cn.getChildren().add(bottomNode);
+                    bottomNode.getParents().add(cn);
+                }
+            }
+            for (IntIterator itr = allAffected.keyIterator(); itr.hasNext();) {
+                final int key = itr.next();
+                Node<T> cn = conceptNodeIndex.get(factory.lookupConceptId(key));
+                if (cn.getChildren().isEmpty()) {
+                    cn.getChildren().add(bottomNode);
+                    bottomNode.getParents().add(cn);
+                }
+            }
+
+            // 6. Connect the top node to new and affected concepts with no parents
+            for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
+                final int key = itr.next();
+                Node<T> cn = conceptNodeIndex.get(factory.lookupConceptId(key));
+                if (cn.getParents().isEmpty()) {
+                    cn.getParents().add(topNode);
+                    topNode.getChildren().add(cn);
+                }
+            }
+            for (IntIterator itr = allAffected.keyIterator(); itr.hasNext();) {
+                final int key = itr.next();
+                Node<T> cn = conceptNodeIndex.get(factory.lookupConceptId(key));
+                if (cn.getParents().isEmpty()) {
+                    cn.getParents().add(topNode);
+                    topNode.getChildren().add(cn);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Returns the full taxonomy.
+     * 
+     * @return
+     */
+    public Map<T, Node<T>> getTaxonomy() {
+        return conceptNodeIndex;
+    }
+    
+    public Map<T, Node<T>> getDeltaTaxonomy() {
+        // Build the response map with only the new and affected concepts
+        // as keys
+        Map<T, Node<T>> res = new HashMap<>();
+        for(IntIterator it = getNewSubsumptions().keyIterator(); it.hasNext(); ) {
+            T key = factory.lookupConceptId(it.next());
+            res.put(key, conceptNodeIndex.get(key));
+        }
+        for(IntIterator it = getAffectedSubsumptions().keyIterator(); it.hasNext(); ) {
+            T key = factory.lookupConceptId(it.next());
+            res.put(key, conceptNodeIndex.get(key));
+        }
+        return res;
+    }
+    
+    private void addToSet(IConceptMap<IConceptSet> map, int key, int val) {
+        IConceptSet set = map.get(key);
+        if (set == null) {
+            set = new SparseConceptHashSet();
+            map.put(key, set);
+        }
+        set.add(val);
+    }
+    
+    /**
+     * Indicates if cn is a child of cn2.
+     * 
+     * @param cn
+     * @param cn2
+     * @return
+     */
+    private boolean isChild(Node<T> cn, Node<T> cn2) {
+        if (cn == cn2)
+            return false;
+
+        Queue<Node<T>> toProcess = new LinkedList<>();
+        toProcess.addAll(cn.getParents());
+
+        while (!toProcess.isEmpty()) {
+            Node<T> tcn = toProcess.poll();
+            if (tcn.equals(cn2))
+                return true;
+            Set<Node<T>> parents = tcn.getParents();
+            if (parents != null && !parents.isEmpty())
+                toProcess.addAll(parents);
+        }
+
+        return false;
+    }
+    
+    class Pair {
+
+        private final Node<T> a;
+        private final Node<T> b;
+
+        /**
+         * Creates a new pair.
+         * 
+         * @param a
+         * @param b
+         */
+        @SuppressWarnings("unchecked")
+        public Pair(Node<T> a, Node<T> b) {
+            T[] aa = (T[]) new Object[a.getEquivalentConcepts().size()];
+            T[] bb = (T[]) new Object[b.getEquivalentConcepts().size()];
+
+            if (aa.length < bb.length) {
+                this.a = a;
+                this.b = b;
+            } else if (aa.length > bb.length) {
+                this.a = b;
+                this.b = a;
+            } else {
+                int i = 0;
+                for (T c : a.getEquivalentConcepts()) {
+                    aa[i++] = c;
+                }
+                i = 0;
+                for (T c : b.getEquivalentConcepts()) {
+                    bb[i++] = c;
+                }
+
+                int res = 0; // 0 equal, 1 a <, 2 a >
+
+                for (i = 0; i < aa.length; i++) {
+                    if (aa[i].compareTo(bb[i]) < 0) {
+                        res = 1;
+                        break;
+                    } else if (aa[i].compareTo(bb[i]) > 0) {
+                        res = 2;
+                        break;
+                    }
+                }
+
+                if (res == 1) {
+                    this.a = a;
+                    this.b = b;
+                } else if (res == 2) {
+                    this.a = b;
+                    this.b = a;
+                } else {
+                    this.a = a;
+                    this.b = b;
+                }
+            }
+        }
+
+        /**
+         * @return the a
+         */
+        public Node<T> getA() {
+            return a;
+        }
+
+        /**
+         * @return the b
+         */
+        public Node<T> getB() {
+            return b;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + getOuterType().hashCode();
+            result = prime * result + ((a == null) ? 0 : a.hashCode());
+            result = prime * result + ((b == null) ? 0 : b.hashCode());
+            return result;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            Pair other = (Pair) obj;
+            if (!getOuterType().equals(other.getOuterType()))
+                return false;
+            if (a == null) {
+                if (other.a != null)
+                    return false;
+            } else if (!a.equals(other.a))
+                return false;
+            if (b == null) {
+                if (other.b != null)
+                    return false;
+            } else if (!b.equals(other.b))
+                return false;
+            return true;
+        }
+
+        @SuppressWarnings("rawtypes")
+        private NormalisedOntology getOuterType() {
+            return NormalisedOntology.this;
+        }
+    }
+    
+    public boolean isTaxonomyComputed() {
+        return conceptNodeIndex != null;
+    }
+    
+    public Node<T> getBottomNode() {
+        return conceptNodeIndex.get(au.csiro.ontology.model.Concept.BOTTOM);
+    }
+    
+    public Node<T> getTopNode() {
+        return conceptNodeIndex.get(au.csiro.ontology.model.Concept.TOP);
+    }
+    
+    public Node<T> getEquivalents(T cid) {
+        return conceptNodeIndex.get(cid);
     }
     
 }

@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import au.csiro.ontology.Node;
 import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.axioms.RoleInclusion;
@@ -25,8 +26,6 @@ import au.csiro.ontology.model.IntegerLiteral;
 import au.csiro.ontology.model.Operator;
 import au.csiro.ontology.model.Role;
 import au.csiro.snorocket.core.axioms.Inclusion;
-import au.csiro.snorocket.core.util.IConceptMap;
-import au.csiro.snorocket.core.util.IConceptSet;
 
 /**
  * Main unit tests for Snorocket.
@@ -134,95 +133,89 @@ public class TestNormalisedOntology {
         }
         
         o.classify();
-        final IConceptMap<IConceptSet> s = o.getSubsumptions();
 
         // Build taxonomy
-        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-        ppd.computeDag(s, false, null);
+        o.buildTaxonomy();
 
         // Test results
-        ClassNode bottomNode = ppd.getEquivalents(IFactory.BOTTOM_CONCEPT);
-        Set<ClassNode> bottomRes = bottomNode.getParents();
+        Node<String> bottomNode = o.getBottomNode();
+        Set<Node<String>> bottomRes = bottomNode.getParents();
 
         //assertTrue(bottomRes.size() == 5);
-        assertTrue(bottomRes.contains(ppd.getEquivalents(endocardium.getId())));
-        assertTrue(bottomRes.contains(ppd.getEquivalents(endocarditis.getId())));
-        assertTrue(bottomRes.contains(ppd.getEquivalents(heartWall.getId())));
-        assertTrue(bottomRes.contains(ppd.getEquivalents(heartValve.getId())));
-        assertTrue(bottomRes.contains(ppd.getEquivalents(heart.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(endocardium.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(endocarditis.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(heartWall.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(heartValve.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(heart.getId())));
 
-        ClassNode endocarditisNode = ppd.getEquivalents(endocarditis.getId());
-        Set<ClassNode> endocarditisRes = endocarditisNode.getParents();
+        Node<String> endocarditisNode = o.getEquivalents(endocarditis.getId());
+        Set<Node<String>> endocarditisRes = endocarditisNode.getParents();
         assertTrue(endocarditisRes.size() == 3);
-        assertTrue(endocarditisRes.contains(ppd.getEquivalents(inflammation
+        assertTrue(endocarditisRes.contains(o.getEquivalents(inflammation
                 .getId())));
-        assertTrue(endocarditisRes.contains(ppd.getEquivalents(heartdisease
+        assertTrue(endocarditisRes.contains(o.getEquivalents(heartdisease
                 .getId())));
-        assertTrue(endocarditisRes.contains(ppd.getEquivalents(criticalDisease
+        assertTrue(endocarditisRes.contains(o.getEquivalents(criticalDisease
                 .getId())));
 
-        ClassNode inflammationNode = ppd.getEquivalents(inflammation.getId());
-        Set<ClassNode> inflammationRes = inflammationNode.getParents();
+        Node<String> inflammationNode = o.getEquivalents(inflammation.getId());
+        Set<Node<String>> inflammationRes = inflammationNode.getParents();
         assertTrue(inflammationRes.size() == 1);
         assertTrue(inflammationRes
-                .contains(ppd.getEquivalents(disease.getId())));
+                .contains(o.getEquivalents(disease.getId())));
 
-        ClassNode endocardiumNode = ppd.getEquivalents(endocardium.getId());
-        Set<ClassNode> endocardiumRes = endocardiumNode.getParents();
+        Node<String> endocardiumNode = o.getEquivalents(endocardium.getId());
+        Set<Node<String>> endocardiumRes = endocardiumNode.getParents();
         assertTrue(endocardiumRes.size() == 1);
-        assertTrue(endocardiumRes.contains(ppd.getEquivalents(tissue.getId())));
+        assertTrue(endocardiumRes.contains(o.getEquivalents(tissue.getId())));
 
-        ClassNode heartdiseaseNode = ppd.getEquivalents(heartdisease.getId());
-        Set<ClassNode> heartdiseaseRes = heartdiseaseNode.getParents();
+        Node<String> heartdiseaseNode = o.getEquivalents(heartdisease.getId());
+        Set<Node<String>> heartdiseaseRes = heartdiseaseNode.getParents();
         assertTrue(heartdiseaseRes.size() == 1);
         assertTrue(heartdiseaseRes
-                .contains(ppd.getEquivalents(disease.getId())));
+                .contains(o.getEquivalents(disease.getId())));
 
-        ClassNode heartWallNode = ppd.getEquivalents(heartWall.getId());
-        Set<ClassNode> heartWallRes = heartWallNode.getParents();
+        Node<String> heartWallNode = o.getEquivalents(heartWall.getId());
+        Set<Node<String>> heartWallRes = heartWallNode.getParents();
         assertTrue(heartWallRes.size() == 1);
-        assertTrue(heartWallRes.contains(ppd.getEquivalents(bodyWall.getId())));
+        assertTrue(heartWallRes.contains(o.getEquivalents(bodyWall.getId())));
 
-        ClassNode heartValveNode = ppd.getEquivalents(heartValve.getId());
-        Set<ClassNode> heartValveRes = heartValveNode.getParents();
+        Node<String> heartValveNode = o.getEquivalents(heartValve.getId());
+        Set<Node<String>> heartValveRes = heartValveNode.getParents();
         assertTrue(heartValveRes.size() == 1);
         assertTrue(heartValveRes
-                .contains(ppd.getEquivalents(bodyValve.getId())));
+                .contains(o.getEquivalents(bodyValve.getId())));
 
-        ClassNode diseaseNode = ppd.getEquivalents(disease.getId());
-        Set<ClassNode> diseaseRes = diseaseNode.getParents();
+        Node<String> diseaseNode = o.getEquivalents(disease.getId());
+        Set<Node<String>> diseaseRes = diseaseNode.getParents();
         assertTrue(diseaseRes.size() == 1);
-        assertTrue(diseaseRes
-                .contains(ppd.getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(diseaseRes.contains(o.getTopNode()));
 
-        ClassNode tissueNode = ppd.getEquivalents(tissue.getId());
-        Set<ClassNode> tissueRes = tissueNode.getParents();
+        Node<String> tissueNode = o.getEquivalents(tissue.getId());
+        Set<Node<String>> tissueRes = tissueNode.getParents();
         assertTrue(tissueRes.size() == 1);
-        assertTrue(tissueRes.contains(ppd.getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(tissueRes.contains(o.getTopNode()));
 
-        ClassNode heartNode = ppd.getEquivalents(heart.getId());
-        Set<ClassNode> heartRes = heartNode.getParents();
+        Node<String> heartNode = o.getEquivalents(heart.getId());
+        Set<Node<String>> heartRes = heartNode.getParents();
         assertTrue(heartRes.size() == 1);
-        assertTrue(heartRes.contains(ppd.getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(heartRes.contains(o.getTopNode()));
 
-        ClassNode bodyValveNode = ppd.getEquivalents(bodyValve.getId());
-        Set<ClassNode> bodyValveRes = bodyValveNode.getParents();
+        Node<String> bodyValveNode = o.getEquivalents(bodyValve.getId());
+        Set<Node<String>> bodyValveRes = bodyValveNode.getParents();
         assertTrue(bodyValveRes.size() == 1);
-        assertTrue(bodyValveRes.contains(ppd
-                .getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(bodyValveRes.contains(o.getTopNode()));
 
-        ClassNode bodyWallNode = ppd.getEquivalents(bodyWall.getId());
-        Set<ClassNode> bodyWallRes = bodyWallNode.getParents();
+        Node<String> bodyWallNode = o.getEquivalents(bodyWall.getId());
+        Set<Node<String>> bodyWallRes = bodyWallNode.getParents();
         assertTrue(bodyWallRes.size() == 1);
-        assertTrue(bodyWallRes.contains(ppd
-                .getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(bodyWallRes.contains(o.getTopNode()));
 
-        ClassNode criticalDiseaseNode = ppd.getEquivalents(criticalDisease
+        Node<String> criticalDiseaseNode = o.getEquivalents(criticalDisease
                 .getId());
-        Set<ClassNode> criticalDiseaseRes = criticalDiseaseNode.getParents();
+        Set<Node<String>> criticalDiseaseRes = criticalDiseaseNode.getParents();
         assertTrue(criticalDiseaseRes.size() == 1);
-        assertTrue(criticalDiseaseRes.contains(ppd
-                .getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(criticalDiseaseRes.contains(o.getTopNode()));
     }
 
     @Test
@@ -385,9 +378,7 @@ public class TestNormalisedOntology {
 
         NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
-        IConceptMap<IConceptSet> s = o.getSubsumptions();
-        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-        ppd.computeDag(s, false, null);
+        o.buildTaxonomy();
 
         // Add delta axioms and classify incrementally
         Concept<String> endocardium = new Concept<>("Endocardium");
@@ -407,93 +398,86 @@ public class TestNormalisedOntology {
         incAxioms.add(a4);
 
         o.classifyIncremental(incAxioms);
-        IConceptMap<IConceptSet> ns = o.getNewSubsumptions();
-        IConceptMap<IConceptSet> as = o.getAffectedSubsumptions();
-        ppd.computeDagIncremental(ns, as, false, null);
+        o.buildTaxonomy();
 
         // Test results
-        ClassNode bottomNode = ppd.getEquivalents(IFactory.BOTTOM_CONCEPT);
-        Set<ClassNode> bottomRes = bottomNode.getParents();
+        Node<String> bottomNode = o.getBottomNode();
+        Set<Node<String>> bottomRes = bottomNode.getParents();
 
         assertTrue(bottomRes.size() == 5);
-        assertTrue(bottomRes.contains(ppd.getEquivalents(endocardium.getId())));
-        assertTrue(bottomRes.contains(ppd.getEquivalents(endocarditis.getId())));
-        assertTrue(bottomRes.contains(ppd.getEquivalents(heartWall.getId())));
-        assertTrue(bottomRes.contains(ppd.getEquivalents(heartValve.getId())));
-        assertTrue(bottomRes.contains(ppd.getEquivalents(heart.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(endocardium.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(endocarditis.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(heartWall.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(heartValve.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(heart.getId())));
 
-        ClassNode endocarditisNode = ppd.getEquivalents(endocarditis.getId());
-        Set<ClassNode> endocarditisRes = endocarditisNode.getParents();
+        Node<String> endocarditisNode = o.getEquivalents(endocarditis.getId());
+        Set<Node<String>> endocarditisRes = endocarditisNode.getParents();
         assertTrue(endocarditisRes.size() == 3);
-        assertTrue(endocarditisRes.contains(ppd.getEquivalents(inflammation
+        assertTrue(endocarditisRes.contains(o.getEquivalents(inflammation
                 .getId())));
-        assertTrue(endocarditisRes.contains(ppd.getEquivalents(heartdisease
+        assertTrue(endocarditisRes.contains(o.getEquivalents(heartdisease
                 .getId())));
-        assertTrue(endocarditisRes.contains(ppd.getEquivalents(criticalDisease
+        assertTrue(endocarditisRes.contains(o.getEquivalents(criticalDisease
                 .getId())));
 
-        ClassNode inflammationNode = ppd.getEquivalents(inflammation.getId());
-        Set<ClassNode> inflammationRes = inflammationNode.getParents();
+        Node<String> inflammationNode = o.getEquivalents(inflammation.getId());
+        Set<Node<String>> inflammationRes = inflammationNode.getParents();
         assertTrue(inflammationRes.size() == 1);
         assertTrue(inflammationRes
-                .contains(ppd.getEquivalents(disease.getId())));
+                .contains(o.getEquivalents(disease.getId())));
 
-        ClassNode endocardiumNode = ppd.getEquivalents(endocardium.getId());
-        Set<ClassNode> endocardiumRes = endocardiumNode.getParents();
+        Node<String> endocardiumNode = o.getEquivalents(endocardium.getId());
+        Set<Node<String>> endocardiumRes = endocardiumNode.getParents();
         assertTrue(endocardiumRes.size() == 1);
-        assertTrue(endocardiumRes.contains(ppd.getEquivalents(tissue.getId())));
+        assertTrue(endocardiumRes.contains(o.getEquivalents(tissue.getId())));
 
-        ClassNode heartdiseaseNode = ppd.getEquivalents(heartdisease.getId());
-        Set<ClassNode> heartdiseaseRes = heartdiseaseNode.getParents();
+        Node<String> heartdiseaseNode = o.getEquivalents(heartdisease.getId());
+        Set<Node<String>> heartdiseaseRes = heartdiseaseNode.getParents();
         assertTrue(heartdiseaseRes.size() == 1);
-        assertTrue(heartdiseaseRes
-                .contains(ppd.getEquivalents(disease.getId())));
+        assertTrue(heartdiseaseRes.contains(o.getEquivalents(disease.getId())));
 
-        ClassNode heartWallNode = ppd.getEquivalents(heartWall.getId());
-        Set<ClassNode> heartWallRes = heartWallNode.getParents();
+        Node<String> heartWallNode = o.getEquivalents(heartWall.getId());
+        Set<Node<String>> heartWallRes = heartWallNode.getParents();
         assertTrue(heartWallRes.size() == 1);
-        assertTrue(heartWallRes.contains(ppd.getEquivalents(bodyWall.getId())));
+        assertTrue(heartWallRes.contains(o.getEquivalents(bodyWall.getId())));
 
-        ClassNode heartValveNode = ppd.getEquivalents(heartValve.getId());
-        Set<ClassNode> heartValveRes = heartValveNode.getParents();
+        Node<String> heartValveNode = o.getEquivalents(heartValve.getId());
+        Set<Node<String>> heartValveRes = heartValveNode.getParents();
         assertTrue(heartValveRes.size() == 1);
         assertTrue(heartValveRes
-                .contains(ppd.getEquivalents(bodyValve.getId())));
+                .contains(o.getEquivalents(bodyValve.getId())));
 
-        ClassNode diseaseNode = ppd.getEquivalents(disease.getId());
-        Set<ClassNode> diseaseRes = diseaseNode.getParents();
+        Node<String> diseaseNode = o.getEquivalents(disease.getId());
+        Set<Node<String>> diseaseRes = diseaseNode.getParents();
         assertTrue(diseaseRes.size() == 1);
-        assertTrue(diseaseRes
-                .contains(ppd.getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(diseaseRes.contains(o.getTopNode()));
 
-        ClassNode tissueNode = ppd.getEquivalents(tissue.getId());
-        Set<ClassNode> tissueRes = tissueNode.getParents();
+        Node<String> tissueNode = o.getEquivalents(tissue.getId());
+        Set<Node<String>> tissueRes = tissueNode.getParents();
         assertTrue(tissueRes.size() == 1);
-        assertTrue(tissueRes.contains(ppd.getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(tissueRes.contains(o.getTopNode()));
 
-        ClassNode heartNode = ppd.getEquivalents(heart.getId());
-        Set<ClassNode> heartRes = heartNode.getParents();
+        Node<String> heartNode = o.getEquivalents(heart.getId());
+        Set<Node<String>> heartRes = heartNode.getParents();
         assertTrue(heartRes.size() == 1);
-        assertTrue(heartRes.contains(ppd.getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(heartRes.contains(o.getTopNode()));
 
-        ClassNode bodyValveNode = ppd.getEquivalents(bodyValve.getId());
-        Set<ClassNode> bodyValveRes = bodyValveNode.getParents();
+        Node<String> bodyValveNode = o.getEquivalents(bodyValve.getId());
+        Set<Node<String>> bodyValveRes = bodyValveNode.getParents();
         assertTrue(bodyValveRes.size() == 1);
-        assertTrue(bodyValveRes.contains(ppd
-                .getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(bodyValveRes.contains(o.getTopNode()));
 
-        ClassNode bodyWallNode = ppd.getEquivalents(bodyWall.getId());
-        Set<ClassNode> bodyWallRes = bodyWallNode.getParents();
+        Node<String> bodyWallNode = o.getEquivalents(bodyWall.getId());
+        Set<Node<String>> bodyWallRes = bodyWallNode.getParents();
         assertTrue(bodyWallRes.size() == 1);
-        assertTrue(bodyWallRes.contains(ppd
-                .getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(bodyWallRes.contains(o.getTopNode()));
 
-        ClassNode criticalDiseaseNode = ppd.getEquivalents(criticalDisease
+        Node<String> criticalDiseaseNode = o.getEquivalents(criticalDisease
                 .getId());
-        Set<ClassNode> criticalDiseaseRes = criticalDiseaseNode.getParents();
+        Set<Node<String>> criticalDiseaseRes = criticalDiseaseNode.getParents();
         assertTrue(criticalDiseaseRes.size() == 1);
-        assertTrue(criticalDiseaseRes.contains(ppd
-                .getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(criticalDiseaseRes.contains(o.getTopNode()));
     }
     
 }

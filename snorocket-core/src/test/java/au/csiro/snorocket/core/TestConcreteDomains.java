@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import au.csiro.ontology.Node;
 import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.model.Concept;
@@ -24,8 +25,6 @@ import au.csiro.ontology.model.IntegerLiteral;
 import au.csiro.ontology.model.Operator;
 import au.csiro.ontology.model.Role;
 import au.csiro.ontology.model.StringLiteral;
-import au.csiro.snorocket.core.util.IConceptMap;
-import au.csiro.snorocket.core.util.IConceptSet;
 
 /**
  * Unit test cases for Snorocket concrete domains functionality.
@@ -113,48 +112,45 @@ public class TestConcreteDomains {
         // Classify
         NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
-        final IConceptMap<IConceptSet> s = o.getSubsumptions();
 
         // Build taxonomy
-        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-        ppd.computeDag(s, false, null);
+        o.buildTaxonomy();
 
         // Test results
-        ClassNode panadolNode = ppd.getEquivalents(panadol.getId());
-        Set<ClassNode> panadolRes = panadolNode.getParents();
+        Node<String> panadolNode = o.getEquivalents(panadol.getId());
+        Set<Node<String>> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
-        assertTrue(panadolRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
+        assertTrue(panadolRes.contains(o.getTopNode()));
 
-        ClassNode panadol_250mgNode = ppd.getEquivalents(panadol_250mg.getId());
-        Set<ClassNode> panadol_250mgRes = panadol_250mgNode.getParents();
+        Node<String> panadol_250mgNode = o.getEquivalents(panadol_250mg.getId());
+        Set<Node<String>> panadol_250mgRes = panadol_250mgNode.getParents();
         assertTrue(panadol_250mgRes.size() == 1);
         assertTrue(panadol_250mgRes
-                .contains(ppd.getEquivalents(panadol.getId())));
+                .contains(o.getEquivalents(panadol.getId())));
 
-        ClassNode panadol_500mgNode = ppd.getEquivalents(panadol_500mg.getId());
-        Set<ClassNode> panadol_500mgRes = panadol_500mgNode.getParents();
+        Node<String> panadol_500mgNode = o.getEquivalents(panadol_500mg.getId());
+        Set<Node<String>> panadol_500mgRes = panadol_500mgNode.getParents();
         assertTrue(panadol_500mgRes.size() == 1);
         assertTrue(panadol_500mgRes
-                .contains(ppd.getEquivalents(panadol.getId())));
+                .contains(o.getEquivalents(panadol.getId())));
 
-        ClassNode panadol_pack_250mgNode = ppd
+        Node<String> panadol_pack_250mgNode = o
                 .getEquivalents(panadol_pack_250mg.getId());
-        Set<ClassNode> panadol_pack_250mgRes = panadol_pack_250mgNode
+        Set<Node<String>> panadol_pack_250mgRes = panadol_pack_250mgNode
                 .getParents();
         assertTrue(panadol_pack_250mgRes.size() == 1);
-        assertTrue(panadol_pack_250mgRes.contains(ppd
+        assertTrue(panadol_pack_250mgRes.contains(o
                 .getEquivalents(panadol_250mg.getId())));
 
-        ClassNode paracetamolNode = ppd.getEquivalents(paracetamol.getId());
-        Set<ClassNode> paracetamolRes = paracetamolNode.getParents();
+        Node<String> paracetamolNode = o.getEquivalents(paracetamol.getId());
+        Set<Node<String>> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
-        assertTrue(paracetamolRes.contains(ppd
-                .getEquivalents(CoreFactory.TOP_CONCEPT)));
+        assertTrue(paracetamolRes.contains(o.getTopNode()));
 
-        ClassNode bottleNode = ppd.getEquivalents(bottle.getId());
-        Set<ClassNode> bottleRes = bottleNode.getParents();
+        Node<String> bottleNode = o.getEquivalents(bottle.getId());
+        Set<Node<String>> bottleRes = bottleNode.getParents();
         assertTrue(bottleRes.size() == 1);
-        assertTrue(bottleRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
+        assertTrue(bottleRes.contains(o.getTopNode()));
     }
 
     /**
@@ -235,48 +231,45 @@ public class TestConcreteDomains {
         // Classify
         NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
-        final IConceptMap<IConceptSet> s = o.getSubsumptions();
 
         // Build taxonomy
-        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-        ppd.computeDag(s, false, null);
+        o.buildTaxonomy();
 
         // Test results
-        ClassNode panadolNode = ppd.getEquivalents(panadol.getId());
-        Set<ClassNode> panadolRes = panadolNode.getParents();
+        Node<String> panadolNode = o.getEquivalents(panadol.getId());
+        Set<Node<String>> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
-        assertTrue(panadolRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
+        assertTrue(panadolRes.contains(o.getTopNode()));
 
-        ClassNode panadol_250mgNode = ppd.getEquivalents(panadol_250mg.getId());
-        Set<ClassNode> panadol_250mgRes = panadol_250mgNode.getParents();
+        Node<String> panadol_250mgNode = o.getEquivalents(panadol_250mg.getId());
+        Set<Node<String>> panadol_250mgRes = panadol_250mgNode.getParents();
         assertTrue(panadol_250mgRes.size() == 1);
         assertTrue(panadol_250mgRes
-                .contains(ppd.getEquivalents(panadol.getId())));
+                .contains(o.getEquivalents(panadol.getId())));
 
-        ClassNode panadol_500mgNode = ppd.getEquivalents(panadol_500mg.getId());
-        Set<ClassNode> panadol_500mgRes = panadol_500mgNode.getParents();
+        Node<String> panadol_500mgNode = o.getEquivalents(panadol_500mg.getId());
+        Set<Node<String>> panadol_500mgRes = panadol_500mgNode.getParents();
         assertTrue(panadol_500mgRes.size() == 1);
         assertTrue(panadol_500mgRes
-                .contains(ppd.getEquivalents(panadol.getId())));
+                .contains(o.getEquivalents(panadol.getId())));
 
-        ClassNode panadol_pack_250mgNode = ppd
+        Node<String> panadol_pack_250mgNode = o
                 .getEquivalents(panadol_pack_250mg.getId());
-        Set<ClassNode> panadol_pack_250mgRes = panadol_pack_250mgNode
+        Set<Node<String>> panadol_pack_250mgRes = panadol_pack_250mgNode
                 .getParents();
         assertTrue(panadol_pack_250mgRes.size() == 1);
-        assertTrue(panadol_pack_250mgRes.contains(ppd
+        assertTrue(panadol_pack_250mgRes.contains(o
                 .getEquivalents(panadol_250mg.getId())));
 
-        ClassNode paracetamolNode = ppd.getEquivalents(paracetamol.getId());
-        Set<ClassNode> paracetamolRes = paracetamolNode.getParents();
+        Node<String> paracetamolNode = o.getEquivalents(paracetamol.getId());
+        Set<Node<String>> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
-        assertTrue(paracetamolRes.contains(ppd
-                .getEquivalents(CoreFactory.TOP_CONCEPT)));
+        assertTrue(paracetamolRes.contains(o.getTopNode()));
 
-        ClassNode bottleNode = ppd.getEquivalents(bottle.getId());
-        Set<ClassNode> bottleRes = bottleNode.getParents();
+        Node<String> bottleNode = o.getEquivalents(bottle.getId());
+        Set<Node<String>> bottleRes = bottleNode.getParents();
         assertTrue(bottleRes.size() == 1);
-        assertTrue(bottleRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
+        assertTrue(bottleRes.contains(o.getTopNode()));
     }
 
     /**
@@ -357,48 +350,45 @@ public class TestConcreteDomains {
         // Classify
         NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
-        final IConceptMap<IConceptSet> s = o.getSubsumptions();
 
         // Build taxonomy
-        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-        ppd.computeDag(s, false, null);
+        o.buildTaxonomy();
 
         // Test results
-        ClassNode panadolNode = ppd.getEquivalents(panadol.getId());
-        Set<ClassNode> panadolRes = panadolNode.getParents();
+        Node<String> panadolNode = o.getEquivalents(panadol.getId());
+        Set<Node<String>> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
-        assertTrue(panadolRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
+        assertTrue(panadolRes.contains(o.getTopNode()));
 
-        ClassNode panadol_250mgNode = ppd.getEquivalents(panadol_250mg.getId());
-        Set<ClassNode> panadol_250mgRes = panadol_250mgNode.getParents();
+        Node<String> panadol_250mgNode = o.getEquivalents(panadol_250mg.getId());
+        Set<Node<String>> panadol_250mgRes = panadol_250mgNode.getParents();
         assertTrue(panadol_250mgRes.size() == 1);
         assertTrue(panadol_250mgRes
-                .contains(ppd.getEquivalents(panadol.getId())));
+                .contains(o.getEquivalents(panadol.getId())));
 
-        ClassNode panadol_500mgNode = ppd.getEquivalents(panadol_500mg.getId());
-        Set<ClassNode> panadol_500mgRes = panadol_500mgNode.getParents();
+        Node<String> panadol_500mgNode = o.getEquivalents(panadol_500mg.getId());
+        Set<Node<String>> panadol_500mgRes = panadol_500mgNode.getParents();
         assertTrue(panadol_500mgRes.size() == 1);
         assertTrue(panadol_500mgRes
-                .contains(ppd.getEquivalents(panadol.getId())));
+                .contains(o.getEquivalents(panadol.getId())));
 
-        ClassNode panadol_pack_250mgNode = ppd
+        Node<String> panadol_pack_250mgNode = o
                 .getEquivalents(panadol_pack_250mg.getId());
-        Set<ClassNode> panadol_pack_250mgRes = panadol_pack_250mgNode
+        Set<Node<String>> panadol_pack_250mgRes = panadol_pack_250mgNode
                 .getParents();
         assertTrue(panadol_pack_250mgRes.size() == 1);
-        assertTrue(panadol_pack_250mgRes.contains(ppd
+        assertTrue(panadol_pack_250mgRes.contains(o
                 .getEquivalents(panadol_250mg.getId())));
 
-        ClassNode paracetamolNode = ppd.getEquivalents(paracetamol.getId());
-        Set<ClassNode> paracetamolRes = paracetamolNode.getParents();
+        Node<String> paracetamolNode = o.getEquivalents(paracetamol.getId());
+        Set<Node<String>> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
-        assertTrue(paracetamolRes.contains(ppd
-                .getEquivalents(CoreFactory.TOP_CONCEPT)));
+        assertTrue(paracetamolRes.contains(o.getTopNode()));
 
-        ClassNode bottleNode = ppd.getEquivalents(bottle.getId());
-        Set<ClassNode> bottleRes = bottleNode.getParents();
+        Node<String> bottleNode = o.getEquivalents(bottle.getId());
+        Set<Node<String>> bottleRes = bottleNode.getParents();
         assertTrue(bottleRes.size() == 1);
-        assertTrue(bottleRes.contains(ppd.getEquivalents(CoreFactory.TOP_CONCEPT)));
+        assertTrue(bottleRes.contains(o.getTopNode()));
     }
 
     /**
@@ -460,40 +450,35 @@ public class TestConcreteDomains {
         // Classify
         NormalisedOntology<String> o = new NormalisedOntology<>(factory, axioms);
         o.classify();
-        final IConceptMap<IConceptSet> s = o.getSubsumptions();
-
+        
         // Build taxonomy
-        PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-        ppd.computeDag(s, false, null);
+        o.buildTaxonomy();
 
         // Test results
-        ClassNode panadolNode = ppd.getEquivalents(panadol.getId());
-        Set<ClassNode> panadolRes = panadolNode.getParents();
+        Node<String> panadolNode = o.getEquivalents(panadol.getId());
+        Set<Node<String>> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
         assertTrue(panadolRes
-                .contains(ppd.getEquivalents(IFactory.TOP_CONCEPT)));
+                .contains(o.getTopNode()));
 
-        ClassNode paracetamolNode = ppd.getEquivalents(paracetamol.getId());
-        Set<ClassNode> paracetamolRes = paracetamolNode.getParents();
+        Node<String> paracetamolNode = o.getEquivalents(paracetamol.getId());
+        Set<Node<String>> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
-        assertTrue(paracetamolRes.contains(ppd
-                .getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(paracetamolRes.contains(o.getTopNode()));
 
-        ClassNode patientNode = ppd.getEquivalents(patient.getId());
-        Set<ClassNode> patientRes = patientNode.getParents();
+        Node<String> patientNode = o.getEquivalents(patient.getId());
+        Set<Node<String>> patientRes = patientNode.getParents();
         assertTrue(patientRes.size() == 1);
-        assertTrue(patientRes
-                .contains(ppd.getEquivalents(IFactory.TOP_CONCEPT)));
+        assertTrue(patientRes.contains(o.getTopNode()));
 
-        ClassNode bottomNode = ppd.getEquivalents(IFactory.BOTTOM_CONCEPT);
+        Node<String> bottomNode = o.getBottomNode();
         assertTrue(bottomNode.getEquivalentConcepts().size() == 2);
-        assertTrue(bottomNode.getEquivalentConcepts().contains(
-                factory.getConcept(X.getId())));
-        Set<ClassNode> bottomRes = bottomNode.getParents();
+        assertTrue(bottomNode.getEquivalentConcepts().contains(X.getId()));
+        Set<Node<String>> bottomRes = bottomNode.getParents();
         assertTrue(bottomRes.size() == 3);
-        assertTrue(bottomRes.contains(ppd.getEquivalents(panadol.getId())));
-        assertTrue(bottomRes.contains(ppd.getEquivalents(paracetamol.getId())));
-        assertTrue(bottomRes.contains(ppd.getEquivalents(patient.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(panadol.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(paracetamol.getId())));
+        assertTrue(bottomRes.contains(o.getEquivalents(patient.getId())));
     }
 
 }
