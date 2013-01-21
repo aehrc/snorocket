@@ -63,14 +63,11 @@ import au.csiro.ontology.IOntology;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IProgressMonitor;
 import au.csiro.ontology.importer.owl.OWLImporter;
+import au.csiro.ontology.model.Concept;
 import au.csiro.snorocket.core.ClassNode;
 import au.csiro.snorocket.core.CoreFactory;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.NormalisedOntology;
-import au.csiro.snorocket.core.PostProcessedData;
-import au.csiro.snorocket.core.util.IConceptMap;
-import au.csiro.snorocket.core.util.IConceptSet;
-import au.csiro.snorocket.core.util.IntIterator;
 
 /**
  * Main classifier class. Communicates with external modules using the
@@ -113,16 +110,13 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     // The core reasoner
     private NormalisedOntology<String> reasoner = new NormalisedOntology<>(factory);
 
-    // The taxonomy built after the saturation process
-    private PostProcessedData<String> ppd = new PostProcessedData<>(factory);
-
     // List of problems found when doing the ontology classification
     private final List<String> problems = new ArrayList<String>();
 
     // List of raw changes to the ontology
     private final List<OWLOntologyChange> rawChanges = new ArrayList<OWLOntologyChange>();
     
-    private int numThreads = 1;
+    private int numThreads = Runtime.getRuntime().availableProcessors();
 
     /**
      * 
@@ -150,8 +144,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         reset();
         loadAxioms();
         reasoner.classify();
-        final IConceptMap<IConceptSet> s = reasoner.getSubsumptions();
-        ppd.computeDag(s, false, monitor);
+        reasoner.buildTaxonomy();
     }
 
     /**
@@ -186,25 +179,24 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         factory = new CoreFactory<>();
         reasoner = new NormalisedOntology<>(factory);
         reasoner.setNumThreads(numThreads);
-        ppd = new PostProcessedData<>(factory);
         monitor.taskEnded();
     }
 
     /**
-     * Returns the {@link OWLClass} for the corresponding internal int
+     * Returns the {@link OWLClass} for the corresponding internal object
      * representation.
      * 
      * @param c
      * @return
      */
-    private OWLClass getOWLClass(int id) {
+    private OWLClass getOWLClass(Object id) {
         // Special cases top and bottom
-        if(id == IFactory.TOP_CONCEPT) {
+        if(id == Concept.TOP) {
             return owlFactory.getOWLThing();
-        } else if(id == IFactory.BOTTOM_CONCEPT) {
+        } else if(id == Concept.BOTTOM) {
             return owlFactory.getOWLNothing();
         } else {
-            String iri = factory.lookupConceptId(id);
+            String iri = (String)id;
             return owlFactory.getOWLClass(IRI.create(iri));
         }
     }
@@ -301,13 +293,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
                     IOntology<String> o = map.get(ikey);
                     Collection<IAxiom> axioms = o.getStatedAxioms();
                     reasoner.classifyIncremental(new HashSet<IAxiom>(axioms));
+                    reasoner.buildTaxonomy();
                 }
             }
-
-            final IConceptMap<IConceptSet> n = reasoner.getNewSubsumptions();
-            final IConceptMap<IConceptSet> a = reasoner
-                    .getAffectedSubsumptions();
-            ppd.computeDagIncremental(n, a, false, monitor);
         }
 
         rawChanges.clear();
@@ -364,11 +352,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     @Override
     public boolean isPrecomputed(InferenceType inferenceType) {
         if (inferenceType.equals(InferenceType.CLASS_HIERARCHY)) {
-            if (ppd != null) {
-                return true;
-            } else {
-                return false;
-            }
+            return reasoner.isTaxonomyComputed();
         } else {
             return false;
         }
@@ -387,7 +371,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     @Override
     public boolean isConsistent() throws ReasonerInterruptedException,
             TimeOutException {
-        if (ppd != null) {
+        if (reasoner.isTaxonomyComputed()) {
             if (problems.isEmpty()) {
                 return true;
             } else {
@@ -413,11 +397,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         } else {
             // If the node that contains OWLNothing contains this OWLClass then
             // it is not satisfiable
-            int c = getConceptId(classExpression.asOWLClass()
-                    .toStringID());
-            ClassNode bottom = ppd.getEquivalents(IFactory.BOTTOM_CONCEPT);
+            String c = classExpression.asOWLClass().toStringID();
+            au.csiro.ontology.Node<String> bottom = reasoner.getBottomNode();
             return !bottom.getEquivalentConcepts().contains(c);
-
         }
     }
 
@@ -425,7 +407,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     public Node<OWLClass> getUnsatisfiableClasses()
             throws ReasonerInterruptedException, TimeOutException,
             InconsistentOntologyException {
-        ClassNode bottom = ppd.getEquivalents(IFactory.BOTTOM_CONCEPT);
+        au.csiro.ontology.Node<String> bottom = reasoner.getBottomNode();
         return nodeToOwlClassNode(bottom);
     }
 
@@ -454,13 +436,13 @@ public class SnorocketOWLReasoner implements OWLReasoner {
 
     @Override
     public Node<OWLClass> getTopClassNode() {
-        ClassNode top = ppd.getEquivalents(IFactory.TOP_CONCEPT);
+        au.csiro.ontology.Node<String> top = reasoner.getTopNode();
         return nodeToOwlClassNode(top);
     }
 
     @Override
     public Node<OWLClass> getBottomClassNode() {
-        ClassNode bottom = ppd.getEquivalents(IFactory.BOTTOM_CONCEPT);
+        au.csiro.ontology.Node<String> bottom = reasoner.getBottomNode();
         return nodeToOwlClassNode(bottom);
     }
 
@@ -473,30 +455,26 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             throw new InconsistentOntologyException();
         }
         if (ce.isAnonymous()) {
-            throw new ReasonerInternalException("Expected a named class, got "
-                    + ce);
+            throw new ReasonerInternalException("Expected a named class, got " + ce);
         }
         OWLClass c = ce.asOWLClass();
 
-        // Get the corresponding concept in the internal representation
-        int cc = getConceptId(c.toStringID());
-
         // Use the post processed data to answer the query
-        ClassNode n = ppd.getEquivalents(cc);
-        Set<ClassNode> children = n.getChildren();
+        au.csiro.ontology.Node<String> n = reasoner.getEquivalents(c.toStringID());
+        Set<au.csiro.ontology.Node<String>> children = n.getChildren();
 
         if (direct) {
             // Transform the response back into owlapi objects
             return nodesToOwlClassNodeSet(children);
         } else {
-            Set<ClassNode> res = new HashSet<>();
-            Queue<Set<ClassNode>> todo = new LinkedList<>();
+            Set<au.csiro.ontology.Node<String>> res = new HashSet<>();
+            Queue<Set<au.csiro.ontology.Node<String>>> todo = new LinkedList<>();
             todo.add(children);
             while (!todo.isEmpty()) {
-                Set<ClassNode> items = todo.remove();
+                Set<au.csiro.ontology.Node<String>> items = todo.remove();
                 res.addAll(items);
-                for (ClassNode item : items) {
-                    Set<ClassNode> cn = item.getChildren();
+                for (au.csiro.ontology.Node<String> item : items) {
+                    Set<au.csiro.ontology.Node<String>> cn = item.getChildren();
                     if (!cn.isEmpty())
                         todo.add(cn);
                 }
@@ -520,30 +498,26 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         }
         
         OWLClass c = ce.asOWLClass();
-        
-        // Get the corresponding concept in the internal representation
-        int cc = getConceptId(c.toStringID());
 
         // Use the post processed data to answer the query
-
-        ClassNode n = ppd.getEquivalents(cc);
+        au.csiro.ontology.Node<String> n = reasoner.getEquivalents(c.toStringID());
         if (n == null) {
             return new OWLClassNodeSet();
         }
-        Set<ClassNode> parents = n.getParents();
+        Set<au.csiro.ontology.Node<String>> parents = n.getParents();
 
         if (direct) {
             // Transform the response back into owlapi objects
             return nodesToOwlClassNodeSet(parents);
         } else {
-            Set<ClassNode> res = new HashSet<>();
-            Queue<Set<ClassNode>> todo = new LinkedList<>();
+            Set<au.csiro.ontology.Node<String>> res = new HashSet<>();
+            Queue<Set<au.csiro.ontology.Node<String>>> todo = new LinkedList<>();
             todo.add(parents);
             while (!todo.isEmpty()) {
-                Set<ClassNode> items = todo.remove();
+                Set<au.csiro.ontology.Node<String>> items = todo.remove();
                 res.addAll(items);
-                for (ClassNode item : items) {
-                    Set<ClassNode> cn = item.getParents();
+                for (au.csiro.ontology.Node<String> item : items) {
+                    Set<au.csiro.ontology.Node<String>> cn = item.getParents();
                     if (!cn.isEmpty())
                         todo.add(cn);
                 }
@@ -567,16 +541,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
                     + ce);
         }
         OWLClass c = ce.asOWLClass();
-        // Get the corresponding concept in the internal representation
-        int cc = getConceptId(c.toStringID());
 
         // Use the post processed data to answer the query
-        ClassNode n = ppd.getEquivalents(cc);
-        
-        // TODO remove
-        if(n == null) {
-            System.out.println("cc: "+cc+", id: "+c.toStringID());
-        }
+        au.csiro.ontology.Node<String> n = reasoner.getEquivalents(c.toStringID());
         
         return nodeToOwlClassNode(n);
     }
@@ -821,22 +788,14 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @param n
      * @return
      */
-    private Node<OWLClass> nodeToOwlClassNode(ClassNode n) {
+    private Node<OWLClass> nodeToOwlClassNode(au.csiro.ontology.Node<String> n) {
         org.semanticweb.owlapi.reasoner.Node<OWLClass> node = new OWLClassNode();
         
-        try {
-
-        for (IntIterator it = n.getEquivalentConcepts().iterator(); it
-                .hasNext();) {
-            int eq = it.next();
+        for(Object eq : n.getEquivalentConcepts()) {
             node.getEntities().add(getOWLClass(eq));
         }
+
         return node;
-        
-        } catch(Throwable t) {
-            t.printStackTrace();
-            return null;
-        }
     }
 
     /**
@@ -845,23 +804,12 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @param nodes
      * @return
      */
-    private NodeSet<OWLClass> nodesToOwlClassNodeSet(Set<ClassNode> nodes) {
+    private NodeSet<OWLClass> nodesToOwlClassNodeSet(Set<au.csiro.ontology.Node<String>> nodes) {
         Set<org.semanticweb.owlapi.reasoner.Node<OWLClass>> temp = new HashSet<>();
-        for (ClassNode n : nodes) {
+        for (au.csiro.ontology.Node<String> n : nodes) {
             temp.add(nodeToOwlClassNode(n));
         }
         return new OWLClassNodeSet(temp);
-    }
-    
-    private int getConceptId(String cid) {
-        // Special cases
-        if("http://www.w3.org/2002/07/owl#Thing".equals(cid)) {
-            return 0;
-        } else if("http://www.w3.org/2002/07/owl#Nothing".equals(cid)) {
-            return 1;
-        } else {
-            return factory.getConcept(cid);
-        }
     }
 
     // //////////////////////////////////////////////////////////////////////////
