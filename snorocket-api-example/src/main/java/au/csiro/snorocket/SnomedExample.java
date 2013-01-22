@@ -2,7 +2,7 @@
  * Copyright CSIRO Australian e-Health Research Centre (http://aehrc.com).
  * All rights reserved. Use is subject to license terms and conditions.
  */
-package au.csiro.snorocket.core.examples;
+package au.csiro.snorocket;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -26,7 +26,7 @@ import au.csiro.snorocket.core.util.Utils;
  * @author Alejandro Metke
  *
  */
-public class Example {
+public class SnomedExample {
     
     /**
      * Shows how to create the following axioms:
@@ -188,7 +188,7 @@ public class Example {
      * @param args
      */
     public static void main(String[] args) {
-        Example.bottlesExample();
+        SnomedExample.bottlesExample();
     }
 
 }
