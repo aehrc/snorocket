@@ -89,6 +89,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
                 (IConcept)res.factory.lookupConceptId(CoreFactory.TOP_CONCEPT), 
                 (IConcept)res.factory.lookupConceptId(CoreFactory.BOTTOM_CONCEPT));
         Context.init(res.no);
+        res.no.buildTaxonomy();
         return res;
     }
     
