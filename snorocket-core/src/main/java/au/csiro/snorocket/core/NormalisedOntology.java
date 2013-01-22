@@ -207,7 +207,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     
     private boolean hasBeenIncrementallyClassified = false;
     
-    protected Map<T, Node<T>> conceptNodeIndex;
+    private transient Map<T, Node<T>> conceptNodeIndex;
 
     
     private static class ContextComparator implements Comparator<Context>, Serializable {
