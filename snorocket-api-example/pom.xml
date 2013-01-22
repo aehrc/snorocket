@@ -48,6 +48,11 @@
     	<artifactId>ontology-import</artifactId>
       <version>${ontology.version}</version>
     </dependency>
+    <dependency>
+    	<groupId>au.csiro</groupId>
+    	<artifactId>snomed-db</artifactId>
+      <version>1.0</version>
+    </dependency>
   </dependencies>
 
 </project>

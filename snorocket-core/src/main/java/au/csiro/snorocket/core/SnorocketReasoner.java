@@ -80,8 +80,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         SnorocketReasoner res; 
         try(ObjectInputStream ois = new ObjectInputStream(in); ) { 
             res = (SnorocketReasoner)ois.readObject();  
-        } 
-        catch(Exception e) { 
+        } catch(Exception e) { 
             log.error("Problem loading reasoner." + e);
             throw new RuntimeException(e);
         }
