@@ -8,8 +8,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import au.csiro.ontology.Factory;
+import au.csiro.ontology.IOntology;
 import au.csiro.ontology.Node;
-import au.csiro.ontology.Taxonomy;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IReasoner;
 import au.csiro.ontology.model.IConcept;
@@ -137,7 +137,7 @@ public class APIExample {
         // If classification worked properly then Endocarditis should be 
         // classified not only as an Inflammation but also as a HeartDisease 
         // and a CriticalDisease
-        Taxonomy<String> t = reasoner.getTaxonomy();
+        IOntology<String> t = reasoner.getClassifiedOntology();
         
         // We use the same id that was used to create the concept to look for
         // the corresponding node in the taxonomy
@@ -177,7 +177,7 @@ public class APIExample {
         
         // Now Endocarditis should be a HeartInflammation instead of an 
         // Inflammation
-        t = reasoner.getTaxonomy();
+        t = reasoner.getClassifiedOntology();
         endocarditisNode = t.getNode("Endocarditis");
         System.out.println("Node for endocarditis:\n  "+
                 endocarditisNode.getEquivalentConcepts());

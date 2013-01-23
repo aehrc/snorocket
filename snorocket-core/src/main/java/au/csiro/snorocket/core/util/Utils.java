@@ -4,6 +4,8 @@
  */
 package au.csiro.snorocket.core.util;
 
+import java.util.Map;
+
 import au.csiro.ontology.Node;
 
 /**
@@ -11,7 +13,33 @@ import au.csiro.ontology.Node;
  *
  */
 public class Utils {
-
+    
+    public static void printTaxonomy(Node<String> top, Node<String> bottom, Map<String, String> idNameMap) {
+        for(Node<String> child : top.getChildren()) {
+            printTaxonomyLevel(child, bottom, 0, idNameMap);
+        }
+    }
+    
+    private static void printTaxonomyLevel(Node<String> root, 
+            Node<String> bottom, int level, Map<String, String> idNameMap) {
+        if(root.equals(bottom)) return;
+        System.out.println(spaces(level)+nodeToString(root, idNameMap));
+        for(Node<String> child : root.getChildren()) {
+            printTaxonomyLevel(child, bottom, level+1, idNameMap);
+        }
+    }
+    
+    private static String nodeToString(Node<String> node, Map<String, String> idNameMap) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        for(String concept : node.getEquivalentConcepts()) {
+            sb.append(" ");
+            sb.append(idNameMap.get(concept));
+        }
+        sb.append(" }");
+        return sb.toString();
+    }
+    
     public static void printTaxonomy(Node<String> top, Node<String> bottom) {
         for(Node<String> child : top.getChildren()) {
             printTaxonomyLevel(child, bottom, 0);

@@ -8,8 +8,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import au.csiro.ontology.Factory;
+import au.csiro.ontology.IOntology;
 import au.csiro.ontology.Node;
-import au.csiro.ontology.Taxonomy;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IReasoner;
 import au.csiro.ontology.model.IConcept;
@@ -87,7 +87,7 @@ public class LegoExample {
         reasoner.classify(axioms);
         
         // The taxonomy contains the inferred hierarchy
-        Taxonomy<String> t = reasoner.getTaxonomy();
+        IOntology<String> t = reasoner.getClassifiedOntology();
         
         // We can look for nodes using the concept ids.
         Node<String> newNode = t.getNode("pce_24220");
