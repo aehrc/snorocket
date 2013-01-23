@@ -63,7 +63,7 @@ public class Context implements Serializable {
      * Queue (List) of ConjunctionQueueEntries indicating work to be done for
      * this concept.
      */
-    private final transient Queue<IConjunctionQueueEntry> conceptQueue = 
+    private final Queue<IConjunctionQueueEntry> conceptQueue = 
             new ConcurrentLinkedQueue<>();
 
     /**
