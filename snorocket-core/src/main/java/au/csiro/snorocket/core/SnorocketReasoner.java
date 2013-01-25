@@ -66,7 +66,6 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
     private NormalisedOntology<T> no = null;
     private IFactory<T> factory = null;
     private boolean isClassified = false;
-    private IOntology<T> ont = null;
     
     /**
      * Loads a saved instance of a {@link SnorocketReasoner} from an input
@@ -155,14 +154,10 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         
         log.info("Building taxonomy");
         no.buildTaxonomy();
-        Map<T, Node<T>> t = no.getTaxonomy();
+        Map<T, Node<T>> taxonomy = no.getTaxonomy();
+        Set<Node<T>> affectedNodes = no.getAffectedNodes();
         
-        if(ont == null) {
-            return new Ontology<T>(null, t);
-        } else {
-            ont.setNodeMap(t);
-            return ont;
-        }
+        return new Ontology<T>(null, taxonomy, affectedNodes);
     }
     
     /**

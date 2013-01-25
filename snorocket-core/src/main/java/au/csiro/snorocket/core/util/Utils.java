@@ -15,8 +15,10 @@ import au.csiro.ontology.Node;
 public class Utils {
     
     public static void printTaxonomy(Node<String> top, Node<String> bottom, Map<String, String> idNameMap) {
-        for(Node<String> child : top.getChildren()) {
-            printTaxonomyLevel(child, bottom, 0, idNameMap);
+    	if(top.equals(bottom)) return;
+        System.out.println(nodeToString(top, idNameMap));
+    	for(Node<String> child : top.getChildren()) {
+            printTaxonomyLevel(child, bottom, 1, idNameMap);
         }
     }
     
@@ -34,7 +36,9 @@ public class Utils {
         sb.append("{");
         for(String concept : node.getEquivalentConcepts()) {
             sb.append(" ");
-            sb.append(idNameMap.get(concept));
+            String desc = idNameMap.get(concept);
+            if(desc == null) desc = "NA";
+            sb.append(desc);
         }
         sb.append(" }");
         return sb.toString();
