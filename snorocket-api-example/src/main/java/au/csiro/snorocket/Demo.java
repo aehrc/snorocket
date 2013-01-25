@@ -39,10 +39,12 @@ public class Demo {
     public void start() {
         
         // 1. Load the base state
+    	System.out.println("Loading base state from classifier_uuid.state");
         SnorocketReasoner<String> reasoner = SnorocketReasoner.load(
                 this.getClass().getResourceAsStream("/classifier_uuid.state"));
         
         // 2. Load SCT to UUID map
+        System.out.println("Loading uuid description map");
         Map<String, String> sctToUuidMap = new HashMap<>();
         Map<String, String> uuidToDescMap = new HashMap<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -51,20 +53,23 @@ public class Demo {
             String line = null;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("[,]");
+                String desc = null;
                 if(parts.length < 4) {
-                    System.err.println(line);
-                    continue;
+                    desc = "";
+                } else {
+                	desc = parts[3];
                 }
                 if(parts[1].equals("NA")) continue;
                 sctToUuidMap.put(parts[1], parts[2]);
-                uuidToDescMap.put(parts[2], parts[3]);
+                uuidToDescMap.put(parts[2], desc);
             }      
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
         
-        // 2. Add test axiom
+        // 3. Add test axiom
+        System.out.println("Adding test axiom");
         Factory<String> f = new Factory<>();
         String newId = UUID.randomUUID().toString();
         uuidToDescMap.put(newId, "Special Appendicits");
@@ -76,17 +81,19 @@ public class Demo {
         Set<IAxiom> axioms = new HashSet<>();
         axioms.add(a1);
         
-        // 3. Classify incrementally
+        // 4. Classify incrementally
+        System.out.println("Classifying incrementally");
         reasoner.classify(axioms);
         
-        // 4. Retrieve taxonomy
+        // 5. Retrieve taxonomy
+        System.out.println("Retrieving taxonomy");
         IOntology<String> ont = reasoner.getClassifiedOntology();
         
-        // 5. Get node for new concept
+        // 6. Get node for new concept
         Node<String> specialAppendicitisNode = 
                 ont.getNodeMap().get(appendicitsUuid);
         
-        // 6. Print the new node
+        // 7. Print the new node
         Utils.printTaxonomy(
                 specialAppendicitisNode.getParents().iterator().next(), 
                 ont.getBottomNode(), 
