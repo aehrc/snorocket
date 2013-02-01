@@ -2076,17 +2076,23 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         return conceptNodeIndex;
     }
     
-    public Map<T, Node<T>> getDeltaTaxonomy() {
-        // Build the response map with only the new and affected concepts
-        // as keys
-        Map<T, Node<T>> res = new HashMap<>();
-        for(IntIterator it = getNewSubsumptions().keyIterator(); it.hasNext(); ) {
+    /**
+     * Returns a {@link Set} of {@link Node}s potentially affected by an
+     * incremental classification.
+     * 
+     * @return
+     */
+    public Set<Node<T>> getAffectedNodes() {
+        Set<Node<T>> res = new HashSet<>();
+        for(IntIterator it = getNewSubsumptions().keyIterator(); 
+        		it.hasNext(); ) {
             T key = factory.lookupConceptId(it.next());
-            res.put(key, conceptNodeIndex.get(key));
+            res.add(conceptNodeIndex.get(key));
         }
-        for(IntIterator it = getAffectedSubsumptions().keyIterator(); it.hasNext(); ) {
+        for(IntIterator it = getAffectedSubsumptions().keyIterator(); 
+        		it.hasNext(); ) {
             T key = factory.lookupConceptId(it.next());
-            res.put(key, conceptNodeIndex.get(key));
+            res.add(conceptNodeIndex.get(key));
         }
         return res;
     }
