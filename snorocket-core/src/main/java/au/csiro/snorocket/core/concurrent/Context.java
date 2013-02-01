@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import au.csiro.ontology.model.Operator;
@@ -32,7 +33,6 @@ import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IMonotonicCollection;
 import au.csiro.snorocket.core.util.IntIterator;
 import au.csiro.snorocket.core.util.MonotonicCollection;
-import au.csiro.snorocket.core.util.RoleMap;
 import au.csiro.snorocket.core.util.RoleSet;
 import au.csiro.snorocket.core.util.SparseConceptSet;
 
@@ -131,7 +131,7 @@ public class Context implements Serializable {
     /**
      * Reference to the global role closure cache.
      */
-    private static RoleMap<RoleSet> roleClosureCache;
+    private static ConcurrentMap<Integer, RoleSet> roleClosureCache;
 
     /**
      * Reference to the global factory.
@@ -159,7 +159,7 @@ public class Context implements Serializable {
      * 
      * These terms are of the form r.A [ b and indexed by A.
      */
-    private static IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>>
+    private static IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>>
         ontologyNF3;
 
     /**
@@ -516,11 +516,11 @@ public class Context implements Serializable {
         // inlined ontHat(conceptQueues.get(pairA(p)), r, b) in following
         // to move test and fetch outside innermost loop
         //
-        final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+        final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = 
                 ontologyNF3.get(b);
         if (null != map) {
-            final RoleSet keySet = map.keySet();
-            for (int r = keySet.first(); r >= 0; r = keySet.next(r + 1)) {
+            final Set<Integer> keySet = map.keySet();
+            for (int r : keySet) {
                 final Collection<IConjunctionQueueEntry> entries = map.get(r);
 
                 if (null != entries) {
@@ -709,7 +709,7 @@ public class Context implements Serializable {
         // Computes the minimal set of QueueEntries from s.a [ bb is in O
         for (IntIterator itr = sb.iterator(); itr.hasNext();) {
             final int bb = itr.next();
-            final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+            final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = 
                     ontologyNF3.get(bb);
 
             if (null != map) {
@@ -954,11 +954,11 @@ public class Context implements Serializable {
         // inlined ontHat(conceptQueues.get(pairA(p)), r, b) in following
         // to move test and fetch outside innermost loop
         //
-        final RoleMap<Collection<IConjunctionQueueEntry>> map = ontologyNF3
+        final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = ontologyNF3
                 .get(b);
         if (null != map) {
-            final RoleSet keySet = map.keySet();
-            for (int r = keySet.first(); r >= 0; r = keySet.next(r + 1)) {
+            final Set<Integer> keySet = map.keySet();
+            for (int r : keySet) {
                 final Collection<IConjunctionQueueEntry> entries = map.get(r);
 
                 if (null != entries) {
@@ -1011,7 +1011,7 @@ public class Context implements Serializable {
         // Computes the minimal set of QueueEntries from s.a [ bb is in O
         for (IntIterator itr = sb.iterator(); itr.hasNext();) {
             final int bb = itr.next();
-            final RoleMap<Collection<IConjunctionQueueEntry>> map = 
+            final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = 
                     ontologyNF3.get(bb);
 
             if (null != map) {

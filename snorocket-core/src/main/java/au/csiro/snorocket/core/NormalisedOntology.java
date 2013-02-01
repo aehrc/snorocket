@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -95,7 +97,6 @@ import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IMonotonicCollection;
 import au.csiro.snorocket.core.util.IntIterator;
 import au.csiro.snorocket.core.util.MonotonicCollection;
-import au.csiro.snorocket.core.util.RoleMap;
 import au.csiro.snorocket.core.util.RoleSet;
 import au.csiro.snorocket.core.util.SparseConceptHashSet;
 import au.csiro.snorocket.core.util.SparseConceptMap;
@@ -149,7 +150,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * 
      * These terms are of the form r.A [ b and indexed by A.
      */
-    final protected IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> ontologyNF3;
+    final protected IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>> ontologyNF3;
 
     /**
      * The set of NF4 terms in the ontology
@@ -193,7 +194,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * The global role closure.
      */
-    private final RoleMap<RoleSet> roleClosureCache;
+    private final ConcurrentMap<Integer, RoleSet> roleClosureCache;
 
     /**
      * A set of new contexts added in an incremental classification.
@@ -236,7 +237,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         return ontologyNF2;
     }
 
-    public IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> getOntologyNF3() {
+    public IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>> getOntologyNF3() {
         return ontologyNF3;
     }
 
@@ -268,7 +269,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         return contextIndex;
     }
 
-    public RoleMap<RoleSet> getRoleClosureCache() {
+    public ConcurrentMap<Integer, RoleSet> getRoleClosureCache() {
         return roleClosureCache;
     }
 
@@ -305,7 +306,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                         factory.getTotalConcepts()),
                 new SparseConceptMap<MonotonicCollection<NF2>>(
                         factory.getTotalConcepts(), "ontologyNF2"),
-                new SparseConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>>(
+                new SparseConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>>(
                         factory.getTotalConcepts(), "ontologyNF3"),
                 new MonotonicCollection<NF4>(15), new MonotonicCollection<NF5>(
                         1), new SparseConceptMap<MonotonicCollection<NF7>>(
@@ -329,14 +330,14 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             final IFactory<T> factory,
             final IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> nf1q,
             final IConceptMap<MonotonicCollection<NF2>> nf2q,
-            final IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> nf3q,
+            final IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>> nf3q,
             final IMonotonicCollection<NF4> nf4q,
             final IMonotonicCollection<NF5> nf5q,
             final IConceptMap<MonotonicCollection<NF7>> nf7q,
             final FeatureMap<MonotonicCollection<NF8>> nf8q) {
         this.factory = factory;
         contextIndex = new FastConceptMap<>(factory.getTotalConcepts(), "");
-        roleClosureCache = new RoleMap<RoleSet>(factory.getTotalRoles());
+        roleClosureCache = new ConcurrentHashMap<Integer, RoleSet>(factory.getTotalRoles());
 
         this.ontologyNF1 = nf1q;
         this.ontologyNF2 = nf2q;
@@ -685,12 +686,12 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * @param nf3
      */
     protected void addTerms(
-            final IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> queue,
+            final IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>> queue,
             final NF3 nf3) {
-        RoleMap<Collection<IConjunctionQueueEntry>> map = queue.get(nf3.lhsA);
+        ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = queue.get(nf3.lhsA);
         Collection<IConjunctionQueueEntry> entry;
         if (null == map) {
-            map = new RoleMap<Collection<IConjunctionQueueEntry>>(
+            map = new ConcurrentHashMap<Integer, Collection<IConjunctionQueueEntry>>(
                     factory.getTotalRoles());
             queue.put(nf3.lhsA, map);
             entry = null;
@@ -953,19 +954,19 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         int size = as.getNf3Axioms().size();
         if (size == 0)
             return;
-        IConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>> deltaNF3 = 
-                new SparseConceptMap<RoleMap<Collection<IConjunctionQueueEntry>>>(size);
+        IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>> deltaNF3 = 
+                new SparseConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>>(size);
         for (NF3 nf3 : as.getNf3Axioms()) {
             addTerms(deltaNF3, nf3);
         }
 
         for (final IntIterator xItr = deltaNF3.keyIterator(); xItr.hasNext();) {
             final int x = xItr.next();
-            final RoleMap<Collection<IConjunctionQueueEntry>> entries = deltaNF3
+            final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> entries = deltaNF3
                     .get(x);
 
-            final RoleSet keySet = entries.keySet();
-            for (int r = keySet.first(); r >= 0; r = keySet.next(r + 1)) {
+            final Set<Integer> keySet = entries.keySet();
+            for (int r : keySet) {
                 for (final IConjunctionQueueEntry entry : entries.get(r)) {
                     for (final IntIterator aItr = subsumptions.keyIterator(); aItr
                             .hasNext();) {
@@ -1463,9 +1464,9 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         // These terms are of the form r.A [ b and indexed by A.
         for(IntIterator it = ontologyNF3.keyIterator(); it.hasNext(); ) {
             int a = it.next();
-            RoleMap<Collection<IConjunctionQueueEntry>> mc = ontologyNF3.get(a);
-            RoleSet keys = mc.keySet();
-            for (int i = keys.nextSetBit(0); i >= 0; i = keys.nextSetBit(i+1)) {
+            ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> mc = ontologyNF3.get(a);
+            Set<Integer> keys = mc.keySet();
+            for (int i : keys) {
                 Collection<IConjunctionQueueEntry> cc = mc.get(i);
                 for(Iterator<IConjunctionQueueEntry> it2 = cc.iterator(); 
                         it2.hasNext(); ) {
