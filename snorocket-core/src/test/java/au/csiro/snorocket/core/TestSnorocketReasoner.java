@@ -12,8 +12,11 @@ import java.io.FileOutputStream;
 import java.util.HashSet;
 import java.util.Set;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 
+import au.csiro.ontology.Factory;
 import au.csiro.ontology.IOntology;
 import au.csiro.ontology.Node;
 import au.csiro.ontology.axioms.ConceptInclusion;
@@ -36,7 +39,7 @@ public class TestSnorocketReasoner {
      * 
      */
     @SuppressWarnings("unchecked")
-    //@Test
+    @Test
     public void testSave() {
 
         // Original Endocarditis ontology axioms
@@ -364,6 +367,68 @@ public class TestSnorocketReasoner {
         Set<Node<String>> criticalDiseaseRes = criticalDiseaseNode.getParents();
         assertTrue(criticalDiseaseRes.size() == 1);
         assertTrue(criticalDiseaseRes.contains(ont.getTopNode()));
+    }
+    
+    /**
+     * Tests the identification of possibly affected concepts after an
+     * incremental taxonomy calculation.
+     */
+    @Test
+    public void testIncrementalTaxonomy() {
+    	
+    	Factory<String> fac = new Factory<>();
+    	IConcept a = fac.createConcept("A");
+    	IConcept b = fac.createConcept("B");
+    	IConcept c = fac.createConcept("C");
+    	IConcept d = fac.createConcept("D");
+    	IConcept e = fac.createConcept("E");
+    	IConcept f = fac.createConcept("F");
+    	IConcept g = fac.createConcept("G");
+    	
+    	IAxiom a1 = fac.createConceptInclusion(b,  a);
+    	IAxiom a2 = fac.createConceptInclusion(c,  b);
+    	IAxiom a3 = fac.createConceptInclusion(d,  c);
+    	IAxiom a4 = fac.createConceptInclusion(e,  a);
+    	IAxiom a5 = fac.createConceptInclusion(f,  e);
+    	
+    	Set<IAxiom> axioms = new HashSet<>();
+        axioms.add(a1);
+        axioms.add(a2);
+        axioms.add(a3);
+        axioms.add(a4);
+        axioms.add(a5);
+    	
+    	SnorocketReasoner<String> sr = new SnorocketReasoner<>();
+        sr.classify(axioms);
+        
+        IOntology<String> ont = sr.getClassifiedOntology();
+        Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
+        
+        IAxiom a6 = fac.createConceptInclusion(g,  e);
+        IAxiom a7 = fac.createConceptInclusion(f,  g);
+        
+        axioms.clear();
+        axioms.add(a6);
+        axioms.add(a7);
+        
+        sr.classify(axioms);
+        ont = sr.getClassifiedOntology();
+        
+        Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
+        
+        Set<Node<String>> affectedNodes = ont.getAffectedNodes();
+        Set<String> affectedIds = new HashSet<>();
+        for(Node<String> affectedNode : affectedNodes) {
+        	affectedIds.addAll(affectedNode.getEquivalentConcepts());
+        }
+        
+        System.out.println("Affected node ids: "+affectedIds);
+        
+        Assert.assertTrue("Node G was not found in affected nodes", 
+        		affectedIds.contains("G"));
+        
+        Assert.assertTrue("Node F was not found in affected nodes", 
+        		affectedIds.contains("F"));
     }
 
 }
