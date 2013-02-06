@@ -101,8 +101,9 @@
   </distributionManagement>
 
   <properties>
-      <branch>sim-clx</branch>
+    <branch>sim-clx</branch>
     <ontology.version>0.0.1-SNAPSHOT</ontology.version>
     <!--ontology.version>0.0.1-uat-build-iteration-3</ontology.version-->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 </project>

@@ -5,12 +5,14 @@
 package au.csiro.snorocket.protege;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
 
@@ -81,7 +83,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     static final String REASONER_NAME = "Snorocket";
 
     // SnorocketOWLReasoner version
-    private static final Version REASONER_VERSION = new Version(2, 0, 0, 0);
+    private Version REASONER_VERSION;
 
     // OWL-API ontology manager
     private final OWLOntologyManager manager;
@@ -179,6 +181,31 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     }
     
     /**
+     * Returns the {@link au.csiro.ontology.Node} for an {@link OWLClass}.
+     * If the owl class is anonymous then it throws a {@link RuntimeException}.
+     * 
+     * @param oc
+     * @return
+     */
+    private au.csiro.ontology.Node<String> getNode(OWLClass oc) {
+        final Object id = getId(oc);
+        
+        final au.csiro.ontology.Node<String> n;
+        
+        if(id instanceof String) {
+            n = getTaxonomy().getNode((String)id);
+        } else if(id == Concept.TOP) {
+            n = getTaxonomy().getTopNode();
+        } else if(id == Concept.BOTTOM) {
+            n = getTaxonomy().getBottomNode();
+        } else {
+            throw new RuntimeException("Unexpected id "+id);
+        }
+
+        return n;
+    }
+    
+    /**
      * Handles raw changes in the ontology.
      * 
      * @param changes
@@ -208,7 +235,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @return
      */
     private Node<OWLClass> nodeToOwlClassNode(au.csiro.ontology.Node<String> n) {
-        org.semanticweb.owlapi.reasoner.Node<OWLClass> node = new OWLClassNode();
+        assert n != null;
+        
+        Node<OWLClass> node = new OWLClassNode();
         
         if(n == null) return node;
         
@@ -226,7 +255,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @return
      */
     private NodeSet<OWLClass> nodesToOwlClassNodeSet(Set<au.csiro.ontology.Node<String>> nodes) {
-        Set<org.semanticweb.owlapi.reasoner.Node<OWLClass>> temp = new HashSet<>();
+        Set<Node<OWLClass>> temp = new HashSet<>();
         for (au.csiro.ontology.Node<String> n : nodes) {
             temp.add(nodeToOwlClassNode(n));
         }
@@ -286,6 +315,21 @@ public class SnorocketOWLReasoner implements OWLReasoner {
 
     @Override
     public Version getReasonerVersion() {
+        if (null == REASONER_VERSION) {
+            // load properties from plugin.properties
+            Properties p = new Properties();
+            try {
+                p.load(getClass().getResourceAsStream("/plugin.properties"));
+                String[] versions = p.getProperty("plugin.version").split("[-.]");         // X.Y.Z
+                int major = Integer.parseInt(versions[0]);
+                int minor = Integer.parseInt(versions[1]);
+                int patch = Integer.parseInt(versions[2]);
+                int build = (int) (System.currentTimeMillis() / 1000);          // FIXME
+                REASONER_VERSION = new Version(major, minor, patch, build);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         return REASONER_VERSION;
     }
 
@@ -744,15 +788,14 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      */
     @Override
     public Node<OWLClass> getBottomClassNode() {
-        au.csiro.ontology.Node<String> bottom = getTaxonomy().getBottomNode();
-        return nodeToOwlClassNode(bottom);
+        return nodeToOwlClassNode(getTaxonomy().getBottomNode());
     }
     
     /**
      * Gets the set of named classes that are the strict (potentially direct)
      * subclasses of the specified class expression with respect to the reasoner
      * axioms. Note that the classes are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * {@link NodeSet}.
      * 
      * @param ce
      *            The class expression whose strict (direct) subclasses are to
@@ -794,25 +837,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             throws ReasonerInterruptedException, TimeOutException,
             FreshEntitiesException, InconsistentOntologyException,
             ClassExpressionNotInProfileException {
-        if (!problems.isEmpty()) {
-            throw new InconsistentOntologyException();
-        }
-        if (ce.isAnonymous()) {
-            throw new ReasonerInternalException(
-                    "Expected a named class, got " + ce);
-        }
-        Object id = getId(ce.asOWLClass());
-        au.csiro.ontology.Node<String> n = null;
-        if(id instanceof String) {
-            n = getTaxonomy().getNode((String)id);
-        } else if(id == Concept.TOP) {
-            n = getTaxonomy().getTopNode();
-        } else if(id == Concept.BOTTOM) {
-            n = getTaxonomy().getBottomNode();
-        } else {
-            throw new RuntimeException("Unexpected id "+id);
-        }
-
+        checkOntologyConsistent();
+        checkNamedClass(ce);
+        
+        au.csiro.ontology.Node<String> n = getNode(ce.asOWLClass());
         if(n == null) {
             // TODO: add logging and warn!
             return new OWLClassNodeSet();
@@ -840,12 +868,26 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             return nodesToOwlClassNodeSet(res);
         }
     }
+
+    private void checkNamedClass(OWLClassExpression ce)
+            throws ReasonerInternalException {
+        if (ce.isAnonymous()) {
+            throw new ReasonerInternalException(
+                    "Expected a named class, got " + ce);
+        }
+    }
+
+    private void checkOntologyConsistent() throws InconsistentOntologyException {
+        if (!problems.isEmpty()) {
+            throw new InconsistentOntologyException();
+        }
+    }
     
     /**
      * Gets the set of named classes that are the strict (potentially direct)
      * super classes of the specified class expression with respect to the
      * imports closure of the root ontology. Note that the classes are returned
-     * as a {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * as a {@link NodeSet}.
      * 
      * @param ce
      *            The class expression whose strict (direct) super classes are
@@ -887,26 +929,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             boolean direct) throws InconsistentOntologyException,
             ClassExpressionNotInProfileException, FreshEntitiesException,
             ReasonerInterruptedException, TimeOutException {
-        if (!problems.isEmpty()) {
-            throw new InconsistentOntologyException();
-        }
-        if (ce.isAnonymous()) {
-            throw new ReasonerInternalException("Expected a named class, got "
-                    + ce);
-        }
+        checkOntologyConsistent();
+        checkNamedClass(ce);
         
-        Object id = getId(ce.asOWLClass());
-        au.csiro.ontology.Node<String> n = null;
-        if(id instanceof String) {
-            n = getTaxonomy().getNode((String)id);
-        } else if(id == Concept.TOP) {
-            n = getTaxonomy().getTopNode();
-        } else if(id == Concept.BOTTOM) {
-            n = getTaxonomy().getBottomNode();
-        } else {
-            throw new RuntimeException("Unexpected id "+id);
-        }
-
+        au.csiro.ontology.Node<String> n = getNode(ce.asOWLClass());
         if(n == null) {
             // TODO: add logging and warn!
             return new OWLClassNodeSet();
@@ -937,7 +963,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Gets the set of named classes that are equivalent to the specified class
      * expression with respect to the set of reasoner axioms. The classes are
-     * returned as a {@link org.semanticweb.owlapi.reasoner.Node}.
+     * returned as a {@link Node}.
      * 
      * @param ce
      *            The class expression whose equivalent classes are to be
@@ -980,28 +1006,12 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             throws InconsistentOntologyException,
             ClassExpressionNotInProfileException, FreshEntitiesException,
             ReasonerInterruptedException, TimeOutException {
-        if (!problems.isEmpty()) {
-            throw new InconsistentOntologyException();
-        }
-        if (ce.isAnonymous()) {
-            throw new ReasonerInternalException("Expected a named class, got "
-                    + ce);
-        }
+        checkOntologyConsistent();
+        checkNamedClass(ce);
 
-        Object id = getId(ce.asOWLClass());
-        au.csiro.ontology.Node<String> n = null;
-        if(id instanceof String) {
-            n = getTaxonomy().getNode((String)id);
-        } else if(id == Concept.TOP) {
-            n = getTaxonomy().getTopNode();
-        } else if(id == Concept.BOTTOM) {
-            n = getTaxonomy().getBottomNode();
-        } else {
-            throw new RuntimeException("Unexpected id "+id);
-        }
-
+        au.csiro.ontology.Node<String> n = getNode(ce.asOWLClass());
         if(n == null) {
-            throw new ReasonerInternalException("Named class "+id+
+            throw new ReasonerInternalException("Named class "+ ce +
                     " not found!");
         }
         return nodeToOwlClassNode(n);
@@ -1010,7 +1020,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Gets the classes that are disjoint with the specified class expression
      * <code>ce</code>. The classes are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * {@link NodeSet}.
      * 
      * @param ce
      *            The class expression whose disjoint classes are to be
@@ -1085,7 +1095,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * that are the strict (potentially direct) subproperties of the specified
      * object property expression with respect to the imports closure of the
      * root ontology. Note that the properties are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * {@link NodeSet}.
      * 
      * @param pe
      *            The object property expression whose strict (direct)
@@ -1139,7 +1149,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * that are the strict (potentially direct) super properties of the
      * specified object property expression with respect to the imports closure
      * of the root ontology. Note that the properties are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * {@link NodeSet}.
      * 
      * @param pe
      *            The object property expression whose strict (direct) super
@@ -1192,7 +1202,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * Gets the set of <a href="#spe">simplified object property expressions</a>
      * that are equivalent to the specified object property expression with
      * respect to the set of reasoner axioms. The properties are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.Node}.
+     * {@link Node}.
      * 
      * @param pe
      *            The object property expression whose equivalent properties are
@@ -1240,7 +1250,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * Gets the <a href="#spe">simplified object property expressions</a> that
      * are disjoint with the specified object property expression
      * <code>pe</code>. The object properties are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * {@link NodeSet}.
      * 
      * @param pe
      *            The object property expression whose disjoint object
@@ -1288,7 +1298,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * Gets the set of <a href="#spe">simplified object property expressions</a>
      * that are the inverses of the specified object property expression with
      * respect to the imports closure of the root ontology. The properties are
-     * returned as a {@link org.semanticweb.owlapi.reasoner.NodeSet}
+     * returned as a {@link NodeSet}
      * 
      * @param pe
      *            The property expression whose inverse properties are to be
@@ -1326,7 +1336,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Gets the named classes that are the direct or indirect domains of this
      * property with respect to the imports closure of the root ontology. The
-     * classes are returned as a {@link org.semanticweb.owlapi.reasoner.NodeSet}
+     * classes are returned as a {@link NodeSet}
      * .
      * 
      * @param pe
@@ -1376,7 +1386,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Gets the named classes that are the direct or indirect ranges of this
      * property with respect to the imports closure of the root ontology. The
-     * classes are returned as a {@link org.semanticweb.owlapi.reasoner.NodeSet}
+     * classes are returned as a {@link NodeSet}
      * .
      * 
      * @param pe
@@ -1463,7 +1473,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * direct) subproperties of the specified data property expression with
      * respect to the imports closure of the root ontology. Note that the
      * properties are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * {@link NodeSet}.
      * 
      * @param pe
      *            The data property whose strict (direct) subproperties are to
@@ -1512,7 +1522,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * Gets the set of named data properties that are the strict (potentially
      * direct) super properties of the specified data property with respect to
      * the imports closure of the root ontology. Note that the properties are
-     * returned as a {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * returned as a {@link NodeSet}.
      * 
      * @param pe
      *            The data property whose strict (direct) super properties are
@@ -1560,7 +1570,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * Gets the set of named data properties that are equivalent to the
      * specified data property expression with respect to the imports closure of
      * the root ontology. The properties are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.Node}.
+     * {@link Node}.
      * 
      * @param pe
      *            The data property expression whose equivalent properties are
@@ -1606,7 +1616,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Gets the data properties that are disjoint with the specified data
      * property expression <code>pe</code>. The data properties are returned as
-     * a {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * a {@link NodeSet}.
      * 
      * @param pe
      *            The data property expression whose disjoint data properties
@@ -1649,7 +1659,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Gets the named classes that are the direct or indirect domains of this
      * property with respect to the imports closure of the root ontology. The
-     * classes are returned as a {@link org.semanticweb.owlapi.reasoner.NodeSet}
+     * classes are returned as a {@link NodeSet}
      * .
      * 
      * @param pe
@@ -1701,7 +1711,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Gets the named classes which are (potentially direct) types of the
      * specified named individual. The classes are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * {@link NodeSet}.
      * 
      * @param ind
      *            The individual whose types are to be retrieved.
@@ -1743,7 +1753,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Gets the individuals which are instances of the specified class
      * expression. The individuals are returned a a
-     * {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * {@link NodeSet}.
      * 
      * @param ce
      *            The class expression whose instances are to be retrieved.
@@ -1792,7 +1802,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Gets the object property values for the specified individual and object
      * property expression. The individuals are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * {@link NodeSet}.
      * 
      * @param ind
      *            The individual that is the subject of the object property
@@ -1907,7 +1917,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Gets the individuals which are entailed to be different from the
      * specified individual. The individuals are returned as a
-     * {@link org.semanticweb.owlapi.reasoner.NodeSet}.
+     * {@link NodeSet}.
      * 
      * @param ind
      *            The individual whose different individuals are to be returned.

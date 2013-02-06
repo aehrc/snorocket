@@ -29,6 +29,7 @@
     <fileSet>
       <directory>src/main/resources/</directory>
       <outputDirectory></outputDirectory>
+      <filtered>true</filtered>
     </fileSet>
     <fileSet>
       <directory>target/classes/</directory>

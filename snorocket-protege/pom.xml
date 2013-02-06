@@ -26,6 +26,10 @@
     <version>1.4.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
+
+  <properties>
+    <bundle.version>1.4.0</bundle.version>
+  </properties>
   
   <dependencies>
     <dependency>
@@ -81,7 +85,43 @@
   </dependencies>
   
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <id>enforce-property</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireProperty>
+                  <property>bundle.version</property>
+                  <message>You must set a bundle.version property!</message>
+                  <regex>\d+\.\d+\.\d+</regex>
+                  <regexMessage>The bundle.version property must be of the form d.d.d</regexMessage>
+                </requireProperty>
+                <requireProperty>
+                  <property>project.version</property>
+                  <message>"Project version must be specified."</message>
+                  <regex>${bundle.version}(-SNAPSHOT)?$</regex>
+                  <regexMessage>Bundle version (${bundle.version}) must match numeric parts of the project version (${project.version}) -- did you forget to update it?</regexMessage>
+                </requireProperty>
+              </rules>
+              <fail>true</fail>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
           <configuration>
@@ -89,7 +129,7 @@
               <descriptor>src/main/assembly/dist.xml</descriptor>
             </descriptors>
             <archive>
-              <manifestFile>src/main/assembly/MANIFEST.MF</manifestFile>
+              <manifestFile>target/classes/META-MF/MANIFEST.MF</manifestFile>
             </archive>
           </configuration>
           <executions>
