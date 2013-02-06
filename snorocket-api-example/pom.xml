@@ -52,6 +52,7 @@
     	<groupId>au.csiro</groupId>
     	<artifactId>snomed-db</artifactId>
       <version>${ontology-test-data.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
