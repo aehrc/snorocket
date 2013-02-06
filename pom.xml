@@ -19,7 +19,7 @@
 	<groupId>au.csiro</groupId>
 	<artifactId>snorocket-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>1.4.3-SNAPSHOT</version>
+	<version>2.0.1-SNAPSHOT</version>
 	<name>SIM Classifier Parent</name>
 	<scm>
 		<connection>scm:svn:https://csfe.aceworkspace.net/svn/repos/sim-classifier/trunk/sim-classifier</connection>
@@ -104,7 +104,7 @@
 
   <properties>
     <branch>sim-clx</branch>
-    <ontology-core.version>1.2-SNAPSHOT</ontology-core.version>
-    <ontology-test-data.version>1.2-SNAPSHOT</ontology-test-data.version>
+    <ontology-core.version>1.2</ontology-core.version>
+    <ontology-test-data.version>1.1</ontology-test-data.version>
   </properties>
 </project>
