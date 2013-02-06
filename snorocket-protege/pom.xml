@@ -23,7 +23,7 @@
   <parent>
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
-    <version>1.4.3-SNAPSHOT</version>
+    <version>2.0.1-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
@@ -93,36 +93,6 @@
     </resources>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>1.2</version>
-        <executions>
-          <execution>
-            <id>enforce-property</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireProperty>
-                  <property>bundle.version</property>
-                  <message>You must set a bundle.version property!</message>
-                  <regex>\d+\.\d+\.\d+</regex>
-                  <regexMessage>The bundle.version property must be of the form d.d.d</regexMessage>
-                </requireProperty>
-                <requireProperty>
-                  <property>project.version</property>
-                  <message>"Project version must be specified."</message>
-                  <regex>${bundle.version}(-SNAPSHOT)?$</regex>
-                  <regexMessage>Bundle version (${bundle.version}) must match numeric parts of the project version (${project.version}) -- did you forget to update it?</regexMessage>
-                </requireProperty>
-              </rules>
-              <fail>true</fail>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
           <configuration>
             <descriptors>
@@ -144,5 +114,46 @@
         </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <version>1.2</version>
+            <executions>
+              <execution>
+                <id>enforce-property</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireProperty>
+                      <property>bundle.version</property>
+                      <message>You must set a bundle.version property!</message>
+                      <regex>\d+\.\d+\.\d+</regex>
+                      <regexMessage>The bundle.version property must be of the form d.d.d</regexMessage>
+                    </requireProperty>
+                    <requireProperty>
+                      <property>project.version</property>
+                      <message>"Project version must be specified."</message>
+                      <regex>${bundle.version}(-SNAPSHOT)?$</regex>
+                      <regexMessage>Bundle version (${bundle.version}) must match numeric parts of the project version (${project.version}) -- did you forget to update it?</regexMessage>
+                    </requireProperty>
+                  </rules>
+                  <fail>true</fail>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
 
