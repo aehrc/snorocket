@@ -6,7 +6,7 @@ package au.csiro.snorocket.protege;
 
 import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
 
-import au.csiro.ontology.classification.IProgressMonitor;
+import au.csiro.ontology.util.IProgressMonitor;
 
 /**
  * @author Alejandro Metke

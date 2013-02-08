@@ -61,10 +61,10 @@ import org.semanticweb.owlapi.util.Version;
 
 import au.csiro.ontology.IOntology;
 import au.csiro.ontology.axioms.IAxiom;
-import au.csiro.ontology.classification.IProgressMonitor;
 import au.csiro.ontology.classification.IReasoner;
 import au.csiro.ontology.importer.owl.OWLImporter;
 import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.util.IProgressMonitor;
 import au.csiro.snorocket.core.ClassNode;
 import au.csiro.snorocket.core.SnorocketReasoner;
 
