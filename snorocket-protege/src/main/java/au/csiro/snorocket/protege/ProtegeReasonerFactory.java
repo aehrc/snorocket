@@ -8,6 +8,8 @@ import org.protege.editor.owl.model.inference.AbstractProtegeOWLReasonerInfo;
 import org.semanticweb.owlapi.reasoner.BufferingMode;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import au.csiro.snorocket.owlapi.SnorocketReasonerFactory;
+
 /**
  * @author Alejandro Metke
  *

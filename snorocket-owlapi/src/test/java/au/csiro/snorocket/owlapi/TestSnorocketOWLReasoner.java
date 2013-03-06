@@ -2,7 +2,7 @@
  * Copyright CSIRO Australian e-Health Research Centre (http://aehrc.com).
  * All rights reserved. Use is subject to license terms and conditions. 
  */
-package au.csiro.snorocket.protege;
+package au.csiro.snorocket.owlapi;
 
 import junit.framework.Assert;
 
@@ -17,6 +17,8 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+
+import au.csiro.snorocket.owlapi.SnorocketReasonerFactory;
 
 /**
  * Unit test cases for Protege plugin.

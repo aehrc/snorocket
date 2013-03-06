@@ -9,11 +9,7 @@ Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
 Bundle-DocURL: 
 Bundle-ClassPath: .
 Import-Package: org.osgi.framework,
- org.apache.log4j,
- org.apache.log4j.spi,
- javax.swing,
- javax.swing.border,
- org.protege.editor.core.editorkit.plugin
+ org.apache.log4j
 Bundle-Version: ${bundle.version}
 Bundle-Activator: org.protege.editor.core.plugin.DefaultPluginActivator
 Update-Url: http://aehrc.com/software/snorocket/update-owlapi3.properties

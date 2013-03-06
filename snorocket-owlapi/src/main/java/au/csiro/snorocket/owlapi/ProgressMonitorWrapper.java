@@ -2,7 +2,7 @@
  * Copyright CSIRO Australian e-Health Research Centre (http://aehrc.com).
  * All rights reserved. Use is subject to license terms and conditions.
  */
-package au.csiro.snorocket.protege;
+package au.csiro.snorocket.owlapi;
 
 import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
 
