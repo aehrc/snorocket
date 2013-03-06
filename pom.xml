@@ -28,6 +28,7 @@
 	</scm>
 	<modules>
 		<module>snorocket-core</module>
+		<module>snorocket-owlapi</module>
 		<module>snorocket-protege</module>
 		<module>snorocket-benchmark</module>
 		<module>snorocket-api-example</module>

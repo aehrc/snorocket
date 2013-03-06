@@ -2,7 +2,7 @@
  * Copyright CSIRO Australian e-Health Research Centre (http://aehrc.com).
  * All rights reserved. Use is subject to license terms and conditions. 
  */
-package au.csiro.snorocket.protege;
+package au.csiro.snorocket.owlapi;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +16,7 @@ import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -62,6 +63,7 @@ import org.semanticweb.owlapi.util.Version;
 import au.csiro.ontology.IOntology;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IReasoner;
+import au.csiro.ontology.importer.ImportException;
 import au.csiro.ontology.importer.owl.OWLImporter;
 import au.csiro.ontology.model.Concept;
 import au.csiro.ontology.util.IProgressMonitor;
@@ -78,6 +80,8 @@ import au.csiro.snorocket.core.SnorocketReasoner;
  * 
  */
 public class SnorocketOWLReasoner implements OWLReasoner {
+    
+    private static final Logger log = Logger.getLogger(SnorocketOWLReasoner.class);
     
     // SnorocketOWLReasoner name
     static final String REASONER_NAME = "Snorocket";
@@ -270,8 +274,22 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         // Transform the axioms into the canonical model
         Set<IAxiom> canAxioms = new HashSet<>();
         OWLImporter oi = new OWLImporter(owlOntology);
-        Map<String, Map<String, IOntology<String>>> res = 
-                oi.getOntologyVersions(monitor);
+        Map<String, Map<String, IOntology<String>>> res = null;
+        try {
+            res = oi.getOntologyVersions(monitor);
+        } catch(ImportException e) {
+            // Build message
+            StringBuilder sb = new StringBuilder();
+            sb.append("Could not import ontology. The following problems were identified:");
+            for(String problem : oi.getProblems()) {
+                sb.append("\n");
+                sb.append(problem);
+            }
+            
+            log.error(sb.toString());
+            monitor.taskEnded();
+            return;
+        }
         for(String key : res.keySet()) {
             Map<String, IOntology<String>> map = res.get(key);
             for(String ikey : map.keySet()) {
@@ -364,7 +382,22 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         // Transform the axioms into the canonical model
         Set<IAxiom> canAxioms = new HashSet<>();
         OWLImporter oi = new OWLImporter(newAxioms);
-        Map<String, Map<String, IOntology<String>>> res = oi.getOntologyVersions(monitor);
+        Map<String, Map<String, IOntology<String>>> res = null;
+        try {
+            res = oi.getOntologyVersions(monitor);
+        } catch(ImportException e) {
+            // Build message
+            StringBuilder sb = new StringBuilder();
+            sb.append("Could not import ontology. The following problems were identified:");
+            for(String problem : oi.getProblems()) {
+                sb.append("\n");
+                sb.append(problem);
+            }
+            
+            log.error(sb.toString());
+            monitor.taskEnded();
+            return;
+        }
         for(String key : res.keySet()) {
             Map<String, IOntology<String>> map = res.get(key);
             for(String ikey : map.keySet()) {
