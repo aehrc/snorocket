@@ -19,7 +19,7 @@
 	<groupId>au.csiro</groupId>
 	<artifactId>snorocket-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>2.0.1-SNAPSHOT</version>
+	<version>2.0.1</version>
 	<name>SIM Classifier Parent</name>
 	
 	<properties>
@@ -111,6 +111,6 @@
     <connection>scm:git:git@github.com:aehrc/snorocket.git</connection>
     <developerConnection>scm:git:git@github.com:aehrc/snorocket.git</developerConnection>
     <url>https://github.com/aehrc/snorocket.git</url>
-    <tag>HEAD</tag>
+    <tag>snorocket-parent-2.0.1</tag>
   </scm>
 </project>
