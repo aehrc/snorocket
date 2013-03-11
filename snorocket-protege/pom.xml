@@ -18,7 +18,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>snorocket-protege</artifactId>
   <packaging>jar</packaging>
-  <name>${branch}: Protege Plugin</name>
+  <name>Protege Plugin</name>
 
   <parent>
     <groupId>au.csiro</groupId>
@@ -28,7 +28,7 @@
   </parent>
 
   <properties>
-    <bundle.version>2.0.0</bundle.version>
+    <bundle.version>2.0.1</bundle.version>
   </properties>
   
   <dependencies>
@@ -40,28 +40,23 @@
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi-reasoner</artifactId>
-      <version>3.3</version>
+      <version>${owl-api.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi-apibinding</artifactId>
-      <version>3.3</version>
+      <version>${owl-api.version}</version>
     </dependency>
     <dependency>
     	<groupId>org.protege</groupId>
     	<artifactId>protege-editor-owl</artifactId>
-    	<version>4.1.0</version>
+    	<version>${protege.version}</version>
     </dependency>
     <dependency>
     	<groupId>org.protege</groupId>
     	<artifactId>protege-editor-core-application</artifactId>
-    	<version>4.1.0</version>
+    	<version>${protege.version}</version>
     </dependency>
-    <dependency>
-	  <groupId>log4j</groupId>
-	  <artifactId>log4j</artifactId>
-	  <version>1.2.16</version>
-	</dependency>
   </dependencies>
   
   <build>

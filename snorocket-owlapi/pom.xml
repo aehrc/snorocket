@@ -18,7 +18,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>snorocket-owlapi</artifactId>
   <packaging>jar</packaging>
-  <name>${branch}: Snorocket OWL API</name>
+  <name>Snorocket OWL API</name>
 
   <parent>
     <groupId>au.csiro</groupId>
@@ -46,28 +46,23 @@
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi-api</artifactId>
-      <version>3.3</version>
+      <version>${owl-api.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi-apibinding</artifactId>
-      <version>3.3</version>
+      <version>${owl-api.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi-reasoner</artifactId>
-      <version>3.3</version>
+      <version>${owl-api.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi-mansyntax</artifactId>
-      <version>3.3</version>
+      <version>${owl-api.version}</version>
     </dependency>
-    <dependency>
-	  <groupId>log4j</groupId>
-	  <artifactId>log4j</artifactId>
-	  <version>1.2.16</version>
-	</dependency>
   </dependencies>
 
 </project>
