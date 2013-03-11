@@ -1,11 +1,7 @@
-The default build runs without extended tests. To enable these tests in your
-environment, run the following command:
+Snorocket Classifier
 
-  mvn -Prun-its install
+This project contains three modules:
 
-Alternatively, you can run them directly from the snorocket-tests directory
-without the profile if the other modules have been built:
-
-  mvn -f snorocket-tests/pom.xml test
-
-These will be run automatically in the continuous integration environment.
+snorocket-core: This is the core classifier code.
+snorocket-owlapi: An implementation of the OWLReasoner interface based on Snorocket.
+snorocket-protege: The implementation of the Snorocket Protege plugin.

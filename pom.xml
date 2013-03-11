@@ -21,19 +21,21 @@
 	<packaging>pom</packaging>
 	<version>2.0.1-SNAPSHOT</version>
 	<name>SIM Classifier Parent</name>
-	<scm>
-		<connection>scm:svn:https://csfe.aceworkspace.net/svn/repos/sim-classifier/trunk/sim-classifier</connection>
-		<developerConnection>scm:svn:https://csfe.aceworkspace.net/svn/repos/sim-classifier/trunk/sim-classifier</developerConnection>
-		<url>https://csfe.aceworkspace.net/svn/repos/sim-classifier/trunk/sim-classifier</url>
-	</scm>
+	
+	<properties>
+	   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <ontology-core.version>1.3.0</ontology-core.version>
+      <ontologies.version>1.0</ontologies.version>
+	  <owl-api.version>3.3</owl-api.version>
+	  <protege.version>4.1.0</protege.version>
+    </properties>
+	
 	<modules>
 		<module>snorocket-core</module>
 		<module>snorocket-owlapi</module>
 		<module>snorocket-protege</module>
-		<module>snorocket-benchmark</module>
-		<module>snorocket-api-example</module>
-		<module>snorocket-tests</module>
 	</modules>
+	
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -41,26 +43,20 @@
 			<version>4.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+		  <groupId>log4j</groupId>
+		  <artifactId>log4j</artifactId>
+		  <version>1.2.16</version>
+		</dependency>
 	</dependencies>
-	<profiles>
-		<profile>
-			<id>osx</id>
-			<properties>
-				<systemJar>../Classes/classes.jar</systemJar>
-			</properties>
-			<activation>
-				<os>
-					<name>mac os x</name>
-				</os>
-			</activation>
-		</profile>
-    <profile>
-      <id>run-its</id>
-      <modules>
-        <module>snorocket-tests</module>
-      </modules>
-    </profile>
-	</profiles>
+	
+	<distributionManagement>
+    <repository>
+      <id>aehrc-repository</id>
+      <url>scp://ict-ehrclf-cbr.vm.csiro.au/srv/aehrc.com/maven2</url>
+    </repository>
+  </distributionManagement>
+
 	<repositories>
       <repository>
         <id>ehrc-public-repo</id>
@@ -69,9 +65,17 @@
         <releases>
           <enabled>true</enabled>
         </releases>
-      </repository>
-    </repositories>
+		</repository>
+	</repositories>
+	
 	<build>
+	<extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh</artifactId>
+        <version>2.2</version>
+      </extension>
+    </extensions>
     <plugins>
 	  <plugin>
 	    <groupId>org.apache.maven.plugins</groupId>
@@ -85,27 +89,28 @@
 	  <plugin>
 	    <groupId>org.apache.maven.plugins</groupId>
 	    <artifactId>maven-release-plugin</artifactId>
-	    <version>2.3.2</version>
+	    <version>2.4</version>
 	    <configuration>
-	      <arguments>-Prun-its</arguments>
-              <autoVersionSubmodules>true</autoVersionSubmodules>
-              <preparationGoals>clean validate</preparationGoals>
+			<autoVersionSubmodules>true</autoVersionSubmodules>
+			<preparationGoals>clean validate</preparationGoals>
 	    </configuration>
 	  </plugin>
+	  <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+		  <argLine> 
+		    -server -Xmx3G
+		  </argLine>
+        </configuration>
+     </plugin>
 	</plugins>
   </build>
-
-  <!-- Temporary until we set up a parent POM -->
-  <distributionManagement>
-    <repository>
-      <id>maestro-deploy</id>
-      <url>https://va.maestrodev.com/archiva/repository/sim-releases</url>
-    </repository>
-  </distributionManagement>
-
-  <properties>
-    <branch>sim-clx</branch>
-    <ontology-core.version>1.3.0-SNAPSHOT</ontology-core.version>
-    <ontology-test-data.version>1.1</ontology-test-data.version>
-  </properties>
+  
+  <scm>
+    <connection>scm:git:git@github.com:aehrc/snorocket.git</connection>
+    <developerConnection>scm:git:git@github.com:aehrc/snorocket.git</developerConnection>
+    <url>https://github.com/aehrc/snorocket.git</url>
+    <tag>HEAD</tag>
+  </scm>
 </project>
