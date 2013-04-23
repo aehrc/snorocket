@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
@@ -274,9 +274,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         // Transform the axioms into the canonical model
         Set<IAxiom> canAxioms = new HashSet<>();
         OWLImporter oi = new OWLImporter(owlOntology);
-        Map<String, Map<String, IOntology<String>>> res = null;
+        
+        Iterator<IOntology<String>> it = null;
         try {
-            res = oi.getOntologyVersions(monitor);
+            it = oi.getOntologyVersions(monitor);
         } catch(ImportException e) {
             // Build message
             StringBuilder sb = new StringBuilder();
@@ -290,12 +291,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             monitor.taskEnded();
             return;
         }
-        for(String key : res.keySet()) {
-            Map<String, IOntology<String>> map = res.get(key);
-            for(String ikey : map.keySet()) {
-                IOntology<String> o = map.get(ikey);
-                canAxioms.addAll(o.getStatedAxioms());
-            }
+        while(it.hasNext()) {
+            IOntology<String> o = it.next();
+            canAxioms.addAll(o.getStatedAxioms());
         }
         
         // Classify
@@ -382,9 +380,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         // Transform the axioms into the canonical model
         Set<IAxiom> canAxioms = new HashSet<>();
         OWLImporter oi = new OWLImporter(newAxioms);
-        Map<String, Map<String, IOntology<String>>> res = null;
+        
+        Iterator<IOntology<String>> it = null;
         try {
-            res = oi.getOntologyVersions(monitor);
+            it = oi.getOntologyVersions(monitor);
         } catch(ImportException e) {
             // Build message
             StringBuilder sb = new StringBuilder();
@@ -398,12 +397,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             monitor.taskEnded();
             return;
         }
-        for(String key : res.keySet()) {
-            Map<String, IOntology<String>> map = res.get(key);
-            for(String ikey : map.keySet()) {
-                IOntology<String> o = map.get(ikey);
-                canAxioms.addAll(o.getStatedAxioms());
-            }
+        while(it.hasNext()) {
+            IOntology<String> o = it.next();
+            canAxioms.addAll(o.getStatedAxioms());
         }
         
         // Classify

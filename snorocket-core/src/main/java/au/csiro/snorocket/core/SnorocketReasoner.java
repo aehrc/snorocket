@@ -157,7 +157,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         Map<T, Node<T>> taxonomy = no.getTaxonomy();
         Set<Node<T>> affectedNodes = no.getAffectedNodes();
         
-        return new Ontology<T>(null, taxonomy, affectedNodes);
+        return new Ontology<T>(null, null, null, taxonomy, affectedNodes);
     }
     
     /**

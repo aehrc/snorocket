@@ -34,8 +34,9 @@ public class TestSnorocketOWLReasoner {
      */
     @Test
     public void testConcreteDomains() {
-        
+        System.out.println("Running testConcreteDomains");
         // Load ontology to test
+        System.out.println("Loading concrete_domains.owl");
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         OWLOntology ontology = null;
         try {
@@ -46,6 +47,7 @@ public class TestSnorocketOWLReasoner {
             Assert.assertTrue(false);
         }
         
+        System.out.println("Classifying");
         // Create Snorocket classifier
         SnorocketReasonerFactory srf = new SnorocketReasonerFactory();
         OWLReasoner reasoner = srf.createNonBufferingReasoner(ontology);
@@ -53,6 +55,7 @@ public class TestSnorocketOWLReasoner {
         // Classify
         reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
         
+        System.out.println("Verifying answer");
         // Verify the X is equivalent to owlNothing
         OWLDataFactory df = OWLManager.getOWLDataFactory();
         OWLClass X = df.getOWLClass(IRI.create("X"));
