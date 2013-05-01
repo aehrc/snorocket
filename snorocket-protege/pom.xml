@@ -28,7 +28,7 @@
   </parent>
 
   <properties>
-    <bundle.version>2.0.1</bundle.version>
+    <bundle.version>2.0.2</bundle.version>
   </properties>
   
   <dependencies>

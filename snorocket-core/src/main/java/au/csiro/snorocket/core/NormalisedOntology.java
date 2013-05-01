@@ -301,18 +301,15 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      */
     public NormalisedOntology(final IFactory<T> factory) {
         this(
-                factory,
-                new DenseConceptMap<MonotonicCollection<IConjunctionQueueEntry>>(
-                        factory.getTotalConcepts()),
-                new SparseConceptMap<MonotonicCollection<NF2>>(
-                        factory.getTotalConcepts(), "ontologyNF2"),
-                new SparseConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>>(
-                        factory.getTotalConcepts(), "ontologyNF3"),
-                new MonotonicCollection<NF4>(15), new MonotonicCollection<NF5>(
-                        1), new SparseConceptMap<MonotonicCollection<NF7>>(
-                        factory.getTotalConcepts(), "ontologyNF7"),
-                new FeatureMap<MonotonicCollection<NF8>>(
-                        factory.getTotalConcepts()));
+            factory,
+            new DenseConceptMap<MonotonicCollection<IConjunctionQueueEntry>>(500000),
+            new SparseConceptMap<MonotonicCollection<NF2>>(500000, "ontologyNF2"),
+            new SparseConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>>(500000, "ontologyNF3"),
+            new MonotonicCollection<NF4>(15), new MonotonicCollection<NF5>(1), 
+            new SparseConceptMap<MonotonicCollection<NF7>>(10, "ontologyNF7"),
+            new FeatureMap<MonotonicCollection<NF8>>(10)
+        );
+        // TODO: how do we estimate these numbers better?
     }
 
     /**
