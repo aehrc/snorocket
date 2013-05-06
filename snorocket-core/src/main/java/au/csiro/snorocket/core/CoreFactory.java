@@ -50,15 +50,15 @@ final public class CoreFactory<T> implements IFactory<T> {
     final private int featureBase;
 
     private Object[] concepts = new Object[SIZE_ESTIMATE];
-    final private Map<Object, Integer> conceptMap = new HashMap<>();
+    final private Map<Object, Integer> conceptMap = new HashMap<Object, Integer>();
     final private IConceptSet virtualConcepts = new SparseConceptSet(SIZE_ESTIMATE);
 
     private Object[] roles = new Object[128];
-    final private Map<Object, Integer> roleMap = new HashMap<>();
+    final private Map<Object, Integer> roleMap = new HashMap<Object, Integer>();
     final private RoleSet virtualRoles = new RoleSet();
 
     private Object[] features = new Object[128];
-    final private Map<T, Integer> featureNameMap = new HashMap<>();
+    final private Map<T, Integer> featureNameMap = new HashMap<T, Integer>();
 
     /**
      * Index of the next available Concept.
@@ -98,68 +98,56 @@ final public class CoreFactory<T> implements IFactory<T> {
         this.featureBase = featureBase;
     }
     
-    @Override
     public int getTotalConcepts() {
         return conceptIdCounter;
     }
     
-    @Override
     public int getTotalRoles() {
         return roleIdCounter;
     }
     
-    @Override
     public int getTotalFeatures() {
         return featureIdCounter;
     }
 
     @SuppressWarnings("unchecked")
-    @Override
     public T lookupFeatureId(int id) {
         assert id >= featureBase && id <= featureIdCounter + featureBase;
         return (T) features[id - featureBase];
     }
 
     @SuppressWarnings("unchecked")
-    @Override
     public T lookupConceptId(final int id) {
         assert id >= conceptBase && id <= conceptIdCounter + conceptBase;
         return (T) concepts[id - conceptBase];
     }
 
     @SuppressWarnings("unchecked")
-    @Override
     public T lookupRoleId(final int id) {
         assert id >= roleBase && id <= roleIdCounter + roleBase;
         return (T) roles[id - roleBase];
     }
 
-    @Override
     public boolean isVirtualConcept(int id) {
         return virtualConcepts.contains(id - conceptBase);
     }
 
-    @Override
     public boolean isVirtualRole(int id) {
         return virtualRoles.contains(id - roleBase);
     }
 
-    @Override
     public boolean conceptExists(Object key) {
         return conceptMap.containsKey(key);
     }
 
-    @Override
     public boolean roleExists(Object key) {
         return roleMap.containsKey(key);
     }
 
-    @Override
     public boolean featureExists(T key) {
         return featureNameMap.containsKey(key);
     }
 
-    @Override
     public int getConcept(Object key) {
         if (null == key) {
             throw new IllegalArgumentException("Concept key must not be null");
@@ -181,7 +169,6 @@ final public class CoreFactory<T> implements IFactory<T> {
         return result + conceptBase;
     }
 
-    @Override
     public int getRole(Object key) {
         Integer result = roleMap.get(key);
         if (null == result) {
@@ -200,7 +187,6 @@ final public class CoreFactory<T> implements IFactory<T> {
         return result + roleBase;
     }
 
-    @Override
     public int getFeature(T key) {
         Integer result = featureNameMap.get(key);
         if (null == result) {
@@ -219,7 +205,6 @@ final public class CoreFactory<T> implements IFactory<T> {
         return result + featureBase;
     }
     
-    @Override
     public void setVirtualConcept(int id, boolean isVirtual) {
         if (isVirtual) {
             virtualConcepts.add(id - conceptBase);

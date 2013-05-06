@@ -58,7 +58,6 @@ public class DoubleLiteral extends AbstractLiteral {
         return String.valueOf(value);
     }
 
-    @Override
     public int compareTo(AbstractLiteral o) {
         DoubleLiteral dl = (DoubleLiteral) o;
         double otherValue = dl.value;

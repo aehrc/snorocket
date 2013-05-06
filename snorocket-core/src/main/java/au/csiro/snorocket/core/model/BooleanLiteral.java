@@ -63,7 +63,6 @@ public class BooleanLiteral extends AbstractLiteral {
         return "false";
     }
 
-    @Override
     public int compareTo(AbstractLiteral o) {
         BooleanLiteral bl = (BooleanLiteral) o;
         boolean otherValue = bl.value;

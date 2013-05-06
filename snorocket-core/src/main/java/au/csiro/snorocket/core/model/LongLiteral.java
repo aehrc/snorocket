@@ -50,7 +50,6 @@ public class LongLiteral extends AbstractLiteral {
         return String.valueOf(value);
     }
 
-    @Override
     public int compareTo(AbstractLiteral o) {
         LongLiteral ll = (LongLiteral) o;
         long otherValue = ll.value;

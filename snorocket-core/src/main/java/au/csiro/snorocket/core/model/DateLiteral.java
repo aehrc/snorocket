@@ -57,7 +57,6 @@ public class DateLiteral extends AbstractLiteral {
         return sdf.format(value.getTime());
     }
 
-    @Override
     public int compareTo(AbstractLiteral o) {
         DateLiteral dl = (DateLiteral) o;
         Calendar otherValue = dl.value;

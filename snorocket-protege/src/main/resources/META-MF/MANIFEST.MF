@@ -20,4 +20,3 @@ Update-Url: http://aehrc.com/software/snorocket/update-owlapi3.properties
 Require-Bundle: org.protege.editor.core.application,
  org.protege.editor.owl,
  org.semanticweb.owl.owlapi
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7

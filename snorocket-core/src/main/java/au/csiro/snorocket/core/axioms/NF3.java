@@ -72,12 +72,10 @@ public final class NF3 extends NormalFormGCI implements IConjunctionQueueEntry {
         return new int[] { lhsA, rhsB };
     }
 
-    @Override
     public int getB() {
         return rhsB;
     }
 
-    @Override
     public int getBi() {
         return IFactory.TOP_CONCEPT;
     }

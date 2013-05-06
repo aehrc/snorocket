@@ -11,11 +11,9 @@ import org.protege.editor.core.editorkit.plugin.EditorKitHook;
  */
 public class SnorocketProtegePluginInstance extends EditorKitHook {
 
-    @Override
     public void dispose() throws Exception {
     }
 
-    @Override
     public void initialise() throws Exception {
         Logger.getLogger("au.csiro.snorocket.owlapi.SnorocketOWLReasoner")
                 .addAppender(ProtegeMessageAppender.INSTANCE);

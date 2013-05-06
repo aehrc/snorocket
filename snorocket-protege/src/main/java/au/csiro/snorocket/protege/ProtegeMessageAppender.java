@@ -49,12 +49,10 @@ public class ProtegeMessageAppender extends AppenderSkeleton {
         
     }
     
-    @Override
     public void close() {
         
     }
 
-    @Override
     public boolean requiresLayout() {
         return false;
     }

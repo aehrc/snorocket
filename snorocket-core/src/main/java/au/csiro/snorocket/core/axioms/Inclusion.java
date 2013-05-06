@@ -21,6 +21,8 @@
 
 package au.csiro.snorocket.core.axioms;
 
+import java.io.Serializable;
+
 import au.csiro.snorocket.core.IFactory;
 
 /**
@@ -29,7 +31,12 @@ import au.csiro.snorocket.core.IFactory;
  * @author Alejandro Metke
  * 
  */
-abstract public class Inclusion<T> {
+abstract public class Inclusion<T> implements Serializable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     /**
      * Runs the first phase in the normalisation process (see Pushing the EL
      * Envelope).

@@ -231,9 +231,8 @@ public final class SparseConceptHashSet implements IConceptSet {
         }
     }
 
-    @Override
     public int[] toArray() {
-        ArrayList<Integer> res = new ArrayList<>();
+        ArrayList<Integer> res = new ArrayList<Integer>();
         for (IntIterator i = iterator(); i.hasNext();) {
             res.add(i.next());
         }

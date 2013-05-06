@@ -149,7 +149,6 @@ final class EmptyConceptSet implements IConceptSet {
         return "{}";
     }
 
-    @Override
     public int[] toArray() {
         return new int[0];
     }

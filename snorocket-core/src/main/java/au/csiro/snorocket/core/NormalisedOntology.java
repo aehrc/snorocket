@@ -184,7 +184,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * The queue of contexts to process.
      */
-    private final Queue<Context> todo = new ConcurrentLinkedQueue<>();
+    private final Queue<Context> todo = new ConcurrentLinkedQueue<Context>();
 
     /**
      * The map of contexts by concept id.
@@ -199,7 +199,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * A set of new contexts added in an incremental classification.
      */
-    private final Set<Context> newContexts = new HashSet<>();
+    private final Set<Context> newContexts = new HashSet<Context>();
     
     /**
      * The number of threads to use.
@@ -217,7 +217,6 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
          */
         private static final long serialVersionUID = 1L;
 
-        @Override
         public int compare(Context o1, Context o2) {
             return Integer.compare(o1.getConcept(), o2.getConcept());
         }
@@ -226,8 +225,18 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * A set of contexts potentially affected by an incremental classification.
      */
-    private final Set<Context> affectedContexts = new ConcurrentSkipListSet<>(
-            new ContextComparator());
+    private final Set<Context> affectedContexts = 
+            new ConcurrentSkipListSet<Context>(new ContextComparator());
+    
+    /**
+     * New inclusions added incrementally.
+     */
+    private Set<Inclusion<T>> inclusions = new HashSet<Inclusion<T>>();
+    
+    /**
+     * Normalised axioms added incrementally.
+     */
+    private AxiomSet as = new AxiomSet(); 
 
     public IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> getOntologyNF1() {
         return ontologyNF1;
@@ -333,7 +342,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             final IConceptMap<MonotonicCollection<NF7>> nf7q,
             final FeatureMap<MonotonicCollection<NF8>> nf8q) {
         this.factory = factory;
-        contextIndex = new FastConceptMap<>(factory.getTotalConcepts(), "");
+        contextIndex = new FastConceptMap<Context>(factory.getTotalConcepts(), "");
         roleClosureCache = new ConcurrentHashMap<Integer, RoleSet>(factory.getTotalRoles());
 
         this.ontologyNF1 = nf1q;
@@ -377,7 +386,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private Set<Inclusion<T>> transformAxiom(final Set<? extends IAxiom> axioms) {
-        Set<Inclusion<T>> res = new HashSet<>();
+        Set<Inclusion<T>> res = new HashSet<Inclusion<T>>();
         
         for(IAxiom aa : axioms) {
             if(aa instanceof IConceptInclusion) {
@@ -474,8 +483,8 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     public Set<Inclusion<T>> normalise(final Set<? extends IAxiom> inclusions) {
         
         // Exhaustively apply NF1 to NF4
-        final Set<Inclusion<T>> done = new HashSet<>();
-        Set<Inclusion<T>> oldIs = new HashSet<>();
+        final Set<Inclusion<T>> done = new HashSet<Inclusion<T>>();
+        Set<Inclusion<T>> oldIs = new HashSet<Inclusion<T>>();
         Set<Inclusion<T>> newIs = transformAxiom(inclusions);
 
         do {
@@ -696,7 +705,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             entry = map.get(nf3.lhsR);
         }
         if (null == entry) {
-            entry = new HashSet<>();
+            entry = new HashSet<IConjunctionQueueEntry>();
             entry.add(nf3.getQueueEntry());
             map.put(nf3.lhsR, entry);
         } else {
@@ -733,29 +742,36 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         }
         set.add(nf8);
     }
+    
+    /**
+     * 
+     * @param incAxioms
+     */
+    public void loadIncremental(Set<IAxiom> incAxioms) {
+        // Normalise axioms
+        inclusions.addAll(normalise(incAxioms));
+
+        // Add new axioms to corresponding normal form
+        for (Inclusion<T> i : inclusions) {
+            NormalFormGCI nf = i.getNormalForm();
+            as.addAxiom(nf);
+            addTerm(nf);
+        }
+    }
 
     /**
      * Runs an incremental classification.
      * 
      * @return
      */
-    public void classifyIncremental(Set<IAxiom> incAxioms) {
+    public void classifyIncremental() {
+        if(inclusions.isEmpty()) return;
+        
         // Clear any state from previous incremental classifications
         newContexts.clear();
         affectedContexts.clear();
 
-        // Normalise axioms
-        Set<Inclusion<T>> inclusions = normalise(incAxioms);
-
-        // Add new axioms to corresponding normal form
-        AxiomSet as = new AxiomSet();
         int numNewConcepts = 0;
-
-        for (Inclusion<T> i : inclusions) {
-            NormalFormGCI nf = i.getNormalForm();
-            as.addAxiom(nf);
-            addTerm(nf);
-        }
 
         // Determine which contexts are affected
         for (Inclusion<T> i : inclusions) {
@@ -832,6 +848,9 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         affectedContexts.removeAll(newContexts);
         
         hasBeenIncrementallyClassified = true;
+        
+        inclusions.clear();
+        as.clear();
         
         if(log.isTraceEnabled())
             log.trace("Processed " + contextIndex.size() + " contexts");
@@ -1026,12 +1045,10 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                          */
                         private static final long serialVersionUID = 1L;
 
-                        @Override
                         public int getR() {
                             return nf4.getS();
                         }
 
-                        @Override
                         public int getB() {
                             return b;
                         }
@@ -1086,12 +1103,10 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                                  */
                                 private static final long serialVersionUID = 1L;
 
-                                @Override
                                 public int getR() {
                                     return t;
                                 }
 
-                                @Override
                                 public int getB() {
                                     return c;
                                 }
@@ -1415,7 +1430,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * @return
      */
     public Set<IAxiom> getStatedAxioms() {
-        Set<IAxiom> res = new HashSet<>();
+        Set<IAxiom> res = new HashSet<IAxiom>();
         // These terms are of the form A n Bi [ B and are indexed by A.
         for(IntIterator it = ontologyNF1.keyIterator(); it.hasNext(); ) {
             int a = it.next();
@@ -1553,7 +1568,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     public IConcept transform(Object o) {
         if(o instanceof Conjunction) {
             Conjunction con = (Conjunction)o;
-            List<IConcept> concepts = new ArrayList<>();
+            List<IConcept> concepts = new ArrayList<IConcept>();
             for(AbstractConcept ac : con.getConcepts()) {
                 concepts.add(transform(ac));
             }
@@ -1563,7 +1578,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             AbstractConcept c = e.getConcept();
             IConcept iconcept = transform(c);
             int role = e.getRole();
-            INamedRole<T> irole = new Role<>(factory.lookupRoleId(role));
+            INamedRole<T> irole = new Role<T>(factory.lookupRoleId(role));
             return new au.csiro.ontology.model.Existential<T>(irole, iconcept);
         } else if(o instanceof Datatype) {
             Datatype d = (Datatype)o;
@@ -1704,12 +1719,12 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
 
             // Introduce one taxonomy node for each distinct class of equivalent
             // concepts
-            conceptNodeIndex = new HashMap<>();
+            conceptNodeIndex = new HashMap<T, Node<T>>();
             
-            Node<T> top = new Node<>();
+            Node<T> top = new Node<T>();
             top.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.TOP);
             
-            Node<T> bottom = new Node<>();
+            Node<T> bottom = new Node<T>();
             bottom.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.BOTTOM);
 
             for (IntIterator it = equiv.keyIterator(); it.hasNext();) {
@@ -1745,7 +1760,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             }
 
             // Connect the nodes according to the direct super-concept relationships
-            Set<Node<T>> processed = new HashSet<>();
+            Set<Node<T>> processed = new HashSet<Node<T>>();
             for (T key : conceptNodeIndex.keySet()) {
                 Node<T> node = conceptNodeIndex.get(key);
                 if (processed.contains(node) || node == top || node == bottom)
@@ -1855,7 +1870,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             // a. First create the nodes and add to index
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
                 final T key = factory.lookupConceptId(itr.next());
-                Node<T> cn = new Node<>();
+                Node<T> cn = new Node<T>();
                 cn.getEquivalentConcepts().add(key);
                 conceptNodeIndex.put(key, cn);
             }
@@ -1920,7 +1935,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
 
             // 4. Fix connections for new and affected concepts
             // a. Check for equivalents
-            Set<Pair> pairsToMerge = new HashSet<>();
+            Set<Pair> pairsToMerge = new HashSet<Pair>();
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
                 final T key = factory.lookupConceptId(itr.next());
                 Node<T> cn = conceptNodeIndex.get(key);
@@ -1940,7 +1955,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                 }
             }
 
-            Set<Node<T>> affectedByMerge = new HashSet<>();
+            Set<Node<T>> affectedByMerge = new HashSet<Node<T>>();
 
             // Merge equivalents
             for (Pair p : pairsToMerge) {
@@ -1979,7 +1994,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             }
 
             // b. Fix all new and affected nodes
-            Set<Node<T>> all = new HashSet<>();
+            Set<Node<T>> all = new HashSet<Node<T>>();
             for (IntIterator it = allNew.keyIterator(); it.hasNext();) {
                 all.add(conceptNodeIndex.get(factory.lookupConceptId(it.next())));
             }
@@ -1993,7 +2008,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
             }
 
             // Add also the children of the affected nodes
-            Set<Node<T>> childrenToAdd = new HashSet<>();
+            Set<Node<T>> childrenToAdd = new HashSet<Node<T>>();
             for (Node<T> cn : all) {
                 for (Node<T> ccn : cn.getChildren()) {
                     if (ccn.equals(bottomNode))
@@ -2008,7 +2023,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
                 Set<Node<T>> ps = cn.getParents();
 
                 Object[] parents = ps.toArray(new Object[ps.size()]);
-                Set<Node<T>> toRemove = new HashSet<>();
+                Set<Node<T>> toRemove = new HashSet<Node<T>>();
                 for (int i = 0; i < parents.length; i++) {
                     for (int j = i + 1; j < parents.length; j++) {
                         if (isChild((Node<T>)parents[j], (Node<T>)parents[i])) {
@@ -2081,7 +2096,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * @return
      */
     public Set<Node<T>> getAffectedNodes() {
-        Set<Node<T>> res = new HashSet<>();
+        Set<Node<T>> res = new HashSet<Node<T>>();
         for(IntIterator it = getNewSubsumptions().keyIterator(); 
         		it.hasNext(); ) {
             T key = factory.lookupConceptId(it.next());
@@ -2115,7 +2130,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         if (cn == cn2)
             return false;
 
-        Queue<Node<T>> toProcess = new LinkedList<>();
+        Queue<Node<T>> toProcess = new LinkedList<Node<T>>();
         toProcess.addAll(cn.getParents());
 
         while (!toProcess.isEmpty()) {

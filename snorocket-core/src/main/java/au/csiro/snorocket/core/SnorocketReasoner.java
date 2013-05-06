@@ -76,12 +76,18 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
      */
     @SuppressWarnings("rawtypes")
     public static SnorocketReasoner load(InputStream in) {
-        SnorocketReasoner res; 
-        try(ObjectInputStream ois = new ObjectInputStream(in); ) { 
+        SnorocketReasoner res;
+        ObjectInputStream ois = null; 
+        try {
+            ois = new ObjectInputStream(in); 
             res = (SnorocketReasoner)ois.readObject();  
         } catch(Exception e) { 
             log.error("Problem loading reasoner." + e);
             throw new RuntimeException(e);
+        } finally {
+            if(ois != null) {
+                try { ois.close(); } catch(Exception e) {}
+            }
         }
         Concept.reconnectTopBottom(
                 (IConcept)res.factory.lookupConceptId(CoreFactory.TOP_CONCEPT), 
@@ -97,27 +103,27 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
      * @param ontology The base ontology to classify.
      */
     public SnorocketReasoner() {
-        
+        factory = new CoreFactory<T>();
+        no = new NormalisedOntology<T>(factory);
     }
 
-    @Override
     public IReasoner<T> classify(Set<IAxiom> axioms) {
         if(!isClassified) {
             factory = new CoreFactory<T>();
             no = new NormalisedOntology<T>(factory);
-            no.loadAxioms(new HashSet<IAxiom>(axioms));
+            no.loadAxioms(axioms);
             no.classify();
             isClassified = true;
         } else {
-            no.classifyIncremental(axioms);
+            no.loadIncremental(axioms);
+            no.classifyIncremental();
         }
         return this;
     }
     
-    @Override
     public IReasoner<T> classify(Iterator<IAxiom> axioms) {
         IReasoner<T> res = null;
-        Set<IAxiom> axiomSet = new HashSet<>();
+        Set<IAxiom> axiomSet = new HashSet<IAxiom>();
         while(axioms.hasNext()) {
             IAxiom axiom = axioms.next();
             if(axiom == null) continue;
@@ -135,18 +141,15 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         return res;
     }
     
-    @Override
     public IReasoner<T> classify(IOntology<T> ont) {
-        return classify(new HashSet<>(ont.getStatedAxioms()));
+        return classify(new HashSet<IAxiom>(ont.getStatedAxioms()));
     }
 
-    @Override
     public void prune() {
         // TODO: implement
         throw new UnsupportedOperationException();
     }
 
-    @Override
     public IOntology<T> getClassifiedOntology() {
         // Check ontology is classified
         if(!isClassified) throw new RuntimeException(
@@ -164,7 +167,6 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
      * @deprecated Use {@link SnorocketReasoner#getClassifiedOntology()} 
      * instead.
      */
-    @Override
     public Taxonomy<T> getTaxonomy() {
         if(no == null)
             return null;
@@ -173,20 +175,63 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         return new Taxonomy<T>(res);
     }
 
-    @Override
     public void save(OutputStream out) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(out)){
+        ObjectOutputStream oos = null;
+        try {
+            oos = new ObjectOutputStream(out);
             oos.writeObject(this); 
             oos.flush();
         } catch(Exception e) {
             log.error("Problem saving reasoner.", e);
             throw new RuntimeException(e);
+        } finally {
+            if(oos != null) {
+                try { oos.close(); } catch(Exception e) {}
+            }
         }
     }
 
-    @Override
     public boolean isClassified() {
         return isClassified;
+    }
+
+    public void loadAxioms(Set<IAxiom> axioms) {
+        if(!isClassified) {
+            no.loadAxioms(axioms);
+        } else {
+            no.loadIncremental(axioms);
+        }
+    }
+
+    public void loadAxioms(Iterator<IAxiom> axioms) {
+        Set<IAxiom> axiomSet = new HashSet<IAxiom>();
+        while(axioms.hasNext()) {
+            IAxiom axiom = axioms.next();
+            if(axiom == null) continue;
+            axiomSet.add(axiom);
+            if(axiomSet.size() == BUFFER_SIZE) {
+                loadAxioms(axiomSet);
+                axiomSet.clear();
+            }
+        }
+        
+        if(!axiomSet.isEmpty()) {
+            loadAxioms(axiomSet);
+        }
+    }
+
+    public void loadAxioms(IOntology<T> ont) {
+        loadAxioms(new HashSet<IAxiom>(ont.getStatedAxioms()));
+    }
+
+    public IReasoner<T> classify() {
+        if(!isClassified) {
+            no.classify();
+            isClassified = true;
+        } else {
+            no.classifyIncremental();
+        }
+        return this;
     }
     
 }

@@ -35,6 +35,11 @@ import au.csiro.snorocket.core.IFactory;
  */
 public class RI<T> extends Inclusion<T> {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private static final int PRIME = 31;
 
     final private int[] lhs;

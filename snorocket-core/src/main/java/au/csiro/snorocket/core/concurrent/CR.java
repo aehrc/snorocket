@@ -126,7 +126,7 @@ public final class CR implements Serializable {
      * @return
      */
     public int[] getRoles() {
-        List<Integer> roles = new ArrayList<>();
+        List<Integer> roles = new ArrayList<Integer>();
         for(int i = 0; i < data.length; i++) {
             if(data[i] != null) {
                 roles.add(i);

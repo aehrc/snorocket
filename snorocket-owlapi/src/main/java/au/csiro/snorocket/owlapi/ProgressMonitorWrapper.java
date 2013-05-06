@@ -23,47 +23,39 @@ public class ProgressMonitorWrapper implements IProgressMonitor, ReasonerProgres
         this.base = base;
     }
 
-    @Override
     public void taskStarted(String taskName) {
         reasonerTaskStarted(taskName);
         
     }
 
-    @Override
     public void taskEnded() {
         reasonerTaskStopped();
         
     }
 
-    @Override
     public void step(int value, int max) {
         reasonerTaskProgressChanged(value, max);
         
     }
 
-    @Override
     public void taskBusy() {
         reasonerTaskBusy();
         
     }
 
-    @Override
     public void reasonerTaskStarted(String taskName) {
         base.reasonerTaskStarted(taskName);
     }
 
-    @Override
     public void reasonerTaskStopped() {
         base.reasonerTaskStopped();
         
     }
 
-    @Override
     public void reasonerTaskProgressChanged(int value, int max) {
         base.reasonerTaskProgressChanged(value, max);
     }
 
-    @Override
     public void reasonerTaskBusy() {
         base.reasonerTaskBusy();
     }

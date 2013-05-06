@@ -4,6 +4,7 @@
  */
 package au.csiro.snorocket.core.util;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -24,17 +25,22 @@ import au.csiro.snorocket.core.axioms.NormalFormGCI;
  * @author Alejandro Metke
  * 
  */
-public class AxiomSet {
+public class AxiomSet implements Serializable {
 
-    private final Collection<NF1a> nf1aAxioms = new HashSet<>();
-    private final Collection<NF1b> nf1bAxioms = new HashSet<>();
-    private final Collection<NF2> nf2Axioms = new HashSet<>();
-    private final Collection<NF3> nf3Axioms = new HashSet<>();
-    private final Collection<NF4> nf4Axioms = new HashSet<>();
-    private final Collection<NF5> nf5Axioms = new HashSet<>();
-    private final Collection<NF6> nf6Axioms = new HashSet<>();
-    private final Collection<NF7> nf7Axioms = new HashSet<>();
-    private final Collection<NF8> nf8Axioms = new HashSet<>();
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    
+    private final Collection<NF1a> nf1aAxioms = new HashSet<NF1a>();
+    private final Collection<NF1b> nf1bAxioms = new HashSet<NF1b>();
+    private final Collection<NF2> nf2Axioms = new HashSet<NF2>();
+    private final Collection<NF3> nf3Axioms = new HashSet<NF3>();
+    private final Collection<NF4> nf4Axioms = new HashSet<NF4>();
+    private final Collection<NF5> nf5Axioms = new HashSet<NF5>();
+    private final Collection<NF6> nf6Axioms = new HashSet<NF6>();
+    private final Collection<NF7> nf7Axioms = new HashSet<NF7>();
+    private final Collection<NF8> nf8Axioms = new HashSet<NF8>();
 
     public void addAxiom(NormalFormGCI a) {
         if (a instanceof NF1a) {
@@ -92,6 +98,18 @@ public class AxiomSet {
 
     public Collection<NF8> getNf8Axioms() {
         return nf8Axioms;
+    }
+    
+    public void clear() {
+        nf1aAxioms.clear();
+        nf1bAxioms.clear();
+        nf2Axioms.clear();
+        nf3Axioms.clear();
+        nf4Axioms.clear();
+        nf5Axioms.clear();
+        nf6Axioms.clear();
+        nf7Axioms.clear();
+        nf8Axioms.clear();
     }
 
 }

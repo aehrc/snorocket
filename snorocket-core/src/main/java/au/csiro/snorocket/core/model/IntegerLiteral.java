@@ -55,7 +55,6 @@ public class IntegerLiteral extends AbstractLiteral {
         return String.valueOf(value);
     }
 
-    @Override
     public int compareTo(AbstractLiteral o) {
         IntegerLiteral il = (IntegerLiteral) o;
         int otherValue = il.value;
