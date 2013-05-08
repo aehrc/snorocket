@@ -205,7 +205,8 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * The number of threads to use.
      */
-    private int numThreads = Runtime.getRuntime().availableProcessors();
+    // TODO: update when done debugging
+    private int numThreads = 1;//Runtime.getRuntime().availableProcessors();
     
     private boolean hasBeenIncrementallyClassified = false;
     

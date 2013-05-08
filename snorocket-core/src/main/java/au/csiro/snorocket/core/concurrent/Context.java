@@ -562,7 +562,11 @@ public class Context implements Serializable {
             // If the rhs operator is =, then the expression will only match
             // if the lhs operator is also = and the literal values are the
             // same.
-            return d1.getLiteral().equals(d2.getLiteral());
+            if(lhsOp != Operator.EQUALS) {
+                return false;
+            } else {
+                return d1.getLiteral().equals(d2.getLiteral());
+            }
         } else if (rhsOp == Operator.GREATER_THAN) {
             if (lhsOp == Operator.LESS_THAN
                     || lhsOp == Operator.LESS_THAN_EQUALS) {
