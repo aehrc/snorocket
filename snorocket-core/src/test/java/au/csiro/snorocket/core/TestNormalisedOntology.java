@@ -384,6 +384,14 @@ public class TestNormalisedOntology {
                 new NormalisedOntology<String>(factory, axioms);
         o.classify();
         o.buildTaxonomy();
+        
+        // TODO: remove
+        
+        Node<String> bn = o.getBottomNode();
+        Set<Node<String>> br = bn.getParents();
+        System.out.println(br);
+        
+        // TODO: end remove
 
         // Add delta axioms and classify incrementally
         Concept<String> endocardium = new Concept<String>("Endocardium");
