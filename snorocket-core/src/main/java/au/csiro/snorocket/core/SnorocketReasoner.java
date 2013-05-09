@@ -26,10 +26,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.log4j.Logger;
 
@@ -37,11 +41,25 @@ import au.csiro.ontology.IOntology;
 import au.csiro.ontology.Node;
 import au.csiro.ontology.Ontology;
 import au.csiro.ontology.Taxonomy;
+import au.csiro.ontology.axioms.ConceptInclusion;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IReasoner;
 import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.model.Conjunction;
+import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.IConcept;
+import au.csiro.ontology.model.IConjunction;
+import au.csiro.ontology.model.IExistential;
+import au.csiro.ontology.model.INamedConcept;
+import au.csiro.ontology.model.INamedRole;
+import au.csiro.ontology.model.Role;
+import au.csiro.snorocket.core.concurrent.CR;
 import au.csiro.snorocket.core.concurrent.Context;
+import au.csiro.snorocket.core.model.AbstractConcept;
+import au.csiro.snorocket.core.util.IConceptMap;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.IntIterator;
+import au.csiro.snorocket.core.util.RoleSet;
 
 /**
  * This class represents an instance of the reasoner. It uses the internal
@@ -97,9 +115,26 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
      * @param ontology The base ontology to classify.
      */
     public SnorocketReasoner() {
-        
     }
 
+    /**
+     * Creates an instance of Snorocket with the axioms pre-loaded and normalised.
+     * 
+     */
+    public SnorocketReasoner(Set<IAxiom> axioms) {
+        factory = new CoreFactory<T>();
+        no = new NormalisedOntology<T>(factory);
+        no.loadAxioms(new HashSet<IAxiom>(axioms));
+    }
+
+    public IReasoner<T> classify() {
+        if(!isClassified && no != null) {
+            no.classify();
+            isClassified = true;
+        }
+        return this;
+    }    
+    
     @Override
     public IReasoner<T> classify(Set<IAxiom> axioms) {
         if(!isClassified) {
@@ -158,6 +193,245 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         Set<Node<T>> affectedNodes = no.getAffectedNodes();
         
         return new Ontology<T>(null, null, null, taxonomy, affectedNodes);
+    }
+    
+    /**
+     * Ideally we'd return some kind of normal form axioms here.  However, in the presence of GCIs
+     * this is not well defined (as far as I know - michael)
+     * <p>
+     * Instead, we will return stated form axioms for Sufficient conditions (ie for INamedConcept on the RHS),
+     * and SNOMED CT DNF-based axioms for Necessary conditions.  The former is just a filter over the stated axioms,
+     * the latter requires looking at the Taxonomy and inferred relationships.
+     * <p>
+     * Note that there will be <i>virtual</i> INamedConcepts that need to be skipped/expanded and redundant
+     * IExistentials that need to be filtered.
+     * 
+     * @return
+     */
+    public Collection<IAxiom> getInferredAxioms() {
+        final Collection<IAxiom> inferred = new HashSet<>();
+
+        classify();
+        if (!no.isTaxonomyComputed()) {
+            log.info("Building taxonomy");
+            no.buildTaxonomy();
+        }
+        
+        final Map<T, Node<T>> taxonomy = no.getTaxonomy();
+        final IConceptMap<Context> contextIndex = no.getContextIndex();
+        final IntIterator itr = contextIndex.keyIterator();
+        while (itr.hasNext()) {
+            final int key = itr.next();
+            final T id = factory.lookupConceptId(key);
+            
+            if (factory.isVirtualConcept(key) || Concept.BOTTOM == id) {
+                continue;
+            }
+            
+            IConcept rhs = getNecessary(contextIndex, taxonomy, key);
+
+            final Concept<T> lhs = new Concept<>(factory.lookupConceptId(key));
+            if (!lhs.equals(rhs) && rhs != Concept.TOP) {     // skip trivial axioms
+                inferred.add(new ConceptInclusion(lhs, rhs));
+            }
+        }
+        
+        return inferred;
+    }
+    
+    protected IConcept getNecessary(IConceptMap<Context> contextIndex, Map<T, Node<T>> taxonomy, int key) {
+        final T id = factory.lookupConceptId(key);
+        final List<IConcept> result = new ArrayList<>();
+
+        final Node<T> node = taxonomy.get(id);
+        if (node != null) {
+            for (final Node<T> parent: node.getParents()) {
+                final T parentId = parent.getEquivalentConcepts().iterator().next();
+                if (Concept.TOP != parentId) {      // Top is redundant
+                    result.add(Concept.createFrom(parentId));
+                }
+            }
+        } else if (id instanceof au.csiro.snorocket.core.model.Conjunction) {
+            // In this case, we have a result of normalisation so we reach inside and grab out the parents
+            for (AbstractConcept conjunct: ((au.csiro.snorocket.core.model.Conjunction) id).getConcepts()) {
+                if (conjunct instanceof au.csiro.snorocket.core.model.Concept) {
+                    final int conjunctInt = ((au.csiro.snorocket.core.model.Concept) conjunct).hashCode();
+                    final T conjunctId = factory.lookupConceptId(conjunctInt);
+                    result.add(Concept.createFrom(conjunctId));
+                }
+            }
+        }
+
+        final Context ctx = contextIndex.get(key);
+        CR succ = ctx.getSucc();
+        for (int roleId: succ.getRoles()) {
+            INamedRole<T> role = new Role<>(factory.lookupRoleId(roleId));
+            IConceptSet values = getLeaves(succ.lookupConcept(roleId));
+            for (IntIterator itr2 = values.iterator(); itr2.hasNext(); ) {
+                int valueInt = itr2.next();
+                if (!factory.isVirtualConcept(valueInt)) {
+                    final T valueId = factory.lookupConceptId(valueInt);
+                    final Existential<T> x = new Existential<>(role, new Concept<>(valueId));
+                    result.add(x);
+                } else {
+                    final IConcept valueConcept = getNecessary(contextIndex, taxonomy, valueInt);
+                    final Existential<T> x = new Existential<>(role, Builder.build(no, valueConcept));
+                    result.add(x);
+                }
+            }
+        }
+        //        System.err.println("gN: " + id + "\t" + factory.isVirtualConcept(key) + "\t" + result);
+
+        if (result.size() == 0) {
+            return Concept.TOP;
+        } else if (result.size() == 1) {
+            return result.get(0);
+        } else {
+            return new Conjunction(result);
+        }
+    }
+
+    /**
+     * Given a set of concepts, computes the subset such that no member of the subset is subsumed by another member.
+     * 
+     * result = {c | c in bs and not c' in b such that c' [ c}
+     * 
+     * @param concepts set of subsumptions to filter
+     * @return
+     */
+    private IConceptSet getLeaves(final IConceptSet concepts) {
+        final IConceptSet leafBs = IConceptSet.FACTORY.createConceptSet(concepts);
+        final IConceptSet set = IConceptSet.FACTORY.createConceptSet(leafBs);
+
+        for (final IntIterator bItr = set.iterator(); bItr.hasNext(); ) {
+            final int b = bItr.next();
+
+            final IConceptSet ancestors = IConceptSet.FACTORY.createConceptSet(getAncestors(no, b));
+            ancestors.remove(b);
+            leafBs.removeAll(ancestors);
+        }
+        return leafBs;
+    }
+    
+    private static <T extends Comparable<T>> IConceptSet getAncestors(NormalisedOntology<T> no, int conceptInt) {
+        return no.getContextIndex().get(conceptInt).getS();
+    }
+
+    final static class Builder<T extends Comparable<T>> {
+        final private NormalisedOntology<T> no;
+        final private IFactory<T> factory;
+        final private ConcurrentMap<Integer, RoleSet> rc;
+
+        final private List<IExistential<T>> items = new ArrayList<>();
+
+        private Builder(NormalisedOntology<T> no) {
+            this.no = no;
+            this.factory = no.factory;
+            this.rc = no.getRoleClosureCache();
+        }
+        
+        static <T extends Comparable<T>> IConcept build(NormalisedOntology<T> no, IConcept... concepts) {
+            final List<IConcept> list = new ArrayList<>();
+            final Builder<T> b = new Builder<>(no);
+            
+            for (final IConcept member: concepts) {
+                if (member instanceof IExistential) {
+                    final IExistential<T> existential = (IExistential<T>) member;
+                    
+                    b.build(existential.getRole(), build(no, existential.getConcept()));
+                } else {
+                    list.add(buildOne(no, member));
+                }
+            }
+            
+            list.addAll(b.get());
+            
+            if (list.size() == 1) {
+                return list.get(0);
+            } else {
+                return new Conjunction(list);
+            }
+        }
+        
+        private static <T extends Comparable<T>> IConcept buildOne(NormalisedOntology<T> no, IConcept concept) {
+            if (concept instanceof IExistential) {
+                final IExistential<T> existential = (IExistential<T>) concept;
+                
+                return new Existential<>(existential.getRole(), buildOne(no, existential.getConcept()));
+            } else if (concept instanceof IConjunction) {
+                return build(no, ((IConjunction) concept).getConcepts());
+            } else if (concept instanceof INamedConcept) {
+                return concept;
+            } else {
+                throw new RuntimeException("Unexpected type: " + concept);
+            }
+        }
+        
+        /**
+         * Two cases to handle:<ol>
+         * <li> We are trying to add something that is redundant
+         * <li> We are trying to add something that makes an already-added thing redundant
+         * </ol>
+         */
+        private void build(INamedRole<T> role, IConcept concept) {
+            if (!(concept instanceof INamedConcept)) {
+                log.debug("WARNING: pass through of complex value: " + concept);
+                doAdd(role, concept);
+                return;
+            }
+            if (log.isTraceEnabled()) log.trace("check for subsumption: " + role + "." + concept);
+
+            final int cInt = factory.getConcept(((INamedConcept<T>) concept).getId());
+            final IConceptSet cAncestorSet = getAncestors(no, cInt);
+            final int rInt = factory.getRole(role.getId());
+            final RoleSet rSet = rc.get(rInt);
+
+            final List<IExistential<T>> remove = new ArrayList<>();
+            boolean subsumed = false;
+
+            for (IExistential<T> candidate: items) {
+                final int dInt = factory.getConcept(((INamedConcept<T>) candidate.getConcept()).getId());
+                final IConceptSet dAncestorSet = getAncestors(no, dInt);
+                final int sInt = factory.getRole(candidate.getRole().getId());
+                final RoleSet sSet = rc.get(sInt);
+                
+                if (rInt == sInt && cInt == dInt) {
+                    subsumed = true;
+                } else {
+                    if (rSet.contains(sInt)) {
+                        if (cAncestorSet.contains(dInt)) {
+                            remove.add(candidate);
+                            if (log.isTraceEnabled()) log.trace("\tremove " + candidate);
+                        }
+                    }
+
+                    if (sSet.contains(rInt)) {
+                        if (dAncestorSet.contains(cInt)) {
+                            subsumed = true;
+                            if (log.isTraceEnabled()) log.trace("\tsubsumed");
+                        }
+                    }
+                }
+            }
+            
+            if (subsumed && !remove.isEmpty()) {
+                throw new AssertionError("Should not have items to remove if item to be added is already subsumed.");
+            }
+            
+            items.removeAll(remove);
+            if (!subsumed) {
+                doAdd(role, concept);
+            }
+        }
+        
+        private Collection<IExistential<T>> get() {
+            return items;
+        }
+
+        private void doAdd(INamedRole<T> role, IConcept concept) {
+            items.add(new Existential<>(role, concept));
+        }
+
     }
     
     /**

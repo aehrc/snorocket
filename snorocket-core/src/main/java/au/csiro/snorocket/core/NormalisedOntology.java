@@ -291,6 +291,8 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         }
     }
 
+final static int CONCEPT_COUNT_ESTIMATE = 500000;
+
     /**
      * 
      * @param baseConceptCount
@@ -300,16 +302,16 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * @param roleCount
      */
     public NormalisedOntology(final IFactory<T> factory) {
+        // TODO: how do we estimate these numbers better?
         this(
             factory,
-            new DenseConceptMap<MonotonicCollection<IConjunctionQueueEntry>>(500000),
-            new SparseConceptMap<MonotonicCollection<NF2>>(500000, "ontologyNF2"),
-            new SparseConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>>(500000, "ontologyNF3"),
+            new DenseConceptMap<MonotonicCollection<IConjunctionQueueEntry>>(CONCEPT_COUNT_ESTIMATE),
+            new SparseConceptMap<MonotonicCollection<NF2>>(CONCEPT_COUNT_ESTIMATE, "ontologyNF2"),
+            new SparseConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>>(CONCEPT_COUNT_ESTIMATE, "ontologyNF3"),
             new MonotonicCollection<NF4>(15), new MonotonicCollection<NF5>(1), 
             new SparseConceptMap<MonotonicCollection<NF7>>(10, "ontologyNF7"),
             new FeatureMap<MonotonicCollection<NF8>>(10)
         );
-        // TODO: how do we estimate these numbers better?
     }
 
     /**
@@ -474,9 +476,9 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     public Set<Inclusion<T>> normalise(final Set<? extends IAxiom> inclusions) {
         
         // Exhaustively apply NF1 to NF4
-        final Set<Inclusion<T>> done = new HashSet<>();
-        Set<Inclusion<T>> oldIs = new HashSet<>();
         Set<Inclusion<T>> newIs = transformAxiom(inclusions);
+        Set<Inclusion<T>> oldIs = new HashSet<>(newIs.size());
+        final Set<Inclusion<T>> done = new HashSet<>(newIs.size());
 
         do {
             final Set<Inclusion<T>> tmp = oldIs;
