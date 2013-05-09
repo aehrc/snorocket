@@ -18,29 +18,24 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
  */
 public class SnorocketReasonerFactory implements OWLReasonerFactory {
 
-    @Override
     public String getReasonerName() {
         return SnorocketReasonerFactory.class.getPackage().getImplementationTitle();
     }
 
-    @Override
     public OWLReasoner createNonBufferingReasoner(OWLOntology ontology) {
         return new SnorocketOWLReasoner(ontology, null, false);
     }
 
-    @Override
     public OWLReasoner createReasoner(OWLOntology ontology) {
         return new SnorocketOWLReasoner(ontology, null, true);
     }
 
-    @Override
     public OWLReasoner createNonBufferingReasoner(OWLOntology ontology,
             OWLReasonerConfiguration config)
                     throws IllegalConfigurationException {
         return new SnorocketOWLReasoner(ontology, config, false);
     }
 
-    @Override
     public OWLReasoner createReasoner(OWLOntology ontology,
             OWLReasonerConfiguration config)
                     throws IllegalConfigurationException {

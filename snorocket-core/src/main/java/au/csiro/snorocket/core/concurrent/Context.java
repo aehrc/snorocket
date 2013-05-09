@@ -64,7 +64,7 @@ public class Context implements Serializable {
      * this concept.
      */
     private final Queue<IConjunctionQueueEntry> conceptQueue = 
-            new ConcurrentLinkedQueue<>();
+            new ConcurrentLinkedQueue<IConjunctionQueueEntry>();
 
     /**
      * Queue (List) of RoleQueueEntries indicating work to be done for this
@@ -85,7 +85,7 @@ public class Context implements Serializable {
      * processNewEdge.
      */
     private final Queue<IRoleQueueEntry> externalQueue = 
-            new ConcurrentLinkedQueue<>();
+            new ConcurrentLinkedQueue<IRoleQueueEntry>();
 
     /**
      * Keeps track of the parents of this concept.
@@ -382,12 +382,10 @@ public class Context implements Serializable {
              */
             private static final long serialVersionUID = 1L;
 
-            @Override
             public int getR() {
                 return role;
             }
 
-            @Override
             public int getB() {
                 return src;
             }
@@ -464,12 +462,10 @@ public class Context implements Serializable {
                                  */
                                 private static final long serialVersionUID = 1L;
 
-                                @Override
                                 public int getBi() {
                                     return CoreFactory.TOP_CONCEPT;
                                 }
 
-                                @Override
                                 public int getB() {
                                     return e.rhsB;
                                 }
@@ -566,7 +562,11 @@ public class Context implements Serializable {
             // If the rhs operator is =, then the expression will only match
             // if the lhs operator is also = and the literal values are the
             // same.
-            return d1.getLiteral().equals(d2.getLiteral());
+            if(lhsOp != Operator.EQUALS) {
+                return false;
+            } else {
+                return d1.getLiteral().equals(d2.getLiteral());
+            }
         } else if (rhsOp == Operator.GREATER_THAN) {
             if (lhsOp == Operator.LESS_THAN
                     || lhsOp == Operator.LESS_THAN_EQUALS) {
@@ -902,12 +902,10 @@ public class Context implements Serializable {
                                  */
                                 private static final long serialVersionUID = 1L;
 
-                                @Override
                                 public int getBi() {
                                     return CoreFactory.TOP_CONCEPT;
                                 }
 
-                                @Override
                                 public int getB() {
                                     return e.rhsB;
                                 }

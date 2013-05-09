@@ -54,7 +54,6 @@ public class FloatLiteral extends AbstractLiteral {
         return String.valueOf(value);
     }
 
-    @Override
     public int compareTo(AbstractLiteral o) {
         FloatLiteral fl = (FloatLiteral) o;
         float otherValue = fl.value;

@@ -44,44 +44,44 @@ public class TestSnorocketReasoner {
     public void testSave() {
 
         // Original Endocarditis ontology axioms
-        Role<String> contIn = new Role<>("cont-in");
-        Role<String> partOf = new Role<>("part-of");
-        Role<String> hasLoc = new Role<>("has-loc");
-        Role<String> actsOn = new Role<>("acts-on");
-        Concept<String> tissue = new Concept<>("Tissue");
-        Concept<String> heartWall = new Concept<>("HeartWall");
-        Concept<String> heartValve = new Concept<>("HeartValve");
-        Concept<String> bodyWall = new Concept<>("BodyWall");
-        Concept<String> heart = new Concept<>("Heart");
-        Concept<String> bodyValve = new Concept<>("BodyValve");
-        Concept<String> inflammation = new Concept<>("Inflammation");
-        Concept<String> disease = new Concept<>("Disease");
-        Concept<String> heartdisease = new Concept<>("Heartdisease");
-        Concept<String> criticalDisease = new Concept<>("CriticalDisease");
+        Role<String> contIn = new Role<String>("cont-in");
+        Role<String> partOf = new Role<String>("part-of");
+        Role<String> hasLoc = new Role<String>("has-loc");
+        Role<String> actsOn = new Role<String>("acts-on");
+        Concept<String> tissue = new Concept<String>("Tissue");
+        Concept<String> heartWall = new Concept<String>("HeartWall");
+        Concept<String> heartValve = new Concept<String>("HeartValve");
+        Concept<String> bodyWall = new Concept<String>("BodyWall");
+        Concept<String> heart = new Concept<String>("Heart");
+        Concept<String> bodyValve = new Concept<String>("BodyValve");
+        Concept<String> inflammation = new Concept<String>("Inflammation");
+        Concept<String> disease = new Concept<String>("Disease");
+        Concept<String> heartdisease = new Concept<String>("Heartdisease");
+        Concept<String> criticalDisease = new Concept<String>("CriticalDisease");
 
         ConceptInclusion a2 = new ConceptInclusion(heartWall, new Conjunction(
                 new IConcept[] { bodyWall,
-                        new Existential<>(partOf, heart) }));
+                        new Existential<String>(partOf, heart) }));
 
         ConceptInclusion a3 = new ConceptInclusion(heartValve, new Conjunction(
                 new IConcept[] { bodyValve,
-                        new Existential<>(partOf, heart) }));
+                        new Existential<String>(partOf, heart) }));
 
         ConceptInclusion a5 = new ConceptInclusion(inflammation,
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<>(actsOn, tissue) }));
+                        new Existential<String>(actsOn, tissue) }));
 
         ConceptInclusion a6 = new ConceptInclusion(new Conjunction(
                 new IConcept[] { heartdisease,
-                        new Existential<>(hasLoc, heartValve) }), criticalDisease);
+                        new Existential<String>(hasLoc, heartValve) }), criticalDisease);
 
         ConceptInclusion a7 = new ConceptInclusion(heartdisease,
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<>(hasLoc, heart) }));
+                        new Existential<String>(hasLoc, heart) }));
 
         ConceptInclusion a8 = new ConceptInclusion(
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<>(hasLoc, heart) }), heartdisease);
+                        new Existential<String>(hasLoc, heart) }), heartdisease);
 
         RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf },
                 partOf);
@@ -90,7 +90,7 @@ public class TestSnorocketReasoner {
                 hasLoc);
 
         // Partial ontology
-        Set<IAxiom> axioms = new HashSet<>();
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
         axioms.add(a2);
         axioms.add(a3);
         axioms.add(a5);
@@ -101,7 +101,7 @@ public class TestSnorocketReasoner {
         axioms.add(a10);
         axioms.add(a11);
         
-        SnorocketReasoner<String> sr = new SnorocketReasoner<>();
+        SnorocketReasoner<String> sr = new SnorocketReasoner<String>();
         sr.classify(axioms);
         
         try {
@@ -118,19 +118,19 @@ public class TestSnorocketReasoner {
         }
 
         // Add delta axioms and classify incrementally
-        Concept<String> endocardium = new Concept<>("Endocardium");
-        Concept<String> endocarditis = new Concept<>("Endocarditis");
+        Concept<String> endocardium = new Concept<String>("Endocardium");
+        Concept<String> endocarditis = new Concept<String>("Endocarditis");
 
         ConceptInclusion a1 = new ConceptInclusion(endocardium,
                 new Conjunction(new IConcept[] { tissue,
-                        new Existential<>(contIn, heartWall),
-                        new Existential<>(contIn, heartValve) }));
+                        new Existential<String>(contIn, heartWall),
+                        new Existential<String>(contIn, heartValve) }));
 
         ConceptInclusion a4 = new ConceptInclusion(endocarditis,
                 new Conjunction(new IConcept[] { inflammation,
-                        new Existential<>(hasLoc, endocardium) }));
+                        new Existential<String>(hasLoc, endocardium) }));
 
-        Set<IAxiom> incAxioms = new HashSet<>();
+        Set<IAxiom> incAxioms = new HashSet<IAxiom>();
         incAxioms.add(a1);
         incAxioms.add(a4);
 
@@ -289,58 +289,60 @@ public class TestSnorocketReasoner {
     public void testEndocarditis() {
         org.apache.log4j.LogManager.getRootLogger().setLevel((org.apache.log4j.Level)org.apache.log4j.Level.TRACE);
         // Create roles
-        Role<String> contIn = new Role<>("cont-in");
-        Role<String> partOf = new Role<>("part-of");
-        Role<String> hasLoc = new Role<>("has-loc");
-        Role<String> actsOn = new Role<>("acts-on");
+        Role<String> contIn = new Role<String>("cont-in");
+        Role<String> partOf = new Role<String>("part-of");
+        Role<String> hasLoc = new Role<String>("has-loc");
+        Role<String> actsOn = new Role<String>("acts-on");
 
         // Create concepts
-        Concept<String> endocardium = new Concept<>("Endocardium");
-        Concept<String> tissue = new Concept<>("Tissue");
-        Concept<String> heartWall = new Concept<>("HeartWall");
-        Concept<String> heartValve = new Concept<>("HeartValve");
-        Concept<String> bodyWall = new Concept<>("BodyWall");
-        Concept<String> heart = new Concept<>("Heart");
-        Concept<String> bodyValve = new Concept<>("BodyValve");
-        Concept<String> endocarditis = new Concept<>("Endocarditis");
-        Concept<String> inflammation = new Concept<>("Inflammation");
-        Concept<String> disease = new Concept<>("Disease");
-        Concept<String> heartdisease = new Concept<>("Heartdisease");
-        Concept<String> criticalDisease = new Concept<>("CriticalDisease");
+        Concept<String> endocardium = new Concept<String>("Endocardium");
+        Concept<String> tissue = new Concept<String>("Tissue");
+        Concept<String> heartWall = new Concept<String>("HeartWall");
+        Concept<String> heartValve = new Concept<String>("HeartValve");
+        Concept<String> bodyWall = new Concept<String>("BodyWall");
+        Concept<String> heart = new Concept<String>("Heart");
+        Concept<String> bodyValve = new Concept<String>("BodyValve");
+        Concept<String> endocarditis = new Concept<String>("Endocarditis");
+        Concept<String> inflammation = new Concept<String>("Inflammation");
+        Concept<String> disease = new Concept<String>("Disease");
+        Concept<String> heartdisease = new Concept<String>("Heartdisease");
+        Concept<String> criticalDisease = new Concept<String>("CriticalDisease");
 
         // Create axioms
         ConceptInclusion a1 = new ConceptInclusion(endocardium,
                 new Conjunction(new IConcept[] { tissue,
-                        new Existential<>(contIn, heartWall),
-                        new Existential<>(contIn, heartValve) }));
+                        new Existential<String>(contIn, heartWall),
+                        new Existential<String>(contIn, heartValve) }));
 
         ConceptInclusion a2 = new ConceptInclusion(heartWall, new Conjunction(
                 new IConcept[] { bodyWall,
-                        new Existential<>(partOf, heart) }));
+                        new Existential<String>(partOf, heart) }));
 
         ConceptInclusion a3 = new ConceptInclusion(heartValve, new Conjunction(
                 new IConcept[] { bodyValve,
-                        new Existential<>(partOf, heart) }));
+                        new Existential<String>(partOf, heart) }));
 
         ConceptInclusion a4 = new ConceptInclusion(endocarditis,
                 new Conjunction(new IConcept[] { inflammation,
-                        new Existential<>(hasLoc, endocardium) }));
+                        new Existential<String>(hasLoc, endocardium) }));
 
         ConceptInclusion a5 = new ConceptInclusion(inflammation,
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<>(actsOn, tissue) }));
+                        new Existential<String>(actsOn, tissue) }));
 
         ConceptInclusion a6 = new ConceptInclusion(new Conjunction(
                 new IConcept[] { heartdisease,
-                        new Existential<>(hasLoc, heartValve) }), criticalDisease);
+                        new Existential<String>(hasLoc, heartValve) }), 
+                        criticalDisease);
 
         ConceptInclusion a7 = new ConceptInclusion(heartdisease,
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<>(hasLoc, heart) }));
+                        new Existential<String>(hasLoc, heart) }));
 
         ConceptInclusion a8 = new ConceptInclusion(
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<>(hasLoc, heart) }), heartdisease);
+                        new Existential<String>(hasLoc, heart) }), 
+                        heartdisease);
 
         RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf },
                 partOf);
@@ -348,7 +350,7 @@ public class TestSnorocketReasoner {
         RoleInclusion a11 = new RoleInclusion(new Role[] { hasLoc, contIn },
                 hasLoc);
 
-        Set<IAxiom> axioms = new HashSet<>();
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -362,7 +364,7 @@ public class TestSnorocketReasoner {
         axioms.add(a11);
 
         // Classify
-        SnorocketReasoner<String> sr = new SnorocketReasoner<>();
+        SnorocketReasoner<String> sr = new SnorocketReasoner<String>();
         sr.classify(axioms);
         
         IOntology<String> ont = sr.getClassifiedOntology();
@@ -458,7 +460,7 @@ public class TestSnorocketReasoner {
     @Test
     public void testIncrementalTaxonomy() {
     	
-    	Factory<String> fac = new Factory<>();
+    	Factory<String> fac = new Factory<String>();
     	IConcept a = fac.createConcept("A");
     	IConcept b = fac.createConcept("B");
     	IConcept c = fac.createConcept("C");
@@ -473,14 +475,14 @@ public class TestSnorocketReasoner {
     	IAxiom a4 = fac.createConceptInclusion(e,  a);
     	IAxiom a5 = fac.createConceptInclusion(f,  e);
     	
-    	Set<IAxiom> axioms = new HashSet<>();
+    	Set<IAxiom> axioms = new HashSet<IAxiom>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
         axioms.add(a4);
         axioms.add(a5);
     	
-    	SnorocketReasoner<String> sr = new SnorocketReasoner<>();
+    	SnorocketReasoner<String> sr = new SnorocketReasoner<String>();
         sr.classify(axioms);
         
         IOntology<String> ont = sr.getClassifiedOntology();
@@ -499,7 +501,7 @@ public class TestSnorocketReasoner {
         Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
         
         Set<Node<String>> affectedNodes = ont.getAffectedNodes();
-        Set<String> affectedIds = new HashSet<>();
+        Set<String> affectedIds = new HashSet<String>();
         for(Node<String> affectedNode : affectedNodes) {
         	affectedIds.addAll(affectedNode.getEquivalentConcepts());
         }

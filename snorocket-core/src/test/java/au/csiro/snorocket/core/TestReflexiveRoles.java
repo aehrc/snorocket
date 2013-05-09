@@ -35,8 +35,8 @@ public class TestReflexiveRoles {
 
     @Test
     public void testPartWhole() {
-        IFactory<String> factory = new CoreFactory<>();
-        NormalisedOntology<String> o = new NormalisedOntology<>(factory);
+        IFactory<String> factory = new CoreFactory<String>();
+        NormalisedOntology<String> o = new NormalisedOntology<String>(factory);
 
         // roles
         int partOf = factory.getRole("part-of");
@@ -90,8 +90,8 @@ public class TestReflexiveRoles {
 
     @Test
     public void simpleReflexive() {
-        IFactory<String> factory = new CoreFactory<>();
-        NormalisedOntology<String> o = new NormalisedOntology<>(factory);
+        IFactory<String> factory = new CoreFactory<String>();
+        NormalisedOntology<String> o = new NormalisedOntology<String>(factory);
 
         // roles
         int partOf = factory.getRole("partOf");

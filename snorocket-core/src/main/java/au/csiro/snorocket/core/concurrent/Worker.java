@@ -27,7 +27,6 @@ public class Worker implements Runnable {
     /**
      * @see java.lang.Runnable#run()
      */
-    @Override
     public void run() {
         // Process contexts until there are no more left in the queue
         while (true) {

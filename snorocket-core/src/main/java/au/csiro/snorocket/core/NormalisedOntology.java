@@ -25,7 +25,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -73,6 +72,8 @@ import au.csiro.snorocket.core.axioms.NormalFormGCI;
 import au.csiro.snorocket.core.axioms.RI;
 import au.csiro.snorocket.core.concurrent.CR;
 import au.csiro.snorocket.core.concurrent.Context;
+import au.csiro.snorocket.core.concurrent.TaxonomyWorker1;
+import au.csiro.snorocket.core.concurrent.TaxonomyWorker2;
 import au.csiro.snorocket.core.concurrent.Worker;
 import au.csiro.snorocket.core.model.AbstractConcept;
 import au.csiro.snorocket.core.model.AbstractLiteral;
@@ -184,7 +185,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * The queue of contexts to process.
      */
-    private final Queue<Context> todo = new ConcurrentLinkedQueue<>();
+    private final Queue<Context> todo = new ConcurrentLinkedQueue<Context>();
 
     /**
      * The map of contexts by concept id.
@@ -199,16 +200,17 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * A set of new contexts added in an incremental classification.
      */
-    private final Set<Context> newContexts = new HashSet<>();
+    private final Set<Context> newContexts = new HashSet<Context>();
     
     /**
      * The number of threads to use.
      */
-    private int numThreads = Runtime.getRuntime().availableProcessors();
+    // TODO: update when done debugging
+    private int numThreads = 1;//Runtime.getRuntime().availableProcessors();
     
     private boolean hasBeenIncrementallyClassified = false;
     
-    private transient Map<T, Node<T>> conceptNodeIndex;
+    private transient ConcurrentMap<T, Node<T>> conceptNodeIndex;
 
     
     private static class ContextComparator implements Comparator<Context>, Serializable {
@@ -217,7 +219,6 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
          */
         private static final long serialVersionUID = 1L;
 
-        @Override
         public int compare(Context o1, Context o2) {
             return Integer.compare(o1.getConcept(), o2.getConcept());
         }
@@ -226,8 +227,18 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * A set of contexts potentially affected by an incremental classification.
      */
-    private final Set<Context> affectedContexts = new ConcurrentSkipListSet<>(
-            new ContextComparator());
+    private final Set<Context> affectedContexts = 
+            new ConcurrentSkipListSet<Context>(new ContextComparator());
+    
+    /**
+     * New inclusions added incrementally.
+     */
+    private Set<Inclusion<T>> inclusions = new HashSet<Inclusion<T>>();
+    
+    /**
+     * Normalised axioms added incrementally.
+     */
+    private AxiomSet as = new AxiomSet(); 
 
     public IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> getOntologyNF1() {
         return ontologyNF1;
@@ -335,7 +346,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             final IConceptMap<MonotonicCollection<NF7>> nf7q,
             final FeatureMap<MonotonicCollection<NF8>> nf8q) {
         this.factory = factory;
-        contextIndex = new FastConceptMap<>(factory.getTotalConcepts(), "");
+        contextIndex = new FastConceptMap<Context>(factory.getTotalConcepts(), "");
         roleClosureCache = new ConcurrentHashMap<Integer, RoleSet>(factory.getTotalRoles());
 
         this.ontologyNF1 = nf1q;
@@ -379,7 +390,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private Set<Inclusion<T>> transformAxiom(final Set<? extends IAxiom> axioms) {
-        Set<Inclusion<T>> res = new HashSet<>();
+        Set<Inclusion<T>> res = new HashSet<Inclusion<T>>();
         
         for(IAxiom aa : axioms) {
             if(aa instanceof IConceptInclusion) {
@@ -477,8 +488,8 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         
         // Exhaustively apply NF1 to NF4
         Set<Inclusion<T>> newIs = transformAxiom(inclusions);
-        Set<Inclusion<T>> oldIs = new HashSet<>(newIs.size());
-        final Set<Inclusion<T>> done = new HashSet<>(newIs.size());
+        Set<Inclusion<T>> oldIs = new HashSet<Inclusion<T>>(newIs.size());
+        final Set<Inclusion<T>> done = new HashSet<Inclusion<T>>(newIs.size());
 
         do {
             final Set<Inclusion<T>> tmp = oldIs;
@@ -698,7 +709,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             entry = map.get(nf3.lhsR);
         }
         if (null == entry) {
-            entry = new HashSet<>();
+            entry = new HashSet<IConjunctionQueueEntry>();
             entry.add(nf3.getQueueEntry());
             map.put(nf3.lhsR, entry);
         } else {
@@ -735,29 +746,36 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         }
         set.add(nf8);
     }
+    
+    /**
+     * 
+     * @param incAxioms
+     */
+    public void loadIncremental(Set<IAxiom> incAxioms) {
+        // Normalise axioms
+        inclusions.addAll(normalise(incAxioms));
+
+        // Add new axioms to corresponding normal form
+        for (Inclusion<T> i : inclusions) {
+            NormalFormGCI nf = i.getNormalForm();
+            as.addAxiom(nf);
+            addTerm(nf);
+        }
+    }
 
     /**
      * Runs an incremental classification.
      * 
      * @return
      */
-    public void classifyIncremental(Set<IAxiom> incAxioms) {
+    public void classifyIncremental() {
+        if(inclusions.isEmpty()) return;
+        
         // Clear any state from previous incremental classifications
         newContexts.clear();
         affectedContexts.clear();
 
-        // Normalise axioms
-        Set<Inclusion<T>> inclusions = normalise(incAxioms);
-
-        // Add new axioms to corresponding normal form
-        AxiomSet as = new AxiomSet();
         int numNewConcepts = 0;
-
-        for (Inclusion<T> i : inclusions) {
-            NormalFormGCI nf = i.getNormalForm();
-            as.addAxiom(nf);
-            addTerm(nf);
-        }
 
         // Determine which contexts are affected
         for (Inclusion<T> i : inclusions) {
@@ -834,6 +852,9 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         affectedContexts.removeAll(newContexts);
         
         hasBeenIncrementallyClassified = true;
+        
+        inclusions.clear();
+        as.clear();
         
         if(log.isTraceEnabled())
             log.trace("Processed " + contextIndex.size() + " contexts");
@@ -1028,12 +1049,10 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
                          */
                         private static final long serialVersionUID = 1L;
 
-                        @Override
                         public int getR() {
                             return nf4.getS();
                         }
 
-                        @Override
                         public int getB() {
                             return b;
                         }
@@ -1088,12 +1107,10 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
                                  */
                                 private static final long serialVersionUID = 1L;
 
-                                @Override
                                 public int getR() {
                                     return t;
                                 }
 
-                                @Override
                                 public int getB() {
                                     return c;
                                 }
@@ -1417,7 +1434,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      * @return
      */
     public Set<IAxiom> getStatedAxioms() {
-        Set<IAxiom> res = new HashSet<>();
+        Set<IAxiom> res = new HashSet<IAxiom>();
         // These terms are of the form A n Bi [ B and are indexed by A.
         for(IntIterator it = ontologyNF1.keyIterator(); it.hasNext(); ) {
             int a = it.next();
@@ -1555,7 +1572,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
     public IConcept transform(Object o) {
         if(o instanceof Conjunction) {
             Conjunction con = (Conjunction)o;
-            List<IConcept> concepts = new ArrayList<>();
+            List<IConcept> concepts = new ArrayList<IConcept>();
             for(AbstractConcept ac : con.getConcepts()) {
                 concepts.add(transform(ac));
             }
@@ -1565,7 +1582,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             AbstractConcept c = e.getConcept();
             IConcept iconcept = transform(c);
             int role = e.getRole();
-            INamedRole<T> irole = new Role<>(factory.lookupRoleId(role));
+            INamedRole<T> irole = new Role<T>(factory.lookupRoleId(role));
             return new au.csiro.ontology.model.Existential<T>(irole, iconcept);
         } else if(o instanceof Datatype) {
             Datatype d = (Datatype)o;
@@ -1627,177 +1644,136 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
     @SuppressWarnings("unchecked")
     public void buildTaxonomy() {
         
-        final IConceptMap<IConceptSet> subsumptions = getSubsumptions();
-        
         // Determine if a full or incremental calculation is required
         if(!hasBeenIncrementallyClassified) {
             long start = System.currentTimeMillis();
-
-            // Keep only the subsumptions that involve real atomic concepts
-            IConceptMap<IConceptSet> cis = new SparseConceptMap<IConceptSet>(
-                    factory.getTotalConcepts());
-
-            for (IntIterator itr = subsumptions.keyIterator(); itr.hasNext();) {
-                final int X = itr.next();
-                if (!factory.isVirtualConcept(X)) {
-                    IConceptSet set = new SparseConceptHashSet();
-                    cis.put(X, set);
-                    for (IntIterator it = subsumptions.get(X).iterator(); it
-                            .hasNext();) {
-                        int next = it.next();
-                        if (!factory.isVirtualConcept(next)) {
-                            set.add(next);
-                        }
-                    }
-                }
+            
+            // Part 1 - creates equivalent and direct sets
+            Set<Integer> ks = new HashSet<Integer>();
+            for (IntIterator itr = contextIndex.keyIterator(); itr.hasNext();) {
+                ks.add(itr.next());
+            }
+            
+            final ConcurrentMap<Integer, Set<Integer>> equiv = 
+                    new ConcurrentHashMap<Integer, Set<Integer>>();
+            final ConcurrentMap<Integer, Set<Integer>> direc = 
+                    new ConcurrentHashMap<Integer, Set<Integer>>();
+            Queue<Integer> todo = new ConcurrentLinkedQueue<Integer>(ks);
+            ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+            for (int j = 0; j < numThreads; j++) {
+                Runnable worker = new TaxonomyWorker1<T>(contextIndex, 
+                        equiv, direc, factory, todo);
+                executor.execute(worker);
             }
 
-            IConceptMap<IConceptSet> equiv = new SparseConceptMap<IConceptSet>(
-                    factory.getTotalConcepts());
-            IConceptMap<IConceptSet> direc = new SparseConceptMap<IConceptSet>(
-                    factory.getTotalConcepts());
-
-            // Build equivalent and direct concept sets
-            for (IntIterator itr = cis.keyIterator(); itr.hasNext();) {
-                final int a = itr.next();
-
-                for (IntIterator itr2 = cis.get(a).iterator(); itr2.hasNext();) {
-                    int c = itr2.next();
-                    IConceptSet cs = cis.get(c);
-
-                    if (c == IFactory.BOTTOM_CONCEPT) {
-                        addToSet(equiv, a, c);
-                    } else if (cs != null && cs.contains(a)) {
-                        addToSet(equiv, a, c);
-                    } else {
-                        boolean isDirect = true;
-                        IConceptSet d = direc.get(a);
-                        if (d != null) {
-                            IConceptSet toRemove = new SparseConceptHashSet();
-                            for (IntIterator itr3 = d.iterator(); itr3.hasNext();) {
-                                int b = itr3.next();
-                                IConceptSet bs = cis.get(b);
-                                if (bs != null && bs.contains(c)) {
-                                    isDirect = false;
-                                    break;
-                                }
-                                if (cs != null && cs.contains(b)) {
-                                    toRemove.add(b);
-                                }
-                            }
-                            d.removeAll(toRemove);
-                        }
-                        if (isDirect) {
-                            addToSet(direc, a, c);
-                        }
-                    };
+            executor.shutdown();
+            while (!executor.isTerminated()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
-
+            
+            assert (todo.isEmpty());
+            
             int bottomConcept = CoreFactory.BOTTOM_CONCEPT;
             if (!equiv.containsKey(bottomConcept)) {
-                addToSet(equiv, bottomConcept, bottomConcept);
+                TaxonomyWorker1.addToSet(equiv, bottomConcept, bottomConcept);
             }
 
             int topConcept = CoreFactory.TOP_CONCEPT;
             if (!equiv.containsKey(topConcept)) {
-                addToSet(equiv, topConcept, topConcept);
+                TaxonomyWorker1.addToSet(equiv, topConcept, topConcept);
             }
-
-            // Introduce one taxonomy node for each distinct class of equivalent
-            // concepts
-            conceptNodeIndex = new HashMap<>();
             
-            Node<T> top = new Node<>();
-            top.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.TOP);
+            Statistics.INSTANCE.setTime("taxonomy 1",
+                    System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
             
-            Node<T> bottom = new Node<>();
-            bottom.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.BOTTOM);
-
-            for (IntIterator it = equiv.keyIterator(); it.hasNext();) {
-                int key = it.next();
-                IConceptSet equivs = equiv.get(key);
-                // Check if any of the equivalent classes is already part of an
-                // equivalent node
-                Node<T> n = null;
-                for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
-                    T e = factory.lookupConceptId(it2.next());
-                    if (conceptNodeIndex.containsKey(e)) {
-                        n = conceptNodeIndex.get(e);
-                        break;
-                    }
-                }
-
-                if (n == null) {
-                    n = new Node<T>();
-                }
-                n.getEquivalentConcepts().add(factory.lookupConceptId(key));
-                for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
-                    n.getEquivalentConcepts().add(factory.lookupConceptId(it2.next()));
-                }
+            // Part 2 - Creates a node per equivalent concepts
+            conceptNodeIndex = new ConcurrentHashMap<T, Node<T>>();
+            
+            Node<T> top = null;
+            Node<T> bottom = null;
+            
+            Set<Integer> processed = new HashSet<Integer>();
+            Set<Node<T>> nodeSet = new HashSet<Node<T>>();
+            
+            for(int key : equiv.keySet()) {
+                if(processed.contains(key)) continue;
+                Set<Integer> equivs = equiv.get(key);
+                processed.addAll(equivs);
                 
-                for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
-                    int e = it2.next();
-                    if (e == CoreFactory.TOP_CONCEPT)
+                Node<T> n = new Node<T>();
+                for (int val : equivs) {
+                    T tval = factory.lookupConceptId(val);
+                    n.getEquivalentConcepts().add(tval);
+                    conceptNodeIndex.put(tval, n);
+    
+                    if (val == CoreFactory.TOP_CONCEPT)
                         top = n;
-                    if (e == CoreFactory.BOTTOM_CONCEPT)
+                    if (val == CoreFactory.BOTTOM_CONCEPT)
                         bottom = n;
-                    conceptNodeIndex.put(factory.lookupConceptId(e), n);
                 }
+                nodeSet.add(n);
             }
-
-            // Connect the nodes according to the direct super-concept relationships
-            Set<Node<T>> processed = new HashSet<>();
-            for (T key : conceptNodeIndex.keySet()) {
-                Node<T> node = conceptNodeIndex.get(key);
-                if (processed.contains(node) || node == top || node == bottom)
-                    continue;
-                processed.add(node);
-                for (T c : node.getEquivalentConcepts()) {
-                    // Get direct super-concepts
-                    IConceptSet dc = direc.get(factory.getConcept(c));
-                    if (dc != null) {
-                        for (IntIterator it3 = dc.iterator(); it3.hasNext();) {
-                            int d = it3.next();
-                            Node<T> parent = conceptNodeIndex.get(factory.lookupConceptId(d));
-                            if (parent != null) {
-                                node.getParents().add(parent);
-                                parent.getChildren().add(node);
-                            }
-                        }
-                    }
-                }
-            }
-            processed = null;
-
-            // Add bottom
-            if (bottom == null) {
-                bottom = new Node<T>();
-                bottom.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.BOTTOM);
-                conceptNodeIndex.put((T)au.csiro.ontology.model.Concept.BOTTOM, bottom);
-            }
-
-            for (T key : conceptNodeIndex.keySet()) {
-                if (key == au.csiro.ontology.model.Concept.TOP || key == au.csiro.ontology.model.Concept.BOTTOM)
-                    continue;
-                Node<T> node = conceptNodeIndex.get(key);
-                if (node.getEquivalentConcepts().contains(au.csiro.ontology.model.Concept.BOTTOM))
-                    continue;
-                if (node.getChildren().isEmpty()) {
-                    bottom.getParents().add(node);
-                    node.getChildren().add(bottom);
-                }
-            }
-
-            // Add top
-            if (top == null) {
+                
+            if(top == null) {
                 top = new Node<T>();
-                top.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.TOP);
-                conceptNodeIndex.put((T)au.csiro.ontology.model.Concept.TOP, top);
+                top.getEquivalentConcepts().add(
+                        (T)au.csiro.ontology.model.Concept.TOP);
+            }
+            
+            if(bottom == null) {
+                bottom = new Node<T>();
+                bottom.getEquivalentConcepts().add(
+                        (T)au.csiro.ontology.model.Concept.BOTTOM);
+            }
+            
+            Statistics.INSTANCE.setTime("taxonomy 2",
+                    System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
+            
+            // Step 3 - Connects nodes
+            Queue<Node<T>> todo2 = new ConcurrentLinkedQueue<Node<T>>(nodeSet);
+            executor = Executors.newFixedThreadPool(numThreads);
+            for (int j = 0; j < numThreads; j++) {
+                Runnable worker = new TaxonomyWorker2<T>(factory, 
+                        conceptNodeIndex, direc, todo2, nodeSet);
+                executor.execute(worker);
             }
 
+            executor.shutdown();
+            while (!executor.isTerminated()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            assert (todo.isEmpty());
+            
+            Statistics.INSTANCE.setTime("taxonomy 3",
+                    System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
+            
+            // Connect bottom
+            nodeSet.remove(bottom);
+            bottom.getParents().addAll(nodeSet);
+            for(Node<T> n : nodeSet) {
+                n.getChildren().add(bottom);
+            }
+            
+            Statistics.INSTANCE.setTime("taxonomy connect bottom",
+                    System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
+            
+            // Connect top
             for (T key : conceptNodeIndex.keySet()) {
-                if (key == au.csiro.ontology.model.Concept.TOP || key == au.csiro.ontology.model.Concept.BOTTOM)
+                if (key == au.csiro.ontology.model.Concept.TOP || 
+                        key == au.csiro.ontology.model.Concept.BOTTOM)
                     continue;
                 Node<T> node = conceptNodeIndex.get(key);
                 if (node.getParents().isEmpty()) {
@@ -1806,15 +1782,14 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
                 }
             }
 
-            equiv = null;
-            direc = null;
-
             // TODO: deal with special case where only top and bottom are present.
-            Statistics.INSTANCE.setTime("taxonomy construction",
+            Statistics.INSTANCE.setTime("taxonomy connect top",
                     System.currentTimeMillis() - start);
         } else {
-            final IConceptMap<IConceptSet> newConceptSubs = getNewSubsumptions();
-            final IConceptMap<IConceptSet> affectedConceptSubs = getAffectedSubsumptions();
+            final IConceptMap<IConceptSet> newConceptSubs = 
+                    getNewSubsumptions();
+            final IConceptMap<IConceptSet> affectedConceptSubs = 
+                    getAffectedSubsumptions();
             
             // 1. Keep only the subsumptions that involve real atomic concepts
             IConceptMap<IConceptSet> allNew = new SparseConceptMap<IConceptSet>(
@@ -1857,7 +1832,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             // a. First create the nodes and add to index
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
                 final T key = factory.lookupConceptId(itr.next());
-                Node<T> cn = new Node<>();
+                Node<T> cn = new Node<T>();
                 cn.getEquivalentConcepts().add(key);
                 conceptNodeIndex.put(key, cn);
             }
@@ -1922,7 +1897,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
 
             // 4. Fix connections for new and affected concepts
             // a. Check for equivalents
-            Set<Pair> pairsToMerge = new HashSet<>();
+            Set<Pair> pairsToMerge = new HashSet<Pair>();
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
                 final T key = factory.lookupConceptId(itr.next());
                 Node<T> cn = conceptNodeIndex.get(key);
@@ -1942,7 +1917,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
                 }
             }
 
-            Set<Node<T>> affectedByMerge = new HashSet<>();
+            Set<Node<T>> affectedByMerge = new HashSet<Node<T>>();
 
             // Merge equivalents
             for (Pair p : pairsToMerge) {
@@ -1981,7 +1956,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             }
 
             // b. Fix all new and affected nodes
-            Set<Node<T>> all = new HashSet<>();
+            Set<Node<T>> all = new HashSet<Node<T>>();
             for (IntIterator it = allNew.keyIterator(); it.hasNext();) {
                 all.add(conceptNodeIndex.get(factory.lookupConceptId(it.next())));
             }
@@ -1995,7 +1970,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             }
 
             // Add also the children of the affected nodes
-            Set<Node<T>> childrenToAdd = new HashSet<>();
+            Set<Node<T>> childrenToAdd = new HashSet<Node<T>>();
             for (Node<T> cn : all) {
                 for (Node<T> ccn : cn.getChildren()) {
                     if (ccn.equals(bottomNode))
@@ -2010,7 +1985,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
                 Set<Node<T>> ps = cn.getParents();
 
                 Object[] parents = ps.toArray(new Object[ps.size()]);
-                Set<Node<T>> toRemove = new HashSet<>();
+                Set<Node<T>> toRemove = new HashSet<Node<T>>();
                 for (int i = 0; i < parents.length; i++) {
                     for (int j = i + 1; j < parents.length; j++) {
                         if (isChild((Node<T>)parents[j], (Node<T>)parents[i])) {
@@ -2083,27 +2058,18 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      * @return
      */
     public Set<Node<T>> getAffectedNodes() {
-        Set<Node<T>> res = new HashSet<>();
+        Set<Node<T>> res = new HashSet<Node<T>>();
         for(IntIterator it = getNewSubsumptions().keyIterator(); 
-        		it.hasNext(); ) {
+                        it.hasNext(); ) {
             T key = factory.lookupConceptId(it.next());
             res.add(conceptNodeIndex.get(key));
         }
         for(IntIterator it = getAffectedSubsumptions().keyIterator(); 
-        		it.hasNext(); ) {
+                        it.hasNext(); ) {
             T key = factory.lookupConceptId(it.next());
             res.add(conceptNodeIndex.get(key));
         }
         return res;
-    }
-    
-    private void addToSet(IConceptMap<IConceptSet> map, int key, int val) {
-        IConceptSet set = map.get(key);
-        if (set == null) {
-            set = new SparseConceptHashSet();
-            map.put(key, set);
-        }
-        set.add(val);
     }
     
     /**
@@ -2117,7 +2083,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         if (cn == cn2)
             return false;
 
-        Queue<Node<T>> toProcess = new LinkedList<>();
+        Queue<Node<T>> toProcess = new LinkedList<Node<T>>();
         toProcess.addAll(cn.getParents());
 
         while (!toProcess.isEmpty()) {
@@ -2258,6 +2224,27 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
     
     public Node<T> getEquivalents(T cid) {
         return conceptNodeIndex.get(cid);
+    }
+    
+    public class TopBottomNodes {
+        private Node<T> top;
+        private Node<T> bottom;
+
+        public Node<T> getTop() {
+            return top;
+        }
+
+        public void setTop(Node<T> top) {
+            this.top = top;
+        }
+
+        public Node<T> getBottom() {
+            return bottom;
+        }
+
+        public void setBottom(Node<T> bottom) {
+            this.bottom = bottom;
+        }
     }
     
 }

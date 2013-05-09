@@ -185,7 +185,6 @@ final public class SparseConceptSet implements IConceptSet {
         items = newItems;
     }
 
-    @Override
     public int[] toArray() {
         int[] res = new int[size];
         for (int i = 0; i < size; i++) {

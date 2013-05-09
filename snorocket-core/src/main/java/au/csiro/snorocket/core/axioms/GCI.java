@@ -38,6 +38,11 @@ import au.csiro.snorocket.core.model.Existential;
  */
 public class GCI<T> extends Inclusion<T> {
     
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // Logger
     private final static Logger log = Logger.getLogger(GCI.class);
     

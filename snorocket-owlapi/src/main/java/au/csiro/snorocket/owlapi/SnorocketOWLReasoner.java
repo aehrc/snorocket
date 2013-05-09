@@ -114,7 +114,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private final List<OWLOntologyChange> rawChanges = new ArrayList<OWLOntologyChange>();
     
     // The reasoner
-    private IReasoner<String> reasoner = new SnorocketReasoner<>();
+    private IReasoner<String> reasoner = new SnorocketReasoner<String>();
     
     // The taxonomy
     private IOntology<String> taxonomy = null;
@@ -136,6 +136,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
                 new ProgressMonitorWrapper(config.getProgressMonitor()) : 
                 new ProgressMonitorWrapper(new NullReasonerProgressMonitor());
         this.buffering = buffering;
+        
+        // Transform, normalise and index axioms
+        reasoner.loadAxioms(getAxioms(ont));
     }
     
     ////////////////////////////////////////////////////////////////////////////
@@ -259,21 +262,16 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @return
      */
     private NodeSet<OWLClass> nodesToOwlClassNodeSet(Set<au.csiro.ontology.Node<String>> nodes) {
-        Set<Node<OWLClass>> temp = new HashSet<>();
+        Set<Node<OWLClass>> temp = new HashSet<Node<OWLClass>>();
         for (au.csiro.ontology.Node<String> n : nodes) {
             temp.add(nodeToOwlClassNode(n));
         }
         return new OWLClassNodeSet(temp);
     }
     
-    /**
-     * Performs a full classification on the current ontology.
-     */
-    private void classify() {
-        
-        // Transform the axioms into the canonical model
-        Set<IAxiom> canAxioms = new HashSet<>();
-        OWLImporter oi = new OWLImporter(owlOntology);
+    private Set<IAxiom> getAxioms(OWLOntology ont) {
+        Set<IAxiom> canAxioms = new HashSet<IAxiom>();
+        OWLImporter oi = new OWLImporter(ont);
         
         Iterator<IOntology<String>> it = null;
         try {
@@ -281,7 +279,8 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         } catch(ImportException e) {
             // Build message
             StringBuilder sb = new StringBuilder();
-            sb.append("Could not import ontology. The following problems were identified:");
+            sb.append("Could not import ontology. " +
+            		"The following problems were identified:");
             for(String problem : oi.getProblems()) {
                 sb.append("\n");
                 sb.append(problem);
@@ -289,17 +288,53 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             
             log.error(sb.toString());
             monitor.taskEnded();
-            return;
+            return null;
         }
         while(it.hasNext()) {
             IOntology<String> o = it.next();
             canAxioms.addAll(o.getStatedAxioms());
         }
         
+        return canAxioms;
+    }
+    
+    private Set<IAxiom> getAxioms(List<OWLAxiom> axioms) {
+        Set<IAxiom> canAxioms = new HashSet<IAxiom>();
+        OWLImporter oi = new OWLImporter(axioms);
+        
+        Iterator<IOntology<String>> it = null;
+        try {
+            it = oi.getOntologyVersions(monitor);
+        } catch(ImportException e) {
+            // Build message
+            StringBuilder sb = new StringBuilder();
+            sb.append("Could not import ontology. " +
+                        "The following problems were identified:");
+            for(String problem : oi.getProblems()) {
+                sb.append("\n");
+                sb.append(problem);
+            }
+            
+            log.error(sb.toString());
+            monitor.taskEnded();
+            return null;
+        }
+        while(it.hasNext()) {
+            IOntology<String> o = it.next();
+            canAxioms.addAll(o.getStatedAxioms());
+        }
+        
+        return canAxioms;
+    }
+    
+    /**
+     * Performs a full classification on the current ontology.
+     */
+    private void classify() {
         // Classify
         monitor.taskStarted("Classifying");
         monitor.taskBusy();
-        reasoner = reasoner.classify(canAxioms);
+        reasoner = reasoner.classify();
         monitor.taskEnded();
         monitor.taskStarted("Building taxonomy");
         monitor.taskBusy();
@@ -324,12 +359,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     // OWLReasoner methods
     ////////////////////////////////////////////////////////////////////////////
 
-    @Override
     public String getReasonerName() {
         return REASONER_NAME;
     }
 
-    @Override
     public Version getReasonerVersion() {
         if (null == REASONER_VERSION) {
             // load properties from plugin.properties
@@ -349,7 +382,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         return REASONER_VERSION;
     }
 
-    @Override
     public BufferingMode getBufferingMode() {
         return buffering ? BufferingMode.BUFFERING
                 : BufferingMode.NON_BUFFERING;
@@ -364,48 +396,37 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * {@link org.semanticweb.owlapi.reasoner.BufferingMode#NON_BUFFERING}
      * then this method will have no effect.
      */
-    @Override
     public void flush() {
         if (rawChanges.isEmpty() || !buffering) {
             return;
         }
         
         // Get the changed axioms
+        boolean hasRemoveAxiom = false;
         List<OWLAxiom> newAxioms = new ArrayList<OWLAxiom>();
         for (OWLOntologyChange change : rawChanges) {
             OWLAxiom axiom = change.getAxiom();
+            if(axiom instanceof RemoveAxiom) {
+                hasRemoveAxiom = true;
+                break;
+            }
             newAxioms.add(axiom);
         }
         
-        // Transform the axioms into the canonical model
-        Set<IAxiom> canAxioms = new HashSet<>();
-        OWLImporter oi = new OWLImporter(newAxioms);
-        
-        Iterator<IOntology<String>> it = null;
-        try {
-            it = oi.getOntologyVersions(monitor);
-        } catch(ImportException e) {
-            // Build message
-            StringBuilder sb = new StringBuilder();
-            sb.append("Could not import ontology. The following problems were identified:");
-            for(String problem : oi.getProblems()) {
-                sb.append("\n");
-                sb.append(problem);
-            }
-            
-            log.error(sb.toString());
-            monitor.taskEnded();
+        if(hasRemoveAxiom) {
+            rawChanges.clear();
+            classify();
             return;
         }
-        while(it.hasNext()) {
-            IOntology<String> o = it.next();
-            canAxioms.addAll(o.getStatedAxioms());
-        }
+        
+        // Transform the axioms into the canonical model
+        Set<IAxiom> canAxioms = getAxioms(newAxioms);
         
         // Classify
         monitor.taskStarted("Classifying incrementally");
         monitor.taskBusy();
-        reasoner = reasoner.classify(canAxioms);
+        reasoner.loadAxioms(canAxioms);
+        reasoner = reasoner.classify();
         monitor.taskEnded();
         
         monitor.taskStarted("Calculating taxonomy incrementally");
@@ -425,7 +446,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @return A set of changes. Note that the changes represent the raw changes
      *         as applied to the imports closure of the root ontology.
      */
-    @Override
     public List<OWLOntologyChange> getPendingChanges() {
         return rawChanges;
     }
@@ -441,7 +461,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *         reasoner to synchronise it with the root ontology imports
      *         closure.
      */
-    @Override
     public Set<OWLAxiom> getPendingAxiomAdditions() {
         Set<OWLAxiom> added = new HashSet<OWLAxiom>();
         for (OWLOntologyChange change : rawChanges) {
@@ -463,7 +482,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *         reasoner to synchronise it with the root ontology imports
      *         closure.
      */
-    @Override
     public Set<OWLAxiom> getPendingAxiomRemovals() {
         Set<OWLAxiom> removed = new HashSet<OWLAxiom>();
         for (OWLOntologyChange change : rawChanges) {
@@ -488,7 +506,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * 
      * @return The root ontology that is loaded into the reasoner.
      */
-    @Override
     public OWLOntology getRootOntology() {
         return owlOntology;
     }
@@ -506,7 +523,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * to be able to interrupt individual consistency checks, satisfiability
      * checks etc.
      */
-    @Override
     public void interrupt() {
         // TODO: implement
     }
@@ -541,7 +557,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public void precomputeInferences(InferenceType... inferenceTypes)
             throws ReasonerInterruptedException, TimeOutException,
             InconsistentOntologyException {
@@ -558,7 +573,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @return <code>true</code> if the specified type of inferences have been 
      * precomputed, otherwise <code>false</code>.
      */
-    @Override
     public boolean isPrecomputed(InferenceType inferenceType) {
         if (inferenceType.equals(InferenceType.CLASS_HIERARCHY)) {
             return reasoner.isClassified();
@@ -574,7 +588,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @return A set of {@link org.semanticweb.owlapi.reasoner.InferenceType}s
      *         that can be precomputed by this reasoner.
      */
-    @Override
     public Set<InferenceType> getPrecomputableInferenceTypes() {
         return Collections.singleton(InferenceType.CLASS_HIERARCHY);
     }
@@ -608,7 +621,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.           
      */
-    @Override
     public boolean isConsistent() throws ReasonerInterruptedException,
             TimeOutException {
         return true;
@@ -640,7 +652,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public boolean isSatisfiable(OWLClassExpression classExpression)
             throws ReasonerInterruptedException, TimeOutException,
             ClassExpressionNotInProfileException, FreshEntitiesException,
@@ -676,7 +687,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @throws InconsistentOntologyException
      *             if the set of reasoner axioms is inconsistent
      */
-    @Override
     public Node<OWLClass> getUnsatisfiableClasses()
             throws ReasonerInterruptedException, TimeOutException,
             InconsistentOntologyException {
@@ -714,7 +724,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the set of reasoner axioms is inconsistent
      * @see #isEntailmentCheckingSupported(org.semanticweb.owlapi.model.AxiomType)
      */
-    @Override
     public boolean isEntailed(OWLAxiom axiom)
             throws ReasonerInterruptedException,
             UnsupportedEntailmentTypeException, TimeOutException,
@@ -756,7 +765,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the set of reasoner axioms is inconsistent
      * @see #isEntailmentCheckingSupported(org.semanticweb.owlapi.model.AxiomType)
      */
-    @Override
     public boolean isEntailed(Set<? extends OWLAxiom> axioms)
             throws ReasonerInterruptedException,
             UnsupportedEntailmentTypeException, TimeOutException,
@@ -783,7 +791,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *         {@link org.semanticweb.owlapi.reasoner.UnsupportedEntailmentTypeException}
      *         .
      */
-    @Override
     public boolean isEntailmentCheckingSupported(AxiomType<?> axiomType) {
         return false;
     }
@@ -798,7 +805,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *         {@link #getEquivalentClasses(org.semanticweb.owlapi.model.OWLClassExpression)}
      *         with a parameter of <code>owl:Thing</code>.
      */
-    @Override
     public Node<OWLClass> getTopClassNode() {
         au.csiro.ontology.Node<String> top = getTaxonomy().getTopNode();
         return nodeToOwlClassNode(top);
@@ -815,7 +821,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *         {@link #getEquivalentClasses(org.semanticweb.owlapi.model.OWLClassExpression)}
      *         with a parameter of <code>owl:Nothing</code>.
      */
-    @Override
     public Node<OWLClass> getBottomClassNode() {
         return nodeToOwlClassNode(getTaxonomy().getBottomNode());
     }
@@ -861,7 +866,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLClass> getSubClasses(OWLClassExpression ce, boolean direct)
             throws ReasonerInterruptedException, TimeOutException,
             FreshEntitiesException, InconsistentOntologyException,
@@ -881,8 +885,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             // Transform the response back into owlapi objects
             return nodesToOwlClassNodeSet(children);
         } else {
-            Set<au.csiro.ontology.Node<String>> res = new HashSet<>();
-            Queue<Set<au.csiro.ontology.Node<String>>> todo = new LinkedList<>();
+            Set<au.csiro.ontology.Node<String>> res = 
+                    new HashSet<au.csiro.ontology.Node<String>>();
+            Queue<Set<au.csiro.ontology.Node<String>>> todo = 
+                    new LinkedList<Set<au.csiro.ontology.Node<String>>>();
             todo.add(children);
             while (!todo.isEmpty()) {
                 Set<au.csiro.ontology.Node<String>> items = todo.remove();
@@ -953,7 +959,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLClass> getSuperClasses(OWLClassExpression ce,
             boolean direct) throws InconsistentOntologyException,
             ClassExpressionNotInProfileException, FreshEntitiesException,
@@ -972,8 +977,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             // Transform the response back into owlapi objects
             return nodesToOwlClassNodeSet(parents);
         } else {
-            Set<au.csiro.ontology.Node<String>> res = new HashSet<>();
-            Queue<Set<au.csiro.ontology.Node<String>>> todo = new LinkedList<>();
+            Set<au.csiro.ontology.Node<String>> res = 
+                    new HashSet<au.csiro.ontology.Node<String>>();
+            Queue<Set<au.csiro.ontology.Node<String>>> todo = 
+                    new LinkedList<Set<au.csiro.ontology.Node<String>>>();
             todo.add(parents);
             while (!todo.isEmpty()) {
                 Set<au.csiro.ontology.Node<String>> items = todo.remove();
@@ -1030,7 +1037,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public Node<OWLClass> getEquivalentClasses(OWLClassExpression ce)
             throws InconsistentOntologyException,
             ClassExpressionNotInProfileException, FreshEntitiesException,
@@ -1078,7 +1084,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLClass> getDisjointClasses(OWLClassExpression ce)
             throws ReasonerInterruptedException, TimeOutException,
             FreshEntitiesException, InconsistentOntologyException {
@@ -1097,7 +1102,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *         {@link #getEquivalentObjectProperties(org.semanticweb.owlapi.model.OWLObjectPropertyExpression)}
      *         with a parameter of <code>owl:topObjectProperty</code>.
      */
-    @Override
     public Node<OWLObjectPropertyExpression> getTopObjectPropertyNode() {
         return new OWLObjectPropertyNode(owlFactory.getOWLTopObjectProperty());
     }
@@ -1113,7 +1117,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *         by calling
      *         {@link #getEquivalentObjectProperties(org.semanticweb.owlapi.model.OWLObjectPropertyExpression)}
      */
-    @Override
     public Node<OWLObjectPropertyExpression> getBottomObjectPropertyNode() {
         return new OWLObjectPropertyNode(
                 owlFactory.getOWLBottomObjectProperty());
@@ -1164,7 +1167,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLObjectPropertyExpression> getSubObjectProperties(
             OWLObjectPropertyExpression pe, boolean direct)
             throws InconsistentOntologyException, FreshEntitiesException,
@@ -1218,7 +1220,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLObjectPropertyExpression> getSuperObjectProperties(
             OWLObjectPropertyExpression pe, boolean direct)
             throws InconsistentOntologyException, FreshEntitiesException,
@@ -1267,7 +1268,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public Node<OWLObjectPropertyExpression> getEquivalentObjectProperties(
             OWLObjectPropertyExpression pe)
             throws InconsistentOntologyException, FreshEntitiesException,
@@ -1314,7 +1314,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLObjectPropertyExpression> getDisjointObjectProperties(
             OWLObjectPropertyExpression pe)
             throws InconsistentOntologyException, FreshEntitiesException,
@@ -1353,7 +1352,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public Node<OWLObjectPropertyExpression> getInverseObjectProperties(
             OWLObjectPropertyExpression pe)
             throws InconsistentOntologyException, FreshEntitiesException,
@@ -1403,7 +1401,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLClass> getObjectPropertyDomains(
             OWLObjectPropertyExpression pe, boolean direct)
             throws InconsistentOntologyException, FreshEntitiesException,
@@ -1453,7 +1450,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLClass> getObjectPropertyRanges(
             OWLObjectPropertyExpression pe, boolean direct)
             throws InconsistentOntologyException, FreshEntitiesException,
@@ -1473,7 +1469,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *         {@link #getEquivalentDataProperties(org.semanticweb.owlapi.model.OWLDataProperty)}
      *         with a parameter of <code>owl:topDataProperty</code>.
      */
-    @Override
     public Node<OWLDataProperty> getTopDataPropertyNode() {
         throw new ReasonerInternalException(
                 "getTopDataPropertyNode not implemented");
@@ -1491,7 +1486,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *         {@link #getEquivalentDataProperties(org.semanticweb.owlapi.model.OWLDataProperty)}
      *         with a parameter of <code>owl:bottomDataProperty</code>.
      */
-    @Override
     public Node<OWLDataProperty> getBottomDataPropertyNode() {
         throw new ReasonerInternalException(
                 "getBottomDataPropertyNode not implemented");
@@ -1538,7 +1532,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLDataProperty> getSubDataProperties(OWLDataProperty pe,
             boolean direct) throws InconsistentOntologyException,
             FreshEntitiesException, ReasonerInterruptedException,
@@ -1586,7 +1579,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLDataProperty> getSuperDataProperties(OWLDataProperty pe,
             boolean direct) throws InconsistentOntologyException,
             FreshEntitiesException, ReasonerInterruptedException,
@@ -1634,7 +1626,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public Node<OWLDataProperty> getEquivalentDataProperties(OWLDataProperty pe)
             throws InconsistentOntologyException, FreshEntitiesException,
             ReasonerInterruptedException, TimeOutException {
@@ -1676,7 +1667,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLDataProperty> getDisjointDataProperties(
             OWLDataPropertyExpression pe) throws InconsistentOntologyException,
             FreshEntitiesException, ReasonerInterruptedException,
@@ -1728,7 +1718,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLClass> getDataPropertyDomains(OWLDataProperty pe,
             boolean direct) throws InconsistentOntologyException,
             FreshEntitiesException, ReasonerInterruptedException,
@@ -1772,7 +1761,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLClass> getTypes(OWLNamedIndividual ind, boolean direct)
             throws InconsistentOntologyException, FreshEntitiesException,
             ReasonerInterruptedException, TimeOutException {
@@ -1820,7 +1808,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             See {@link #getTimeOut()}.
      * @see {@link org.semanticweb.owlapi.reasoner.IndividualNodeSetPolicy}
      */
-    @Override
     public NodeSet<OWLNamedIndividual> getInstances(OWLClassExpression ce,
             boolean direct) throws InconsistentOntologyException,
             ClassExpressionNotInProfileException, FreshEntitiesException,
@@ -1860,7 +1847,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             See {@link #getTimeOut()}.
      * @see {@link org.semanticweb.owlapi.reasoner.IndividualNodeSetPolicy}
      */
-    @Override
     public NodeSet<OWLNamedIndividual> getObjectPropertyValues(
             OWLNamedIndividual ind, OWLObjectPropertyExpression pe)
             throws InconsistentOntologyException, FreshEntitiesException,
@@ -1902,7 +1888,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             See {@link #getTimeOut()}.
      * @see {@link org.semanticweb.owlapi.reasoner.IndividualNodeSetPolicy}
      */
-    @Override
     public Set<OWLLiteral> getDataPropertyValues(OWLNamedIndividual ind,
             OWLDataProperty pe) throws InconsistentOntologyException,
             FreshEntitiesException, ReasonerInterruptedException,
@@ -1935,7 +1920,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public Node<OWLNamedIndividual> getSameIndividuals(OWLNamedIndividual ind)
             throws InconsistentOntologyException, FreshEntitiesException,
             ReasonerInterruptedException, TimeOutException {
@@ -1970,7 +1954,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *             if the reasoner timed out during a basic reasoning operation.
      *             See {@link #getTimeOut()}.
      */
-    @Override
     public NodeSet<OWLNamedIndividual> getDifferentIndividuals(
             OWLNamedIndividual ind) throws InconsistentOntologyException,
             FreshEntitiesException, ReasonerInterruptedException,
@@ -1995,7 +1978,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @return The time out in milliseconds for basic reasoner operation. By
      *         default this is the value of {@link Long#MAX_VALUE}.
      */
-    @Override
     public long getTimeOut() {
         return (config != null) ? config.getTimeOut() : 0;
     }
@@ -2006,7 +1988,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * 
      * @return The policy.
      */
-    @Override
     public FreshEntityPolicy getFreshEntityPolicy() {
         return (config != null) ? config.getFreshEntityPolicy()
                 : FreshEntityPolicy.DISALLOW;
@@ -2018,7 +1999,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * 
      * @return The policy.
      */
-    @Override
     public IndividualNodeSetPolicy getIndividualNodeSetPolicy() {
         return (config != null) ? config.getIndividualNodeSetPolicy()
                 : IndividualNodeSetPolicy.BY_NAME;
@@ -2031,12 +2011,11 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * {@link org.semanticweb.owlapi.model.OWLOntologyManager} that manages the
      * ontologies contained within the reasoner.
      */
-    @Override
     public void dispose() {
         owlOntology.getOWLOntologyManager().removeOntologyChangeListener(
                 ontologyChangeListener);
         rawChanges.clear();
-        reasoner = new SnorocketReasoner<>();
+        reasoner = new SnorocketReasoner<String>();
     }
 
     // //////////////////////////////////////////////////////////////////////////

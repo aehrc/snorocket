@@ -18,12 +18,10 @@ public class ProtegeReasonerFactory extends AbstractProtegeOWLReasonerInfo {
     
     private SnorocketReasonerFactory factory = null;
     
-    @Override
     public BufferingMode getRecommendedBuffering() {
         return BufferingMode.BUFFERING;
     }
     
-    @Override
     public OWLReasonerFactory getReasonerFactory() {
         if(factory == null) {
             factory = new SnorocketReasonerFactory();

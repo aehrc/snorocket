@@ -15,49 +15,49 @@
  !  limitations under the License.
  -->
 
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>au.csiro</groupId>
-	<artifactId>snorocket-parent</artifactId>
-	<packaging>pom</packaging>
-	<version>2.0.2-SNAPSHOT</version>
-	<name>SIM Classifier Parent</name>
-	
-	<properties>
-	   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <ontology-core.version>1.3.1-SNAPSHOT</ontology-core.version>
-      <ontologies.version>1.0</ontologies.version>
-	  <owl-api.version>3.3</owl-api.version>
-	  <protege.version>4.1.0</protege.version>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>au.csiro</groupId>
+    <artifactId>snorocket-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>2.0.4-SNAPSHOT</version>
+    <name>SIM Classifier Parent</name>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <ontology-core.version>1.3.2-SNAPSHOT</ontology-core.version>
+        <ontologies.version>1.0</ontologies.version>
+        <owl-api.version>3.3</owl-api.version>
+        <protege.version>4.1.0</protege.version>
     </properties>
-	
-	<modules>
-		<module>snorocket-core</module>
-		<module>snorocket-owlapi</module>
-		<module>snorocket-protege</module>
-	</modules>
-	
-	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-		  <groupId>log4j</groupId>
-		  <artifactId>log4j</artifactId>
-		  <version>1.2.16</version>
-		</dependency>
-	</dependencies>
-	
-	<distributionManagement>
+    
+    <modules>
+        <module>snorocket-core</module>
+        <module>snorocket-owlapi</module>
+        <module>snorocket-protege</module>
+    </modules>
+    
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+          <version>1.2.16</version>
+        </dependency>
+    </dependencies>
+    
+    <distributionManagement>
     <repository>
       <id>aehrc-repository</id>
       <url>scp://ict-ehrclf-cbr.vm.csiro.au/srv/aehrc.com/maven2</url>
     </repository>
   </distributionManagement>
 
-	<repositories>
+    <repositories>
       <repository>
         <id>ehrc-public-repo</id>
         <name>AeHRC Public</name>
@@ -65,11 +65,11 @@
         <releases>
           <enabled>true</enabled>
         </releases>
-		</repository>
-	</repositories>
-	
-	<build>
-	<extensions>
+        </repository>
+    </repositories>
+    
+    <build>
+    <extensions>
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
         <artifactId>wagon-ssh</artifactId>
@@ -77,34 +77,34 @@
       </extension>
     </extensions>
     <plugins>
-	  <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-compiler-plugin</artifactId>
-	    <version>2.5.1</version>
-	    <configuration>
-	      <source>1.7</source>
-	      <target>1.7</target>
-	    </configuration>
-	  </plugin>
-	  <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-release-plugin</artifactId>
-	    <version>2.4</version>
-	    <configuration>
-			<autoVersionSubmodules>true</autoVersionSubmodules>
-			<preparationGoals>clean validate</preparationGoals>
-	    </configuration>
-	  </plugin>
-	  <plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <preparationGoals>clean validate</preparationGoals>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-		  <argLine> 
-		    -server -Xmx3G
-		  </argLine>
+          <argLine> 
+            -server -Xmx3G
+          </argLine>
         </configuration>
      </plugin>
-	</plugins>
+    </plugins>
   </build>
   
   <scm>

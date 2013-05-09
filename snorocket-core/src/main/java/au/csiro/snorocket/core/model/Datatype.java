@@ -48,7 +48,7 @@ public class Datatype extends AbstractConcept {
 
     @Override
     public String toString() {
-        return feature + ".";
+        return feature + ".(" + operator + "," + literal + ")";
     }
 
     @Override

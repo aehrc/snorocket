@@ -112,12 +112,10 @@ public final class NF1b extends NormalFormGCI implements IConjunctionQueueEntry 
         return new int[] { lhsA1, lhsA2, rhsB };
     }
 
-    @Override
     public int getB() {
         return rhsB;
     }
 
-    @Override
     public int getBi() {
         return lhsA2;
     }

@@ -41,12 +41,10 @@ public class SparseConceptSetIntIterator implements IntIterator {
         }
     }
 
-    @Override
     public boolean hasNext() {
         return next < size;
     }
 
-    @Override
     public int next() {
         return hasNext() ? items[next++] : -1;
     }

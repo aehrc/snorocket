@@ -19,8 +19,8 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  */
 public class ClassNode {
     private final IConceptSet equivalentConcepts = new SparseConceptSet();
-    private final Set<ClassNode> parents = new HashSet<>();
-    private final Set<ClassNode> children = new HashSet<>();
+    private final Set<ClassNode> parents = new HashSet<ClassNode>();
+    private final Set<ClassNode> children = new HashSet<ClassNode>();
 
     /**
      * @return the equivalentConcepts
