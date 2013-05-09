@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <!-- ! Copyright (c) 2009 International Health Terminology Standards Development 
     Organisation ! ! Licensed under the Apache License, Version 2.0 (the "License"); 
     ! you may not use this file except in compliance with the License. ! You 
@@ -18,7 +17,7 @@
   <parent>
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
-    <version>2.0.3-SNAPSHOT</version>
+    <version>2.0.3</version>
     <relativePath>..</relativePath>
   </parent>
 
