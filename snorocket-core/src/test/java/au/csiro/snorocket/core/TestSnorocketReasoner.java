@@ -14,6 +14,7 @@ import java.util.Set;
 
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import au.csiro.ontology.Factory;
@@ -212,6 +213,79 @@ public class TestSnorocketReasoner {
     }
     
     @Test
+    public void testNesting() {
+        Role<String> rg = new Role<String>("RoleGroup");
+        Role<String> fs = new Role<String>("site");
+        Role<String> am = new Role<String>("morph");
+        Role<String> lat = new Role<String>("lat");
+        
+        Concept<String> finding = new Concept<>("Finding");
+        Concept<String> fracfind = new Concept<>("FractureFinding");
+        Concept<String> limb = new Concept<>("Limb");
+        Concept<String> arm = new Concept<>("Arm");
+        Concept<String> left = new Concept<>("Left");
+        Concept<String> fracture = new Concept<>("Fracture");
+        Concept<String> burn = new Concept<>("Burn");
+        Concept<String> right = new Concept<>("Right");
+        Concept<String> multi = new Concept<>("Multiple");
+        
+        IConcept[] larm = {
+                arm, new Existential<>(lat, left)
+        };
+        IConcept[] rarm = {
+                arm, new Existential<>(lat, right)
+        };
+        IConcept[] g1 = {
+                new Existential<>(fs, new Conjunction(rarm)),
+                new Existential<>(fs, arm),
+                new Existential<>(am, fracture),
+        };
+        IConcept[] g2 = {
+                new Existential<>(fs, new Conjunction(larm)),
+                new Existential<>(am, burn),
+        };
+        IConcept[] rhs = {
+                finding,
+                new Existential<>(rg, new Conjunction(g1)),
+                new Existential<>(rg, new Conjunction(g2)),
+        };
+        IConcept[] rhs2 = {
+                finding,
+                new Existential<>(rg, new Existential<>(am, fracture)),
+        };
+        IAxiom[] inclusions = {
+                new ConceptInclusion(multi, new Conjunction(rhs)),
+                new ConceptInclusion(arm, limb),
+                new ConceptInclusion(fracfind, new Conjunction(rhs2)),
+                new ConceptInclusion(new Conjunction(rhs2), fracfind),
+        };
+        
+        Set<IAxiom> axioms = new HashSet<>();
+        for (IAxiom a : inclusions) {
+            axioms.add(a);
+        }
+
+        // Classify
+        SnorocketReasoner<String> sr = new SnorocketReasoner<>();
+        sr.classify(axioms);
+        
+        IOntology<String> ont = sr.getClassifiedOntology();
+        
+        Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
+        
+        try {
+            for (IAxiom a: axioms) {
+                System.out.println("Stated: " + a);
+            }
+            for (IAxiom a: sr.getInferredAxioms()) {
+                System.out.println("Axiom:  " + a);
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+    
+    @Test
     public void testEndocarditis() {
         org.apache.log4j.LogManager.getRootLogger().setLevel((org.apache.log4j.Level)org.apache.log4j.Level.TRACE);
         // Create roles
@@ -367,6 +441,14 @@ public class TestSnorocketReasoner {
         Set<Node<String>> criticalDiseaseRes = criticalDiseaseNode.getParents();
         assertTrue(criticalDiseaseRes.size() == 1);
         assertTrue(criticalDiseaseRes.contains(ont.getTopNode()));
+        
+        try {
+            for (IAxiom a: sr.getInferredAxioms()) {
+                System.out.println("Axiom: " + a);
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
     
     /**
