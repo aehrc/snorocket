@@ -14,7 +14,6 @@ import java.util.Set;
 
 import junit.framework.Assert;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import au.csiro.ontology.Factory;
@@ -219,39 +218,39 @@ public class TestSnorocketReasoner {
         Role<String> am = new Role<String>("morph");
         Role<String> lat = new Role<String>("lat");
         
-        Concept<String> finding = new Concept<>("Finding");
-        Concept<String> fracfind = new Concept<>("FractureFinding");
-        Concept<String> limb = new Concept<>("Limb");
-        Concept<String> arm = new Concept<>("Arm");
-        Concept<String> left = new Concept<>("Left");
-        Concept<String> fracture = new Concept<>("Fracture");
-        Concept<String> burn = new Concept<>("Burn");
-        Concept<String> right = new Concept<>("Right");
-        Concept<String> multi = new Concept<>("Multiple");
+        Concept<String> finding = new Concept<String>("Finding");
+        Concept<String> fracfind = new Concept<String>("FractureFinding");
+        Concept<String> limb = new Concept<String>("Limb");
+        Concept<String> arm = new Concept<String>("Arm");
+        Concept<String> left = new Concept<String>("Left");
+        Concept<String> fracture = new Concept<String>("Fracture");
+        Concept<String> burn = new Concept<String>("Burn");
+        Concept<String> right = new Concept<String>("Right");
+        Concept<String> multi = new Concept<String>("Multiple");
         
         IConcept[] larm = {
-                arm, new Existential<>(lat, left)
+                arm, new Existential<String>(lat, left)
         };
         IConcept[] rarm = {
-                arm, new Existential<>(lat, right)
+                arm, new Existential<String>(lat, right)
         };
         IConcept[] g1 = {
-                new Existential<>(fs, new Conjunction(rarm)),
-                new Existential<>(fs, arm),
-                new Existential<>(am, fracture),
+                new Existential<String>(fs, new Conjunction(rarm)),
+                new Existential<String>(fs, arm),
+                new Existential<String>(am, fracture),
         };
         IConcept[] g2 = {
-                new Existential<>(fs, new Conjunction(larm)),
-                new Existential<>(am, burn),
+                new Existential<String>(fs, new Conjunction(larm)),
+                new Existential<String>(am, burn),
         };
         IConcept[] rhs = {
                 finding,
-                new Existential<>(rg, new Conjunction(g1)),
-                new Existential<>(rg, new Conjunction(g2)),
+                new Existential<String>(rg, new Conjunction(g1)),
+                new Existential<String>(rg, new Conjunction(g2)),
         };
         IConcept[] rhs2 = {
                 finding,
-                new Existential<>(rg, new Existential<>(am, fracture)),
+                new Existential<String>(rg, new Existential<String>(am, fracture)),
         };
         IAxiom[] inclusions = {
                 new ConceptInclusion(multi, new Conjunction(rhs)),
@@ -260,13 +259,13 @@ public class TestSnorocketReasoner {
                 new ConceptInclusion(new Conjunction(rhs2), fracfind),
         };
         
-        Set<IAxiom> axioms = new HashSet<>();
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
         for (IAxiom a : inclusions) {
             axioms.add(a);
         }
 
         // Classify
-        SnorocketReasoner<String> sr = new SnorocketReasoner<>();
+        SnorocketReasoner<String> sr = new SnorocketReasoner<String>();
         sr.classify(axioms);
         
         IOntology<String> ont = sr.getClassifiedOntology();

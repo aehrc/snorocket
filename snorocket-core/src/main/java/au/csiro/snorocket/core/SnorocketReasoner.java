@@ -316,6 +316,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             this.rc = no.getRoleClosureCache();
         }
         
+        @SuppressWarnings("unchecked")
         static <T extends Comparable<T>> IConcept build(NormalisedOntology<T> no, IConcept... concepts) {
             final List<IConcept> list = new ArrayList<IConcept>();
             final Builder<T> b = new Builder<T>(no);
@@ -339,6 +340,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             }
         }
         
+        @SuppressWarnings("unchecked")
         private static <T extends Comparable<T>> IConcept buildOne(NormalisedOntology<T> no, IConcept concept) {
             if (concept instanceof IExistential) {
                 final IExistential<T> existential = (IExistential<T>) concept;
@@ -359,6 +361,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
          * <li> We are trying to add something that makes an already-added thing redundant
          * </ol>
          */
+        @SuppressWarnings("unchecked")
         private void build(INamedRole<T> role, IConcept concept) {
             if (!(concept instanceof INamedConcept)) {
                 log.debug("WARNING: pass through of complex value: " + concept);
