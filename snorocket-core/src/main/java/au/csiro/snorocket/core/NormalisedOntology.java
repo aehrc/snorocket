@@ -220,7 +220,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
         private static final long serialVersionUID = 1L;
 
         public int compare(Context o1, Context o2) {
-            return Integer.compare(o1.getConcept(), o2.getConcept());
+            return ((Integer) o1.getConcept()).compareTo(o2.getConcept());
         }
     }
     
