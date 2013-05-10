@@ -63,7 +63,6 @@ import org.semanticweb.owlapi.util.Version;
 import au.csiro.ontology.IOntology;
 import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IReasoner;
-import au.csiro.ontology.importer.ImportException;
 import au.csiro.ontology.importer.owl.OWLImporter;
 import au.csiro.ontology.model.Concept;
 import au.csiro.ontology.util.IProgressMonitor;
@@ -276,7 +275,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         Iterator<IOntology<String>> it = null;
         try {
             it = oi.getOntologyVersions(monitor);
-        } catch(ImportException e) {
+        } catch(RuntimeException e) {
             // Build message
             StringBuilder sb = new StringBuilder();
             sb.append("Could not import ontology. " +
@@ -305,7 +304,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         Iterator<IOntology<String>> it = null;
         try {
             it = oi.getOntologyVersions(monitor);
-        } catch(ImportException e) {
+        } catch(RuntimeException e) {
             // Build message
             StringBuilder sb = new StringBuilder();
             sb.append("Could not import ontology. " +
@@ -315,7 +314,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
                 sb.append(problem);
             }
             
-            log.error(sb.toString());
+            log.error(sb.toString(), e);
             monitor.taskEnded();
             return null;
         }
