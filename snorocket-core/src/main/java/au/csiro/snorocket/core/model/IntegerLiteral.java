@@ -56,9 +56,7 @@ public class IntegerLiteral extends AbstractLiteral {
     }
 
     public int compareTo(AbstractLiteral o) {
-        IntegerLiteral il = (IntegerLiteral) o;
-        int otherValue = il.value;
-        return Integer.compare(value, otherValue);
+        return ((Integer)value).compareTo(((IntegerLiteral)o).value);
     }
 
 }

@@ -51,9 +51,7 @@ public class LongLiteral extends AbstractLiteral {
     }
 
     public int compareTo(AbstractLiteral o) {
-        LongLiteral ll = (LongLiteral) o;
-        long otherValue = ll.value;
-        return Long.compare(value, otherValue);
+        return ((Long)value).compareTo(((LongLiteral)o).value);
     }
 
 }
