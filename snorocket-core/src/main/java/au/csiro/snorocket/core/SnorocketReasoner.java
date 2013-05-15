@@ -70,7 +70,8 @@ import au.csiro.snorocket.core.util.RoleSet;
  *
  */
 @SuppressWarnings("deprecation")
-final public class SnorocketReasoner<T extends Comparable<T>> implements IReasoner<T>, Serializable {
+final public class SnorocketReasoner<T extends Comparable<T>> 
+    implements IReasoner<T>, Serializable {
     
     /**
      * Serialisation version.
@@ -124,7 +125,8 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         factory = new CoreFactory<T>();
         no = new NormalisedOntology<T>(factory);
     }
-
+    
+    @Override
     public IReasoner<T> classify(Set<IAxiom> axioms) {
         if(!isClassified) {
             factory = new CoreFactory<T>();
@@ -139,6 +141,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         return this;
     }
     
+    @Override
     public IReasoner<T> classify(Iterator<IAxiom> axioms) {
         IReasoner<T> res = null;
         Set<IAxiom> axiomSet = new HashSet<IAxiom>();
@@ -159,15 +162,19 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         return res;
     }
     
+    @Override
     public IReasoner<T> classify(IOntology<T> ont) {
-        return classify(new HashSet<IAxiom>(ont.getStatedAxioms()));
+        IReasoner<T> res = classify(new HashSet<IAxiom>(ont.getStatedAxioms()));
+        return res;
     }
-
+    
+    @Override
     public void prune() {
         // TODO: implement
         throw new UnsupportedOperationException();
     }
-
+    
+    @Override
     public IOntology<T> getClassifiedOntology() {
         // Check ontology is classified
         if(!isClassified) throw new RuntimeException(
@@ -181,23 +188,45 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
         return new Ontology<T>(null, null, null, taxonomy, affectedNodes);
     }
     
+    @Override
+    public IOntology<T> getClassifiedOntology(IOntology<T> ont) {
+        // Check ontology is classified
+        if(!isClassified) throw new RuntimeException(
+                "Ontology is not classified!");
+        
+        log.info("Building taxonomy");
+        no.buildTaxonomy();
+        Map<T, Node<T>> nodeMap = no.getTaxonomy();
+        Set<Node<T>> affectedNodes = no.getAffectedNodes();
+        
+        ont.setNodeMap(nodeMap);
+        ont.setAffectedNodes(affectedNodes);
+        
+        return ont;
+    }
+    
     /**
-     * Ideally we'd return some kind of normal form axioms here.  However, in the presence of GCIs
-     * this is not well defined (as far as I know - michael)
+     * Ideally we'd return some kind of normal form axioms here.  However, in 
+     * the presence of GCIs this is not well defined (as far as I know - 
+     * Michael).
      * <p>
-     * Instead, we will return stated form axioms for Sufficient conditions (ie for INamedConcept on the RHS),
-     * and SNOMED CT DNF-based axioms for Necessary conditions.  The former is just a filter over the stated axioms,
+     * Instead, we will return stated form axioms for Sufficient conditions (
+     * i.e. for INamedConcept on the RHS),  and SNOMED CT DNF-based axioms for 
+     * Necessary conditions. The former is just a filter over the stated axioms,
      * the latter requires looking at the Taxonomy and inferred relationships.
      * <p>
-     * Note that there will be <i>virtual</i> INamedConcepts that need to be skipped/expanded and redundant
-     * IExistentials that need to be filtered.
+     * Note that there will be <i>virtual</i> INamedConcepts that need to be 
+     * skipped/expanded and redundant IExistentials that need to be filtered.
      * 
      * @return
      */
     public Collection<IAxiom> getInferredAxioms() {
         final Collection<IAxiom> inferred = new HashSet<IAxiom>();
-
-        classify();
+        
+        if(!isClassified) {
+            classify();  
+        }
+        
         if (!no.isTaxonomyComputed()) {
             log.info("Building taxonomy");
             no.buildTaxonomy();
@@ -217,7 +246,7 @@ final public class SnorocketReasoner<T extends Comparable<T>> implements IReason
             IConcept rhs = getNecessary(contextIndex, taxonomy, key);
 
             final Concept<T> lhs = new Concept<T>(factory.lookupConceptId(key));
-            if (!lhs.equals(rhs) && rhs != Concept.TOP) {     // skip trivial axioms
+            if (!lhs.equals(rhs) && rhs != Concept.TOP) { // skip trivial axioms
                 inferred.add(new ConceptInclusion(lhs, rhs));
             }
         }
