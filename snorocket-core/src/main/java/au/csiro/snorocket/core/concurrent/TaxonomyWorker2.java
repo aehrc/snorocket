@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import au.csiro.ontology.Node;
 import au.csiro.snorocket.core.IFactory;
+import au.csiro.snorocket.core.util.IConceptSet;
+import au.csiro.snorocket.core.util.IntIterator;
 
 /**
  * Connects the nodes in the taxonomy based on the direct map.
@@ -22,7 +24,7 @@ public class TaxonomyWorker2<T extends Comparable<T>> implements Runnable {
     
     private final IFactory<T> factory;
     private final Map<T, Node<T>> conceptNodeIndex;
-    private final ConcurrentMap<Integer, Set<Integer>> direc;
+    private final ConcurrentMap<Integer, IConceptSet> direc;
     private final Queue<Node<T>> todo;
     private final Set<Node<T>> nodeSet;
     
@@ -31,7 +33,7 @@ public class TaxonomyWorker2<T extends Comparable<T>> implements Runnable {
      */
     public TaxonomyWorker2(IFactory<T> factory, 
             Map<T, Node<T>> conceptNodeIndex, 
-            ConcurrentMap<Integer, Set<Integer>> direc, Queue<Node<T>> todo, 
+            ConcurrentMap<Integer, IConceptSet> direc, Queue<Node<T>> todo, 
             Set<Node<T>> nodeSet) {
         this.factory = factory;
         this.conceptNodeIndex = conceptNodeIndex;
@@ -47,9 +49,10 @@ public class TaxonomyWorker2<T extends Comparable<T>> implements Runnable {
             
             for (T c : node.getEquivalentConcepts()) {
                 // Get direct super-concepts
-                Set<Integer> dc = direc.get(factory.getConcept(c));
+                IConceptSet dc = direc.get(factory.getConcept(c));
                 if (dc != null) {
-                    for (int d : dc) {
+                    for(IntIterator it = dc.iterator(); it.hasNext(); ) {
+                        int d = it.next();
                         Node<T> parent = conceptNodeIndex.get(
                                 factory.lookupConceptId(d));
                         if (parent != null) {

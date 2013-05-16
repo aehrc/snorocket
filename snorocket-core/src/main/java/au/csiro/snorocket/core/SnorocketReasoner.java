@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.log4j.Logger;
 
@@ -335,7 +334,7 @@ final public class SnorocketReasoner<T extends Comparable<T>>
     final static class Builder<T extends Comparable<T>> {
         final private NormalisedOntology<T> no;
         final private IFactory<T> factory;
-        final private ConcurrentMap<Integer, RoleSet> rc;
+        final private Map<Integer, RoleSet> rc;
 
         final private List<IExistential<T>> items = new ArrayList<IExistential<T>>();
 

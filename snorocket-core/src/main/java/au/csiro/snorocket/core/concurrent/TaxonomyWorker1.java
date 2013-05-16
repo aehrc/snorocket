@@ -4,12 +4,11 @@
  */
 package au.csiro.snorocket.core.concurrent;
 
-import java.util.HashSet;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import au.csiro.snorocket.core.IFactory;
+import au.csiro.snorocket.core.util.FastConceptHashSet;
 import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
@@ -25,9 +24,9 @@ public class TaxonomyWorker1<T> implements Runnable {
     
     private final IConceptMap<Context> contextIndex;
     
-    private final ConcurrentMap<Integer, Set<Integer>> equiv;
+    private final ConcurrentMap<Integer, IConceptSet> equiv;
     
-    private final ConcurrentMap<Integer, Set<Integer>> direc;
+    private final ConcurrentMap<Integer, IConceptSet> direc;
     
     private final IFactory<T> factory;
     
@@ -37,8 +36,8 @@ public class TaxonomyWorker1<T> implements Runnable {
      * 
      */
     public TaxonomyWorker1(IConceptMap<Context> contextIndex, 
-            ConcurrentMap<Integer, Set<Integer>> equiv, 
-            ConcurrentMap<Integer, Set<Integer>> direc, IFactory<T> factory,
+            ConcurrentMap<Integer, IConceptSet> equiv, 
+            ConcurrentMap<Integer, IConceptSet> direc, IFactory<T> factory,
             Queue<Integer> todo) {
         this.contextIndex = contextIndex;
         this.equiv = equiv;
@@ -80,10 +79,12 @@ public class TaxonomyWorker1<T> implements Runnable {
                     addToSet(equiv, a, c);
                 } else {
                     boolean isDirect = true;
-                    Set<Integer> d = direc.get(a);
+                    IConceptSet d = direc.get(a);
                     if (d != null) {
-                        Set<Integer> toRemove = new HashSet<Integer>();
-                        for (int b : d) {
+                        IConceptSet toRemove = 
+                                IConceptSet.FACTORY.createConceptSet();
+                        for(IntIterator it2 = d.iterator(); it2.hasNext(); ) {
+                            int b = it2.next();
                             IConceptSet bs = contextIndex.get(b).getS();
                             if (bs != null && bs.contains(c)) {
                                 isDirect = false;
@@ -103,12 +104,17 @@ public class TaxonomyWorker1<T> implements Runnable {
         }
     }
     
-    public static void addToSet(ConcurrentMap<Integer, Set<Integer>> set, 
+    public static void addToSet(ConcurrentMap<Integer, IConceptSet> set, 
             int key, int val) {
-        Set<Integer> temp = new HashSet<Integer>();
-        Set<Integer> valSet = set.putIfAbsent(key, temp);
+        IConceptSet valSet = set.get(key);
         if(valSet == null) {
-            temp.add(val);
+            IConceptSet temp = new FastConceptHashSet();
+            valSet = set.putIfAbsent(key, temp);
+            if(valSet == null) {
+                temp.add(val);
+            } else {
+                valSet.add(val);
+            }
         } else {
             valSet.add(val);
         }

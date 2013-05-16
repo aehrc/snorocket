@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -131,7 +132,7 @@ public class Context implements Serializable {
     /**
      * Reference to the global role closure cache.
      */
-    private static ConcurrentMap<Integer, RoleSet> roleClosureCache;
+    private static Map<Integer, RoleSet> roleClosureCache;
 
     /**
      * Reference to the global factory.
