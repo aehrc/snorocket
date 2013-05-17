@@ -38,49 +38,48 @@ public class TestSnorocketReasoner {
     /**
      * 
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void testSave() {
 
         // Original Endocarditis ontology axioms
-        Role<String> contIn = new Role<String>("cont-in");
-        Role<String> partOf = new Role<String>("part-of");
-        Role<String> hasLoc = new Role<String>("has-loc");
-        Role<String> actsOn = new Role<String>("acts-on");
-        Concept<String> tissue = new Concept<String>("Tissue");
-        Concept<String> heartWall = new Concept<String>("HeartWall");
-        Concept<String> heartValve = new Concept<String>("HeartValve");
-        Concept<String> bodyWall = new Concept<String>("BodyWall");
-        Concept<String> heart = new Concept<String>("Heart");
-        Concept<String> bodyValve = new Concept<String>("BodyValve");
-        Concept<String> inflammation = new Concept<String>("Inflammation");
-        Concept<String> disease = new Concept<String>("Disease");
-        Concept<String> heartdisease = new Concept<String>("Heartdisease");
-        Concept<String> criticalDisease = new Concept<String>("CriticalDisease");
+        Role contIn = new Role("cont-in");
+        Role partOf = new Role("part-of");
+        Role hasLoc = new Role("has-loc");
+        Role actsOn = new Role("acts-on");
+        Concept tissue = new Concept("Tissue");
+        Concept heartWall = new Concept("HeartWall");
+        Concept heartValve = new Concept("HeartValve");
+        Concept bodyWall = new Concept("BodyWall");
+        Concept heart = new Concept("Heart");
+        Concept bodyValve = new Concept("BodyValve");
+        Concept inflammation = new Concept("Inflammation");
+        Concept disease = new Concept("Disease");
+        Concept heartdisease = new Concept("Heartdisease");
+        Concept criticalDisease = new Concept("CriticalDisease");
 
         ConceptInclusion a2 = new ConceptInclusion(heartWall, new Conjunction(
                 new IConcept[] { bodyWall,
-                        new Existential<String>(partOf, heart) }));
+                        new Existential(partOf, heart) }));
 
         ConceptInclusion a3 = new ConceptInclusion(heartValve, new Conjunction(
                 new IConcept[] { bodyValve,
-                        new Existential<String>(partOf, heart) }));
+                        new Existential(partOf, heart) }));
 
         ConceptInclusion a5 = new ConceptInclusion(inflammation,
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<String>(actsOn, tissue) }));
+                        new Existential(actsOn, tissue) }));
 
         ConceptInclusion a6 = new ConceptInclusion(new Conjunction(
                 new IConcept[] { heartdisease,
-                        new Existential<String>(hasLoc, heartValve) }), criticalDisease);
+                        new Existential(hasLoc, heartValve) }), criticalDisease);
 
         ConceptInclusion a7 = new ConceptInclusion(heartdisease,
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<String>(hasLoc, heart) }));
+                        new Existential(hasLoc, heart) }));
 
         ConceptInclusion a8 = new ConceptInclusion(
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<String>(hasLoc, heart) }), heartdisease);
+                        new Existential(hasLoc, heart) }), heartdisease);
 
         RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf },
                 partOf);
@@ -100,7 +99,7 @@ public class TestSnorocketReasoner {
         axioms.add(a10);
         axioms.add(a11);
         
-        SnorocketReasoner<String> sr = new SnorocketReasoner<String>();
+        SnorocketReasoner sr = new SnorocketReasoner();
         sr.classify(axioms);
         
         try {
@@ -117,17 +116,17 @@ public class TestSnorocketReasoner {
         }
 
         // Add delta axioms and classify incrementally
-        Concept<String> endocardium = new Concept<String>("Endocardium");
-        Concept<String> endocarditis = new Concept<String>("Endocarditis");
+        Concept endocardium = new Concept("Endocardium");
+        Concept endocarditis = new Concept("Endocarditis");
 
         ConceptInclusion a1 = new ConceptInclusion(endocardium,
                 new Conjunction(new IConcept[] { tissue,
-                        new Existential<String>(contIn, heartWall),
-                        new Existential<String>(contIn, heartValve) }));
+                        new Existential(contIn, heartWall),
+                        new Existential(contIn, heartValve) }));
 
         ConceptInclusion a4 = new ConceptInclusion(endocarditis,
                 new Conjunction(new IConcept[] { inflammation,
-                        new Existential<String>(hasLoc, endocardium) }));
+                        new Existential(hasLoc, endocardium) }));
 
         Set<IAxiom> incAxioms = new HashSet<IAxiom>();
         incAxioms.add(a1);
@@ -136,10 +135,10 @@ public class TestSnorocketReasoner {
         sr.classify(incAxioms);
 
         // Test results
-        IOntology<String> ont = sr.getClassifiedOntology();
+        IOntology ont = sr.getClassifiedOntology();
         
-        Node<String> bottom = ont.getBottomNode();
-        Set<Node<String>> bottomRes = bottom.getParents();
+        Node bottom = ont.getBottomNode();
+        Set<Node> bottomRes = bottom.getParents();
         assertTrue(bottomRes.size() == 5);
         assertTrue(bottomRes.contains(ont.getNode(endocardium.getId())));
         assertTrue(bottomRes.contains(ont.getNode(endocarditis.getId())));
@@ -147,110 +146,110 @@ public class TestSnorocketReasoner {
         assertTrue(bottomRes.contains(ont.getNode(heartValve.getId())));
         assertTrue(bottomRes.contains(ont.getNode(heart.getId())));
 
-        Node<String> endocarditisNode = ont.getNode(endocarditis.getId());
-        Set<Node<String>> endocarditisRes = endocarditisNode.getParents();
+        Node endocarditisNode = ont.getNode(endocarditis.getId());
+        Set<Node> endocarditisRes = endocarditisNode.getParents();
         assertTrue(endocarditisRes.size() == 3);
         assertTrue(endocarditisRes.contains(ont.getNode(inflammation.getId())));
         assertTrue(endocarditisRes.contains(ont.getNode(heartdisease.getId())));
         assertTrue(endocarditisRes.contains(ont.getNode(criticalDisease.getId())));
 
-        Node<String> inflammationNode = ont.getNode(inflammation.getId());
-        Set<Node<String>> inflammationRes = inflammationNode.getParents();
+        Node inflammationNode = ont.getNode(inflammation.getId());
+        Set<Node> inflammationRes = inflammationNode.getParents();
         assertTrue(inflammationRes.size() == 1);
         assertTrue(inflammationRes.contains(ont.getNode(disease.getId())));
 
-        Node<String> endocardiumNode = ont.getNode(endocardium.getId());
-        Set<Node<String>> endocardiumRes = endocardiumNode.getParents();
+        Node endocardiumNode = ont.getNode(endocardium.getId());
+        Set<Node> endocardiumRes = endocardiumNode.getParents();
         assertTrue(endocardiumRes.size() == 1);
         assertTrue(endocardiumRes.contains(ont.getNode(tissue.getId())));
 
-        Node<String> heartdiseaseNode = ont.getNode(heartdisease.getId());
-        Set<Node<String>> heartdiseaseRes = heartdiseaseNode.getParents();
+        Node heartdiseaseNode = ont.getNode(heartdisease.getId());
+        Set<Node> heartdiseaseRes = heartdiseaseNode.getParents();
         assertTrue(heartdiseaseRes.size() == 1);
         assertTrue(heartdiseaseRes.contains(ont.getNode(disease.getId())));
 
-        Node<String> heartWallNode = ont.getNode(heartWall.getId());
-        Set<Node<String>> heartWallRes = heartWallNode.getParents();
+        Node heartWallNode = ont.getNode(heartWall.getId());
+        Set<Node> heartWallRes = heartWallNode.getParents();
         assertTrue(heartWallRes.size() == 1);
         assertTrue(heartWallRes.contains(ont.getNode(bodyWall.getId())));
 
-        Node<String> heartValveNode = ont.getNode(heartValve.getId());
-        Set<Node<String>> heartValveRes = heartValveNode.getParents();
+        Node heartValveNode = ont.getNode(heartValve.getId());
+        Set<Node> heartValveRes = heartValveNode.getParents();
         assertTrue(heartValveRes.size() == 1);
         assertTrue(heartValveRes
                 .contains(ont.getNode(bodyValve.getId())));
 
-        Node<String> diseaseNode = ont.getNode(disease.getId());
-        Set<Node<String>> diseaseRes = diseaseNode.getParents();
+        Node diseaseNode = ont.getNode(disease.getId());
+        Set<Node> diseaseRes = diseaseNode.getParents();
         assertTrue(diseaseRes.size() == 1);
         assertTrue(diseaseRes.contains(ont.getTopNode()));
 
-        Node<String> tissueNode = ont.getNode(tissue.getId());
-        Set<Node<String>> tissueRes = tissueNode.getParents();
+        Node tissueNode = ont.getNode(tissue.getId());
+        Set<Node> tissueRes = tissueNode.getParents();
         assertTrue(tissueRes.size() == 1);
         assertTrue(tissueRes.contains(ont.getTopNode()));
 
-        Node<String> heartNode = ont.getNode(heart.getId());
-        Set<Node<String>> heartRes = heartNode.getParents();
+        Node heartNode = ont.getNode(heart.getId());
+        Set<Node> heartRes = heartNode.getParents();
         assertTrue(heartRes.size() == 1);
         assertTrue(heartRes.contains(ont.getTopNode()));
 
-        Node<String> bodyValveNode = ont.getNode(bodyValve.getId());
-        Set<Node<String>> bodyValveRes = bodyValveNode.getParents();
+        Node bodyValveNode = ont.getNode(bodyValve.getId());
+        Set<Node> bodyValveRes = bodyValveNode.getParents();
         assertTrue(bodyValveRes.size() == 1);
         assertTrue(bodyValveRes.contains(ont.getTopNode()));
 
-        Node<String> bodyWallNode = ont.getNode(bodyWall.getId());
-        Set<Node<String>> bodyWallRes = bodyWallNode.getParents();
+        Node bodyWallNode = ont.getNode(bodyWall.getId());
+        Set<Node> bodyWallRes = bodyWallNode.getParents();
         assertTrue(bodyWallRes.size() == 1);
         assertTrue(bodyWallRes.contains(ont.getTopNode()));
 
-        Node<String> criticalDiseaseNode = ont.getNode(criticalDisease.getId());
-        Set<Node<String>> criticalDiseaseRes = criticalDiseaseNode.getParents();
+        Node criticalDiseaseNode = ont.getNode(criticalDisease.getId());
+        Set<Node> criticalDiseaseRes = criticalDiseaseNode.getParents();
         assertTrue(criticalDiseaseRes.size() == 1);
         assertTrue(criticalDiseaseRes.contains(ont.getTopNode()));
     }
     
     @Test
     public void testNesting() {
-        Role<String> rg = new Role<String>("RoleGroup");
-        Role<String> fs = new Role<String>("site");
-        Role<String> am = new Role<String>("morph");
-        Role<String> lat = new Role<String>("lat");
+        Role rg = new Role("RoleGroup");
+        Role fs = new Role("site");
+        Role am = new Role("morph");
+        Role lat = new Role("lat");
         
-        Concept<String> finding = new Concept<String>("Finding");
-        Concept<String> fracfind = new Concept<String>("FractureFinding");
-        Concept<String> limb = new Concept<String>("Limb");
-        Concept<String> arm = new Concept<String>("Arm");
-        Concept<String> left = new Concept<String>("Left");
-        Concept<String> fracture = new Concept<String>("Fracture");
-        Concept<String> burn = new Concept<String>("Burn");
-        Concept<String> right = new Concept<String>("Right");
-        Concept<String> multi = new Concept<String>("Multiple");
+        Concept finding = new Concept("Finding");
+        Concept fracfind = new Concept("FractureFinding");
+        Concept limb = new Concept("Limb");
+        Concept arm = new Concept("Arm");
+        Concept left = new Concept("Left");
+        Concept fracture = new Concept("Fracture");
+        Concept burn = new Concept("Burn");
+        Concept right = new Concept("Right");
+        Concept multi = new Concept("Multiple");
         
         IConcept[] larm = {
-                arm, new Existential<String>(lat, left)
+                arm, new Existential(lat, left)
         };
         IConcept[] rarm = {
-                arm, new Existential<String>(lat, right)
+                arm, new Existential(lat, right)
         };
         IConcept[] g1 = {
-                new Existential<String>(fs, new Conjunction(rarm)),
-                new Existential<String>(fs, arm),
-                new Existential<String>(am, fracture),
+                new Existential(fs, new Conjunction(rarm)),
+                new Existential(fs, arm),
+                new Existential(am, fracture),
         };
         IConcept[] g2 = {
-                new Existential<String>(fs, new Conjunction(larm)),
-                new Existential<String>(am, burn),
+                new Existential(fs, new Conjunction(larm)),
+                new Existential(am, burn),
         };
         IConcept[] rhs = {
                 finding,
-                new Existential<String>(rg, new Conjunction(g1)),
-                new Existential<String>(rg, new Conjunction(g2)),
+                new Existential(rg, new Conjunction(g1)),
+                new Existential(rg, new Conjunction(g2)),
         };
         IConcept[] rhs2 = {
                 finding,
-                new Existential<String>(rg, new Existential<String>(am, fracture)),
+                new Existential(rg, new Existential(am, fracture)),
         };
         IAxiom[] inclusions = {
                 new ConceptInclusion(multi, new Conjunction(rhs)),
@@ -265,10 +264,10 @@ public class TestSnorocketReasoner {
         }
 
         // Classify
-        SnorocketReasoner<String> sr = new SnorocketReasoner<String>();
+        SnorocketReasoner sr = new SnorocketReasoner();
         sr.classify(axioms);
         
-        IOntology<String> ont = sr.getClassifiedOntology();
+        IOntology ont = sr.getClassifiedOntology();
         
         Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
         
@@ -288,59 +287,59 @@ public class TestSnorocketReasoner {
     public void testEndocarditis() {
         org.apache.log4j.LogManager.getRootLogger().setLevel((org.apache.log4j.Level)org.apache.log4j.Level.TRACE);
         // Create roles
-        Role<String> contIn = new Role<String>("cont-in");
-        Role<String> partOf = new Role<String>("part-of");
-        Role<String> hasLoc = new Role<String>("has-loc");
-        Role<String> actsOn = new Role<String>("acts-on");
+        Role contIn = new Role("cont-in");
+        Role partOf = new Role("part-of");
+        Role hasLoc = new Role("has-loc");
+        Role actsOn = new Role("acts-on");
 
         // Create concepts
-        Concept<String> endocardium = new Concept<String>("Endocardium");
-        Concept<String> tissue = new Concept<String>("Tissue");
-        Concept<String> heartWall = new Concept<String>("HeartWall");
-        Concept<String> heartValve = new Concept<String>("HeartValve");
-        Concept<String> bodyWall = new Concept<String>("BodyWall");
-        Concept<String> heart = new Concept<String>("Heart");
-        Concept<String> bodyValve = new Concept<String>("BodyValve");
-        Concept<String> endocarditis = new Concept<String>("Endocarditis");
-        Concept<String> inflammation = new Concept<String>("Inflammation");
-        Concept<String> disease = new Concept<String>("Disease");
-        Concept<String> heartdisease = new Concept<String>("Heartdisease");
-        Concept<String> criticalDisease = new Concept<String>("CriticalDisease");
+        Concept endocardium = new Concept("Endocardium");
+        Concept tissue = new Concept("Tissue");
+        Concept heartWall = new Concept("HeartWall");
+        Concept heartValve = new Concept("HeartValve");
+        Concept bodyWall = new Concept("BodyWall");
+        Concept heart = new Concept("Heart");
+        Concept bodyValve = new Concept("BodyValve");
+        Concept endocarditis = new Concept("Endocarditis");
+        Concept inflammation = new Concept("Inflammation");
+        Concept disease = new Concept("Disease");
+        Concept heartdisease = new Concept("Heartdisease");
+        Concept criticalDisease = new Concept("CriticalDisease");
 
         // Create axioms
         ConceptInclusion a1 = new ConceptInclusion(endocardium,
                 new Conjunction(new IConcept[] { tissue,
-                        new Existential<String>(contIn, heartWall),
-                        new Existential<String>(contIn, heartValve) }));
+                        new Existential(contIn, heartWall),
+                        new Existential(contIn, heartValve) }));
 
         ConceptInclusion a2 = new ConceptInclusion(heartWall, new Conjunction(
                 new IConcept[] { bodyWall,
-                        new Existential<String>(partOf, heart) }));
+                        new Existential(partOf, heart) }));
 
         ConceptInclusion a3 = new ConceptInclusion(heartValve, new Conjunction(
                 new IConcept[] { bodyValve,
-                        new Existential<String>(partOf, heart) }));
+                        new Existential(partOf, heart) }));
 
         ConceptInclusion a4 = new ConceptInclusion(endocarditis,
                 new Conjunction(new IConcept[] { inflammation,
-                        new Existential<String>(hasLoc, endocardium) }));
+                        new Existential(hasLoc, endocardium) }));
 
         ConceptInclusion a5 = new ConceptInclusion(inflammation,
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<String>(actsOn, tissue) }));
+                        new Existential(actsOn, tissue) }));
 
         ConceptInclusion a6 = new ConceptInclusion(new Conjunction(
                 new IConcept[] { heartdisease,
-                        new Existential<String>(hasLoc, heartValve) }), 
+                        new Existential(hasLoc, heartValve) }), 
                         criticalDisease);
 
         ConceptInclusion a7 = new ConceptInclusion(heartdisease,
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<String>(hasLoc, heart) }));
+                        new Existential(hasLoc, heart) }));
 
         ConceptInclusion a8 = new ConceptInclusion(
                 new Conjunction(new IConcept[] { disease,
-                        new Existential<String>(hasLoc, heart) }), 
+                        new Existential(hasLoc, heart) }), 
                         heartdisease);
 
         RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf },
@@ -363,16 +362,16 @@ public class TestSnorocketReasoner {
         axioms.add(a11);
 
         // Classify
-        SnorocketReasoner<String> sr = new SnorocketReasoner<String>();
+        SnorocketReasoner sr = new SnorocketReasoner();
         sr.classify(axioms);
         
-        IOntology<String> ont = sr.getClassifiedOntology();
+        IOntology ont = sr.getClassifiedOntology();
         
         Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
         
         // Test taxonomy results
-        Node<String> bottomNode = ont.getBottomNode();
-        Set<Node<String>> bottomRes = bottomNode.getParents();
+        Node bottomNode = ont.getBottomNode();
+        Set<Node> bottomRes = bottomNode.getParents();
 
         assertTrue(bottomRes.size() == 5);
         assertTrue(bottomRes.contains(ont.getNode(endocardium.getId())));
@@ -381,65 +380,65 @@ public class TestSnorocketReasoner {
         assertTrue(bottomRes.contains(ont.getNode(heartValve.getId())));
         assertTrue(bottomRes.contains(ont.getNode(heart.getId())));
 
-        Node<String> endocarditisNode = ont.getNode(endocarditis.getId());
-        Set<Node<String>> endocarditisRes = endocarditisNode.getParents();
+        Node endocarditisNode = ont.getNode(endocarditis.getId());
+        Set<Node> endocarditisRes = endocarditisNode.getParents();
         assertTrue(endocarditisRes.size() == 3);
         assertTrue(endocarditisRes.contains(ont.getNode(inflammation.getId())));
         assertTrue(endocarditisRes.contains(ont.getNode(heartdisease.getId())));
         assertTrue(endocarditisRes.contains(ont.getNode(criticalDisease.getId())));
 
-        Node<String> inflammationNode = ont.getNode(inflammation.getId());
-        Set<Node<String>> inflammationRes = inflammationNode.getParents();
+        Node inflammationNode = ont.getNode(inflammation.getId());
+        Set<Node> inflammationRes = inflammationNode.getParents();
         assertTrue(inflammationRes.size() == 1);
         assertTrue(inflammationRes.contains(ont.getNode(disease.getId())));
 
-        Node<String> endocardiumNode = ont.getNode(endocardium.getId());
-        Set<Node<String>> endocardiumRes = endocardiumNode.getParents();
+        Node endocardiumNode = ont.getNode(endocardium.getId());
+        Set<Node> endocardiumRes = endocardiumNode.getParents();
         assertTrue(endocardiumRes.size() == 1);
         assertTrue(endocardiumRes.contains(ont.getNode(tissue.getId())));
 
-        Node<String> heartdiseaseNode = ont.getNode(heartdisease.getId());
-        Set<Node<String>> heartdiseaseRes = heartdiseaseNode.getParents();
+        Node heartdiseaseNode = ont.getNode(heartdisease.getId());
+        Set<Node> heartdiseaseRes = heartdiseaseNode.getParents();
         assertTrue(heartdiseaseRes.size() == 1);
         assertTrue(heartdiseaseRes.contains(ont.getNode(disease.getId())));
 
-        Node<String> heartWallNode = ont.getNode(heartWall.getId());
-        Set<Node<String>> heartWallRes = heartWallNode.getParents();
+        Node heartWallNode = ont.getNode(heartWall.getId());
+        Set<Node> heartWallRes = heartWallNode.getParents();
         assertTrue(heartWallRes.size() == 1);
         assertTrue(heartWallRes.contains(ont.getNode(bodyWall.getId())));
 
-        Node<String> heartValveNode = ont.getNode(heartValve.getId());
-        Set<Node<String>> heartValveRes = heartValveNode.getParents();
+        Node heartValveNode = ont.getNode(heartValve.getId());
+        Set<Node> heartValveRes = heartValveNode.getParents();
         assertTrue(heartValveRes.size() == 1);
         assertTrue(heartValveRes.contains(ont.getNode(bodyValve.getId())));
 
-        Node<String> diseaseNode = ont.getNode(disease.getId());
-        Set<Node<String>> diseaseRes = diseaseNode.getParents();
+        Node diseaseNode = ont.getNode(disease.getId());
+        Set<Node> diseaseRes = diseaseNode.getParents();
         assertTrue(diseaseRes.size() == 1);
         assertTrue(diseaseRes.contains(ont.getTopNode()));
 
-        Node<String> tissueNode = ont.getNode(tissue.getId());
-        Set<Node<String>> tissueRes = tissueNode.getParents();
+        Node tissueNode = ont.getNode(tissue.getId());
+        Set<Node> tissueRes = tissueNode.getParents();
         assertTrue(tissueRes.size() == 1);
         assertTrue(tissueRes.contains(ont.getTopNode()));
 
-        Node<String> heartNode = ont.getNode(heart.getId());
-        Set<Node<String>> heartRes = heartNode.getParents();
+        Node heartNode = ont.getNode(heart.getId());
+        Set<Node> heartRes = heartNode.getParents();
         assertTrue(heartRes.size() == 1);
         assertTrue(heartRes.contains(ont.getTopNode()));
 
-        Node<String> bodyValveNode = ont.getNode(bodyValve.getId());
-        Set<Node<String>> bodyValveRes = bodyValveNode.getParents();
+        Node bodyValveNode = ont.getNode(bodyValve.getId());
+        Set<Node> bodyValveRes = bodyValveNode.getParents();
         assertTrue(bodyValveRes.size() == 1);
         assertTrue(bodyValveRes.contains(ont.getTopNode()));
 
-        Node<String> bodyWallNode = ont.getNode(bodyWall.getId());
-        Set<Node<String>> bodyWallRes = bodyWallNode.getParents();
+        Node bodyWallNode = ont.getNode(bodyWall.getId());
+        Set<Node> bodyWallRes = bodyWallNode.getParents();
         assertTrue(bodyWallRes.size() == 1);
         assertTrue(bodyWallRes.contains(ont.getTopNode()));
 
-        Node<String> criticalDiseaseNode = ont.getNode(criticalDisease.getId());
-        Set<Node<String>> criticalDiseaseRes = criticalDiseaseNode.getParents();
+        Node criticalDiseaseNode = ont.getNode(criticalDisease.getId());
+        Set<Node> criticalDiseaseRes = criticalDiseaseNode.getParents();
         assertTrue(criticalDiseaseRes.size() == 1);
         assertTrue(criticalDiseaseRes.contains(ont.getTopNode()));
         
@@ -459,7 +458,7 @@ public class TestSnorocketReasoner {
     @Test
     public void testIncrementalTaxonomy() {
     	
-    	Factory<String> fac = new Factory<String>();
+    	Factory fac = new Factory();
     	IConcept a = fac.createConcept("A");
     	IConcept b = fac.createConcept("B");
     	IConcept c = fac.createConcept("C");
@@ -468,11 +467,11 @@ public class TestSnorocketReasoner {
     	IConcept f = fac.createConcept("F");
     	IConcept g = fac.createConcept("G");
     	
-    	IAxiom a1 = fac.createConceptInclusion(b,  a);
-    	IAxiom a2 = fac.createConceptInclusion(c,  b);
-    	IAxiom a3 = fac.createConceptInclusion(d,  c);
-    	IAxiom a4 = fac.createConceptInclusion(e,  a);
-    	IAxiom a5 = fac.createConceptInclusion(f,  e);
+    	IAxiom a1 = fac.createConceptInclusion(b, a);
+    	IAxiom a2 = fac.createConceptInclusion(c, b);
+    	IAxiom a3 = fac.createConceptInclusion(d, c);
+    	IAxiom a4 = fac.createConceptInclusion(e, a);
+    	IAxiom a5 = fac.createConceptInclusion(f, e);
     	
     	Set<IAxiom> axioms = new HashSet<IAxiom>();
         axioms.add(a1);
@@ -481,14 +480,14 @@ public class TestSnorocketReasoner {
         axioms.add(a4);
         axioms.add(a5);
     	
-    	SnorocketReasoner<String> sr = new SnorocketReasoner<String>();
+    	SnorocketReasoner sr = new SnorocketReasoner();
         sr.classify(axioms);
         
-        IOntology<String> ont = sr.getClassifiedOntology();
+        IOntology ont = sr.getClassifiedOntology();
         Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
         
-        IAxiom a6 = fac.createConceptInclusion(g,  e);
-        IAxiom a7 = fac.createConceptInclusion(f,  g);
+        IAxiom a6 = fac.createConceptInclusion(g, e);
+        IAxiom a7 = fac.createConceptInclusion(f, g);
         
         axioms.clear();
         axioms.add(a6);
@@ -499,9 +498,9 @@ public class TestSnorocketReasoner {
         
         Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
         
-        Set<Node<String>> affectedNodes = ont.getAffectedNodes();
+        Set<Node> affectedNodes = ont.getAffectedNodes();
         Set<String> affectedIds = new HashSet<String>();
-        for(Node<String> affectedNode : affectedNodes) {
+        for(Node affectedNode : affectedNodes) {
         	affectedIds.addAll(affectedNode.getEquivalentConcepts());
         }
         

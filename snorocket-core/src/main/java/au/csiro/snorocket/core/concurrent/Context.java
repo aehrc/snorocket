@@ -137,7 +137,6 @@ public class Context implements Serializable {
     /**
      * Reference to the global factory.
      */
-    @SuppressWarnings("rawtypes")
     private static IFactory factory;
 
     /**
@@ -202,7 +201,6 @@ public class Context implements Serializable {
      * 
      * @param ont
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static void init(NormalisedOntology ont) {
         parentTodo = ont.getTodo();
         contextIndex = ont.getContextIndex();

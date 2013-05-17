@@ -20,21 +20,21 @@ import au.csiro.snorocket.core.util.IntIterator;
  * @author Alejandro Metke
  *
  */
-public class TaxonomyWorker2<T extends Comparable<T>> implements Runnable {
+public class TaxonomyWorker2 implements Runnable {
     
-    private final IFactory<T> factory;
-    private final Map<T, Node<T>> conceptNodeIndex;
+    private final IFactory factory;
+    private final Map<String, Node> conceptNodeIndex;
     private final ConcurrentMap<Integer, IConceptSet> direc;
-    private final Queue<Node<T>> todo;
-    private final Set<Node<T>> nodeSet;
+    private final Queue<Node> todo;
+    private final Set<Node> nodeSet;
     
     /**
      * 
      */
-    public TaxonomyWorker2(IFactory<T> factory, 
-            Map<T, Node<T>> conceptNodeIndex, 
-            ConcurrentMap<Integer, IConceptSet> direc, Queue<Node<T>> todo, 
-            Set<Node<T>> nodeSet) {
+    public TaxonomyWorker2(IFactory factory, 
+            Map<String, Node> conceptNodeIndex, 
+            ConcurrentMap<Integer, IConceptSet> direc, Queue<Node> todo, 
+            Set<Node> nodeSet) {
         this.factory = factory;
         this.conceptNodeIndex = conceptNodeIndex;
         this.direc = direc;
@@ -44,16 +44,16 @@ public class TaxonomyWorker2<T extends Comparable<T>> implements Runnable {
 
     public void run() {
         while(true) {
-            Node<T> node = todo.poll();
+            Node node = todo.poll();
             if(node == null) break;
             
-            for (T c : node.getEquivalentConcepts()) {
+            for (String c : node.getEquivalentConcepts()) {
                 // Get direct super-concepts
                 IConceptSet dc = direc.get(factory.getConcept(c));
                 if (dc != null) {
                     for(IntIterator it = dc.iterator(); it.hasNext(); ) {
                         int d = it.next();
-                        Node<T> parent = conceptNodeIndex.get(
+                        Node parent = conceptNodeIndex.get(
                                 factory.lookupConceptId(d));
                         if (parent != null) {
                             node.getParents().add(parent);

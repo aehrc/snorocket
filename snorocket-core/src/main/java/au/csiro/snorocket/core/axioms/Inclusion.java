@@ -31,7 +31,7 @@ import au.csiro.snorocket.core.IFactory;
  * @author Alejandro Metke
  * 
  */
-abstract public class Inclusion<T> implements Serializable {
+abstract public class Inclusion implements Serializable {
     /**
      * 
      */
@@ -44,7 +44,7 @@ abstract public class Inclusion<T> implements Serializable {
      * @param factory
      * @return
      */
-    abstract public Inclusion<T>[] normalise1(IFactory<T> factory);
+    abstract public Inclusion[] normalise1(IFactory factory);
 
     /**
      * Runs the second phase in the normalisation process (see Pushing the EL
@@ -53,7 +53,7 @@ abstract public class Inclusion<T> implements Serializable {
      * @param factory
      * @return
      */
-    abstract public Inclusion<T>[] normalise2(IFactory<T> factory);
+    abstract public Inclusion[] normalise2(IFactory factory);
 
     @Override
     abstract public int hashCode();

@@ -31,7 +31,7 @@ import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.RoleSet;
 import au.csiro.snorocket.core.util.SparseConceptSet;
 
-final public class CoreFactory<T> implements IFactory<T> {
+final public class CoreFactory implements IFactory {
     
     /**
      * Serialisation version.
@@ -57,8 +57,8 @@ final public class CoreFactory<T> implements IFactory<T> {
     final private Map<Object, Integer> roleMap = new HashMap<Object, Integer>();
     final private RoleSet virtualRoles = new RoleSet();
 
-    private Object[] features = new Object[128];
-    final private Map<T, Integer> featureNameMap = new HashMap<T, Integer>();
+    private String[] features = new String[128];
+    final private Map<String, Integer> featureNameMap = new HashMap<String, Integer>();
 
     /**
      * Index of the next available Concept.
@@ -110,22 +110,19 @@ final public class CoreFactory<T> implements IFactory<T> {
         return featureIdCounter;
     }
 
-    @SuppressWarnings("unchecked")
-    public T lookupFeatureId(int id) {
+    public String lookupFeatureId(int id) {
         assert id >= featureBase && id <= featureIdCounter + featureBase;
-        return (T) features[id - featureBase];
+        return features[id - featureBase];
     }
 
-    @SuppressWarnings("unchecked")
-    public T lookupConceptId(final int id) {
+    public Object lookupConceptId(final int id) {
         assert id >= conceptBase && id <= conceptIdCounter + conceptBase;
-        return (T) concepts[id - conceptBase];
+        return concepts[id - conceptBase];
     }
 
-    @SuppressWarnings("unchecked")
-    public T lookupRoleId(final int id) {
+    public Object lookupRoleId(final int id) {
         assert id >= roleBase && id <= roleIdCounter + roleBase;
-        return (T) roles[id - roleBase];
+        return roles[id - roleBase];
     }
 
     public boolean isVirtualConcept(int id) {
@@ -144,7 +141,7 @@ final public class CoreFactory<T> implements IFactory<T> {
         return roleMap.containsKey(key);
     }
 
-    public boolean featureExists(T key) {
+    public boolean featureExists(String key) {
         return featureNameMap.containsKey(key);
     }
 
@@ -187,11 +184,11 @@ final public class CoreFactory<T> implements IFactory<T> {
         return result + roleBase;
     }
 
-    public int getFeature(T key) {
+    public int getFeature(String key) {
         Integer result = featureNameMap.get(key);
         if (null == result) {
             if (featureIdCounter == features.length) {
-                final Object[] newFeatures = new Object[featureIdCounter * 2];
+                final String[] newFeatures = new String[featureIdCounter * 2];
                 System.arraycopy(features, 0, newFeatures, 0, featureIdCounter);
                 features = newFeatures;
                 if (log.isTraceEnabled()) {

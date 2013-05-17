@@ -69,8 +69,7 @@ import au.csiro.snorocket.core.util.RoleSet;
  *
  */
 @SuppressWarnings("deprecation")
-final public class SnorocketReasoner<T extends Comparable<T>> 
-    implements IReasoner<T>, Serializable {
+final public class SnorocketReasoner implements IReasoner, Serializable {
     
     /**
      * Serialisation version.
@@ -81,8 +80,8 @@ final public class SnorocketReasoner<T extends Comparable<T>>
     
     public static final int BUFFER_SIZE = 10;
     
-    private NormalisedOntology<T> no = null;
-    private IFactory<T> factory = null;
+    private NormalisedOntology no = null;
+    private IFactory factory = null;
     private boolean isClassified = false;
     
     /**
@@ -92,7 +91,6 @@ final public class SnorocketReasoner<T extends Comparable<T>>
      * @param in
      * @return
      */
-    @SuppressWarnings("rawtypes")
     public static SnorocketReasoner load(InputStream in) {
         SnorocketReasoner res;
         ObjectInputStream ois = null; 
@@ -107,9 +105,7 @@ final public class SnorocketReasoner<T extends Comparable<T>>
                 try { ois.close(); } catch(Exception e) {}
             }
         }
-        Concept.reconnectTopBottom(
-                (IConcept)res.factory.lookupConceptId(CoreFactory.TOP_CONCEPT), 
-                (IConcept)res.factory.lookupConceptId(CoreFactory.BOTTOM_CONCEPT));
+        
         Context.init(res.no);
         res.no.buildTaxonomy();
         return res;
@@ -121,15 +117,15 @@ final public class SnorocketReasoner<T extends Comparable<T>>
      * @param ontology The base ontology to classify.
      */
     public SnorocketReasoner() {
-        factory = new CoreFactory<T>();
-        no = new NormalisedOntology<T>(factory);
+        factory = new CoreFactory();
+        no = new NormalisedOntology(factory);
     }
     
     @Override
-    public IReasoner<T> classify(Set<IAxiom> axioms) {
+    public IReasoner classify(Set<IAxiom> axioms) {
         if(!isClassified) {
-            factory = new CoreFactory<T>();
-            no = new NormalisedOntology<T>(factory);
+            factory = new CoreFactory();
+            no = new NormalisedOntology(factory);
             no.loadAxioms(axioms);
             no.classify();
             isClassified = true;
@@ -141,8 +137,8 @@ final public class SnorocketReasoner<T extends Comparable<T>>
     }
     
     @Override
-    public IReasoner<T> classify(Iterator<IAxiom> axioms) {
-        IReasoner<T> res = null;
+    public IReasoner classify(Iterator<IAxiom> axioms) {
+        IReasoner res = null;
         Set<IAxiom> axiomSet = new HashSet<IAxiom>();
         while(axioms.hasNext()) {
             IAxiom axiom = axioms.next();
@@ -162,8 +158,8 @@ final public class SnorocketReasoner<T extends Comparable<T>>
     }
     
     @Override
-    public IReasoner<T> classify(IOntology<T> ont) {
-        IReasoner<T> res = classify(new HashSet<IAxiom>(ont.getStatedAxioms()));
+    public IReasoner classify(IOntology ont) {
+        IReasoner res = classify(new HashSet<IAxiom>(ont.getStatedAxioms()));
         return res;
     }
     
@@ -174,29 +170,29 @@ final public class SnorocketReasoner<T extends Comparable<T>>
     }
     
     @Override
-    public IOntology<T> getClassifiedOntology() {
+    public IOntology getClassifiedOntology() {
         // Check ontology is classified
         if(!isClassified) throw new RuntimeException(
                 "Ontology is not classified!");
         
         log.info("Building taxonomy");
         no.buildTaxonomy();
-        Map<T, Node<T>> taxonomy = no.getTaxonomy();
-        Set<Node<T>> affectedNodes = no.getAffectedNodes();
+        Map<String, Node> taxonomy = no.getTaxonomy();
+        Set<Node> affectedNodes = no.getAffectedNodes();
         
-        return new Ontology<T>(null, null, null, taxonomy, affectedNodes);
+        return new Ontology(null, null, null, taxonomy, affectedNodes);
     }
     
     @Override
-    public IOntology<T> getClassifiedOntology(IOntology<T> ont) {
+    public IOntology getClassifiedOntology(IOntology ont) {
         // Check ontology is classified
         if(!isClassified) throw new RuntimeException(
                 "Ontology is not classified!");
         
         log.info("Building taxonomy");
         no.buildTaxonomy();
-        Map<T, Node<T>> nodeMap = no.getTaxonomy();
-        Set<Node<T>> affectedNodes = no.getAffectedNodes();
+        Map<String, Node> nodeMap = no.getTaxonomy();
+        Set<Node> affectedNodes = no.getAffectedNodes();
         
         ont.setNodeMap(nodeMap);
         ont.setAffectedNodes(affectedNodes);
@@ -231,12 +227,12 @@ final public class SnorocketReasoner<T extends Comparable<T>>
             no.buildTaxonomy();
         }
         
-        final Map<T, Node<T>> taxonomy = no.getTaxonomy();
+        final Map<String, Node> taxonomy = no.getTaxonomy();
         final IConceptMap<Context> contextIndex = no.getContextIndex();
         final IntIterator itr = contextIndex.keyIterator();
         while (itr.hasNext()) {
             final int key = itr.next();
-            final T id = factory.lookupConceptId(key);
+            final String id = factory.lookupConceptId(key).toString();
             
             if (factory.isVirtualConcept(key) || Concept.BOTTOM == id) {
                 continue;
@@ -244,8 +240,8 @@ final public class SnorocketReasoner<T extends Comparable<T>>
             
             IConcept rhs = getNecessary(contextIndex, taxonomy, key);
 
-            final Concept<T> lhs = new Concept<T>(factory.lookupConceptId(key));
-            if (!lhs.equals(rhs) && rhs != Concept.TOP) { // skip trivial axioms
+            final Concept lhs = new Concept(factory.lookupConceptId(key).toString());
+            if (!lhs.equals(rhs) && !rhs.equals(Concept.TOP)) { // skip trivial axioms
                 inferred.add(new ConceptInclusion(lhs, rhs));
             }
         }
@@ -253,16 +249,16 @@ final public class SnorocketReasoner<T extends Comparable<T>>
         return inferred;
     }
     
-    protected IConcept getNecessary(IConceptMap<Context> contextIndex, Map<T, Node<T>> taxonomy, int key) {
-        final T id = factory.lookupConceptId(key);
+    protected IConcept getNecessary(IConceptMap<Context> contextIndex, Map<String, Node> taxonomy, int key) {
+        final Object id = factory.lookupConceptId(key);
         final List<IConcept> result = new ArrayList<IConcept>();
 
-        final Node<T> node = taxonomy.get(id);
+        final Node node = taxonomy.get(id);
         if (node != null) {
-            for (final Node<T> parent: node.getParents()) {
-                final T parentId = parent.getEquivalentConcepts().iterator().next();
-                if (Concept.TOP != parentId) {      // Top is redundant
-                    result.add(Concept.createFrom(parentId));
+            for (final Node parent: node.getParents()) {
+                final String parentId = parent.getEquivalentConcepts().iterator().next();
+                if (!Concept.TOP.equals(parentId)) {      // Top is redundant
+                    result.add(new Concept(parentId));
                 }
             }
         } else if (id instanceof au.csiro.snorocket.core.model.Conjunction) {
@@ -270,8 +266,8 @@ final public class SnorocketReasoner<T extends Comparable<T>>
             for (AbstractConcept conjunct: ((au.csiro.snorocket.core.model.Conjunction) id).getConcepts()) {
                 if (conjunct instanceof au.csiro.snorocket.core.model.Concept) {
                     final int conjunctInt = ((au.csiro.snorocket.core.model.Concept) conjunct).hashCode();
-                    final T conjunctId = factory.lookupConceptId(conjunctInt);
-                    result.add(Concept.createFrom(conjunctId));
+                    final String conjunctId = factory.lookupConceptId(conjunctInt).toString();
+                    result.add(new Concept(conjunctId));
                 }
             }
         }
@@ -279,17 +275,17 @@ final public class SnorocketReasoner<T extends Comparable<T>>
         final Context ctx = contextIndex.get(key);
         CR succ = ctx.getSucc();
         for (int roleId: succ.getRoles()) {
-            INamedRole<T> role = new Role<T>(factory.lookupRoleId(roleId));
+            INamedRole role = new Role(factory.lookupRoleId(roleId).toString());
             IConceptSet values = getLeaves(succ.lookupConcept(roleId));
             for (IntIterator itr2 = values.iterator(); itr2.hasNext(); ) {
                 int valueInt = itr2.next();
                 if (!factory.isVirtualConcept(valueInt)) {
-                    final T valueId = factory.lookupConceptId(valueInt);
-                    final Existential<T> x = new Existential<T>(role, new Concept<T>(valueId));
+                    final String valueId = factory.lookupConceptId(valueInt).toString();
+                    final Existential x = new Existential(role, new Concept(valueId));
                     result.add(x);
                 } else {
                     final IConcept valueConcept = getNecessary(contextIndex, taxonomy, valueInt);
-                    final Existential<T> x = new Existential<T>(role, Builder.build(no, valueConcept));
+                    final Existential x = new Existential(role, Builder.build(no, valueConcept));
                     result.add(x);
                 }
             }
@@ -297,7 +293,7 @@ final public class SnorocketReasoner<T extends Comparable<T>>
         //        System.err.println("gN: " + id + "\t" + factory.isVirtualConcept(key) + "\t" + result);
 
         if (result.size() == 0) {
-            return Concept.TOP;
+            return Concept.TOP_CONCEPT;
         } else if (result.size() == 1) {
             return result.get(0);
         } else {
@@ -327,31 +323,30 @@ final public class SnorocketReasoner<T extends Comparable<T>>
         return leafBs;
     }
     
-    private static <T extends Comparable<T>> IConceptSet getAncestors(NormalisedOntology<T> no, int conceptInt) {
+    private static IConceptSet getAncestors(NormalisedOntology no, int conceptInt) {
         return no.getContextIndex().get(conceptInt).getS();
     }
 
-    final static class Builder<T extends Comparable<T>> {
-        final private NormalisedOntology<T> no;
-        final private IFactory<T> factory;
+    final static class Builder {
+        final private NormalisedOntology no;
+        final private IFactory factory;
         final private Map<Integer, RoleSet> rc;
 
-        final private List<IExistential<T>> items = new ArrayList<IExistential<T>>();
+        final private List<IExistential> items = new ArrayList<IExistential>();
 
-        private Builder(NormalisedOntology<T> no) {
+        private Builder(NormalisedOntology no) {
             this.no = no;
             this.factory = no.factory;
             this.rc = no.getRoleClosureCache();
         }
         
-        @SuppressWarnings("unchecked")
-        static <T extends Comparable<T>> IConcept build(NormalisedOntology<T> no, IConcept... concepts) {
+        static IConcept build(NormalisedOntology no, IConcept... concepts) {
             final List<IConcept> list = new ArrayList<IConcept>();
-            final Builder<T> b = new Builder<T>(no);
+            final Builder b = new Builder(no);
             
             for (final IConcept member: concepts) {
                 if (member instanceof IExistential) {
-                    final IExistential<T> existential = (IExistential<T>) member;
+                    final IExistential existential = (IExistential) member;
                     
                     b.build(existential.getRole(), build(no, existential.getConcept()));
                 } else {
@@ -368,12 +363,11 @@ final public class SnorocketReasoner<T extends Comparable<T>>
             }
         }
         
-        @SuppressWarnings("unchecked")
-        private static <T extends Comparable<T>> IConcept buildOne(NormalisedOntology<T> no, IConcept concept) {
+        private static IConcept buildOne(NormalisedOntology no, IConcept concept) {
             if (concept instanceof IExistential) {
-                final IExistential<T> existential = (IExistential<T>) concept;
+                final IExistential existential = (IExistential) concept;
                 
-                return new Existential<T>(existential.getRole(), buildOne(no, existential.getConcept()));
+                return new Existential(existential.getRole(), buildOne(no, existential.getConcept()));
             } else if (concept instanceof IConjunction) {
                 return build(no, ((IConjunction) concept).getConcepts());
             } else if (concept instanceof INamedConcept) {
@@ -389,8 +383,7 @@ final public class SnorocketReasoner<T extends Comparable<T>>
          * <li> We are trying to add something that makes an already-added thing redundant
          * </ol>
          */
-        @SuppressWarnings("unchecked")
-        private void build(INamedRole<T> role, IConcept concept) {
+        private void build(INamedRole role, IConcept concept) {
             if (!(concept instanceof INamedConcept)) {
                 log.debug("WARNING: pass through of complex value: " + concept);
                 doAdd(role, concept);
@@ -398,16 +391,16 @@ final public class SnorocketReasoner<T extends Comparable<T>>
             }
             if (log.isTraceEnabled()) log.trace("check for subsumption: " + role + "." + concept);
 
-            final int cInt = factory.getConcept(((INamedConcept<T>) concept).getId());
+            final int cInt = factory.getConcept(((INamedConcept) concept).getId());
             final IConceptSet cAncestorSet = getAncestors(no, cInt);
             final int rInt = factory.getRole(role.getId());
             final RoleSet rSet = rc.get(rInt);
 
-            final List<IExistential<T>> remove = new ArrayList<IExistential<T>>();
+            final List<IExistential> remove = new ArrayList<IExistential>();
             boolean subsumed = false;
 
-            for (IExistential<T> candidate: items) {
-                final int dInt = factory.getConcept(((INamedConcept<T>) candidate.getConcept()).getId());
+            for (IExistential candidate: items) {
+                final int dInt = factory.getConcept(((INamedConcept) candidate.getConcept()).getId());
                 final IConceptSet dAncestorSet = getAncestors(no, dInt);
                 final int sInt = factory.getRole(candidate.getRole().getId());
                 final RoleSet sSet = rc.get(sInt);
@@ -441,12 +434,12 @@ final public class SnorocketReasoner<T extends Comparable<T>>
             }
         }
         
-        private Collection<IExistential<T>> get() {
+        private Collection<IExistential> get() {
             return items;
         }
 
-        private void doAdd(INamedRole<T> role, IConcept concept) {
-            items.add(new Existential<T>(role, concept));
+        private void doAdd(INamedRole role, IConcept concept) {
+            items.add(new Existential(role, concept));
         }
 
     }
@@ -455,12 +448,12 @@ final public class SnorocketReasoner<T extends Comparable<T>>
      * @deprecated Use {@link SnorocketReasoner#getClassifiedOntology()} 
      * instead.
      */
-    public Taxonomy<T> getTaxonomy() {
+    public Taxonomy getTaxonomy() {
         if(no == null)
             return null;
         
-        Map<T, Node<T>> res = no.getTaxonomy();
-        return new Taxonomy<T>(res);
+        Map<String, Node> res = no.getTaxonomy();
+        return new Taxonomy(res);
     }
 
     public void save(OutputStream out) {
@@ -508,11 +501,11 @@ final public class SnorocketReasoner<T extends Comparable<T>>
         }
     }
 
-    public void loadAxioms(IOntology<T> ont) {
+    public void loadAxioms(IOntology ont) {
         loadAxioms(new HashSet<IAxiom>(ont.getStatedAxioms()));
     }
 
-    public IReasoner<T> classify() {
+    public IReasoner classify() {
         if(!isClassified) {
             no.classify();
             isClassified = true;

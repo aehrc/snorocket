@@ -36,7 +36,7 @@ import au.csiro.snorocket.core.model.Existential;
  * @author Michael Lawley
  * 
  */
-public class GCI<T> extends Inclusion<T> {
+public class GCI extends Inclusion {
     
     /**
      * 
@@ -92,8 +92,7 @@ public class GCI<T> extends Inclusion<T> {
         return rhs;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public Inclusion<T>[] normalise1(final IFactory factory) {
+    public Inclusion[] normalise1(final IFactory factory) {
         final Inclusion[] result = { null, null };
 
         if (rule2(factory, result) || rule3(factory, result) || rule4(result)) {
@@ -103,7 +102,6 @@ public class GCI<T> extends Inclusion<T> {
         return null;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     public Inclusion[] normalise2(final IFactory factory) {
         final Inclusion[] result = { null, null, null, null, null, null, null,
                 null };
@@ -123,7 +121,6 @@ public class GCI<T> extends Inclusion<T> {
      * @param gcis
      * @return
      */
-    @SuppressWarnings("rawtypes")
     boolean rule2(final IFactory factory, final Inclusion[] gcis) {
         boolean result = false;
 
@@ -189,7 +186,6 @@ public class GCI<T> extends Inclusion<T> {
      * @param gcis
      * @return
      */
-    @SuppressWarnings("rawtypes")
     boolean rule3(final IFactory factory, final Inclusion[] gcis) {
         boolean result = false;
 
@@ -217,7 +213,7 @@ public class GCI<T> extends Inclusion<T> {
      * @param gcis
      * @return
      */
-    boolean rule4(Inclusion<T>[] gcis) {
+    boolean rule4(Inclusion[] gcis) {
         boolean result = false;
         return result;
     }
@@ -228,7 +224,6 @@ public class GCI<T> extends Inclusion<T> {
      * @param gcis
      * @return
      */
-    @SuppressWarnings("rawtypes")
     boolean rule5(final IFactory factory, final Inclusion[] gcis) {
         boolean result = false;
 
@@ -248,7 +243,6 @@ public class GCI<T> extends Inclusion<T> {
      * @param gcis
      * @return
      */
-    @SuppressWarnings("rawtypes")
     boolean rule6(final IFactory factory, final Inclusion[] gcis) {
         boolean result = false;
 
@@ -267,7 +261,6 @@ public class GCI<T> extends Inclusion<T> {
         return result;
     }
 
-    @SuppressWarnings("rawtypes")
     private Concept getA(final IFactory factory, final AbstractConcept cHat) {
         final boolean alreadyExists = factory.conceptExists(cHat);
         final int a = factory.getConcept(cHat);
@@ -287,8 +280,7 @@ public class GCI<T> extends Inclusion<T> {
      * @param gcis
      * @return
      */
-    @SuppressWarnings("unchecked")
-    Inclusion<T>[] rule7(Inclusion<T>[] gcis) {
+    Inclusion[] rule7(Inclusion[] gcis) {
         assert isRule7Applicable();
 
         final Conjunction conjunction = (Conjunction) rhs;
@@ -299,7 +291,7 @@ public class GCI<T> extends Inclusion<T> {
         }
 
         for (int i = 0; i < concepts.length; i++) {
-            gcis[i] = new GCI<T>(lhs, concepts[i]);
+            gcis[i] = new GCI(lhs, concepts[i]);
         }
 
         return gcis;
@@ -310,7 +302,6 @@ public class GCI<T> extends Inclusion<T> {
         return hashCode;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object obj) {
         if (this == obj)

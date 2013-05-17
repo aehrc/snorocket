@@ -113,10 +113,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private final List<OWLOntologyChange> rawChanges = new ArrayList<OWLOntologyChange>();
     
     // The reasoner
-    private IReasoner<String> reasoner = new SnorocketReasoner<String>();
+    private IReasoner reasoner = new SnorocketReasoner();
     
     // The taxonomy
-    private IOntology<String> taxonomy = null;
+    private IOntology taxonomy = null;
 
     /**
      * 
@@ -193,10 +193,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @param oc
      * @return
      */
-    private au.csiro.ontology.Node<String> getNode(OWLClass oc) {
+    private au.csiro.ontology.Node getNode(OWLClass oc) {
         final Object id = getId(oc);
         
-        final au.csiro.ontology.Node<String> n;
+        final au.csiro.ontology.Node n;
         
         if(id instanceof String) {
             n = getTaxonomy().getNode((String)id);
@@ -240,7 +240,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @param n
      * @return
      */
-    private Node<OWLClass> nodeToOwlClassNode(au.csiro.ontology.Node<String> n) {
+    private Node<OWLClass> nodeToOwlClassNode(au.csiro.ontology.Node n) {
         assert n != null;
         
         Node<OWLClass> node = new OWLClassNode();
@@ -260,9 +260,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @param nodes
      * @return
      */
-    private NodeSet<OWLClass> nodesToOwlClassNodeSet(Set<au.csiro.ontology.Node<String>> nodes) {
+    private NodeSet<OWLClass> nodesToOwlClassNodeSet(Set<au.csiro.ontology.Node> nodes) {
         Set<Node<OWLClass>> temp = new HashSet<Node<OWLClass>>();
-        for (au.csiro.ontology.Node<String> n : nodes) {
+        for (au.csiro.ontology.Node n : nodes) {
             temp.add(nodeToOwlClassNode(n));
         }
         return new OWLClassNodeSet(temp);
@@ -272,7 +272,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         Set<IAxiom> canAxioms = new HashSet<IAxiom>();
         OWLImporter oi = new OWLImporter(ont);
         
-        Iterator<IOntology<String>> it = null;
+        Iterator<IOntology> it = null;
         try {
             it = oi.getOntologyVersions(monitor);
         } catch(RuntimeException e) {
@@ -290,7 +290,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             return null;
         }
         while(it.hasNext()) {
-            IOntology<String> o = it.next();
+            IOntology o = it.next();
             canAxioms.addAll(o.getStatedAxioms());
         }
         
@@ -301,7 +301,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         Set<IAxiom> canAxioms = new HashSet<IAxiom>();
         OWLImporter oi = new OWLImporter(axioms);
         
-        Iterator<IOntology<String>> it = null;
+        Iterator<IOntology> it = null;
         try {
             it = oi.getOntologyVersions(monitor);
         } catch(RuntimeException e) {
@@ -319,7 +319,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             return null;
         }
         while(it.hasNext()) {
-            IOntology<String> o = it.next();
+            IOntology o = it.next();
             canAxioms.addAll(o.getStatedAxioms());
         }
         
@@ -346,7 +346,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * 
      * @return
      */
-    private IOntology<String> getTaxonomy() {
+    private IOntology getTaxonomy() {
         if(taxonomy == null) {
             taxonomy = reasoner.getClassifiedOntology();
         }
@@ -661,7 +661,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             // If the node that contains OWLNothing contains this OWLClass then
             // it is not satisfiable
             Object id = getId(classExpression.asOWLClass());
-            au.csiro.ontology.Node<String> bottom = 
+            au.csiro.ontology.Node bottom = 
                     getTaxonomy().getBottomNode();
             return !bottom.getEquivalentConcepts().contains(id);
         }
@@ -805,7 +805,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      *         with a parameter of <code>owl:Thing</code>.
      */
     public Node<OWLClass> getTopClassNode() {
-        au.csiro.ontology.Node<String> top = getTaxonomy().getTopNode();
+        au.csiro.ontology.Node top = getTaxonomy().getTopNode();
         return nodeToOwlClassNode(top);
     }
     
@@ -872,28 +872,28 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         checkOntologyConsistent();
         checkNamedClass(ce);
         
-        au.csiro.ontology.Node<String> n = getNode(ce.asOWLClass());
+        au.csiro.ontology.Node n = getNode(ce.asOWLClass());
         if(n == null) {
             // TODO: add logging and warn!
             return new OWLClassNodeSet();
         }
         
-        Set<au.csiro.ontology.Node<String>> children = n.getChildren();
+        Set<au.csiro.ontology.Node> children = n.getChildren();
 
         if (direct) {
             // Transform the response back into owlapi objects
             return nodesToOwlClassNodeSet(children);
         } else {
-            Set<au.csiro.ontology.Node<String>> res = 
-                    new HashSet<au.csiro.ontology.Node<String>>();
-            Queue<Set<au.csiro.ontology.Node<String>>> todo = 
-                    new LinkedList<Set<au.csiro.ontology.Node<String>>>();
+            Set<au.csiro.ontology.Node> res = 
+                    new HashSet<au.csiro.ontology.Node>();
+            Queue<Set<au.csiro.ontology.Node>> todo = 
+                    new LinkedList<Set<au.csiro.ontology.Node>>();
             todo.add(children);
             while (!todo.isEmpty()) {
-                Set<au.csiro.ontology.Node<String>> items = todo.remove();
+                Set<au.csiro.ontology.Node> items = todo.remove();
                 res.addAll(items);
-                for (au.csiro.ontology.Node<String> item : items) {
-                    Set<au.csiro.ontology.Node<String>> cn = item.getChildren();
+                for (au.csiro.ontology.Node item : items) {
+                    Set<au.csiro.ontology.Node> cn = item.getChildren();
                     if (!cn.isEmpty())
                         todo.add(cn);
                 }
@@ -965,27 +965,27 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         checkOntologyConsistent();
         checkNamedClass(ce);
         
-        au.csiro.ontology.Node<String> n = getNode(ce.asOWLClass());
+        au.csiro.ontology.Node n = getNode(ce.asOWLClass());
         if(n == null) {
             // TODO: add logging and warn!
             return new OWLClassNodeSet();
         }
-        Set<au.csiro.ontology.Node<String>> parents = n.getParents();
+        Set<au.csiro.ontology.Node> parents = n.getParents();
 
         if (direct) {
             // Transform the response back into owlapi objects
             return nodesToOwlClassNodeSet(parents);
         } else {
-            Set<au.csiro.ontology.Node<String>> res = 
-                    new HashSet<au.csiro.ontology.Node<String>>();
-            Queue<Set<au.csiro.ontology.Node<String>>> todo = 
-                    new LinkedList<Set<au.csiro.ontology.Node<String>>>();
+            Set<au.csiro.ontology.Node> res = 
+                    new HashSet<au.csiro.ontology.Node>();
+            Queue<Set<au.csiro.ontology.Node>> todo = 
+                    new LinkedList<Set<au.csiro.ontology.Node>>();
             todo.add(parents);
             while (!todo.isEmpty()) {
-                Set<au.csiro.ontology.Node<String>> items = todo.remove();
+                Set<au.csiro.ontology.Node> items = todo.remove();
                 res.addAll(items);
-                for (au.csiro.ontology.Node<String> item : items) {
-                    Set<au.csiro.ontology.Node<String>> cn = item.getParents();
+                for (au.csiro.ontology.Node item : items) {
+                    Set<au.csiro.ontology.Node> cn = item.getParents();
                     if (!cn.isEmpty())
                         todo.add(cn);
                 }
@@ -1043,7 +1043,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         checkOntologyConsistent();
         checkNamedClass(ce);
 
-        au.csiro.ontology.Node<String> n = getNode(ce.asOWLClass());
+        au.csiro.ontology.Node n = getNode(ce.asOWLClass());
         if(n == null) {
             throw new ReasonerInternalException("Named class "+ ce +
                     " not found!");
@@ -2014,7 +2014,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         owlOntology.getOWLOntologyManager().removeOntologyChangeListener(
                 ontologyChangeListener);
         rawChanges.clear();
-        reasoner = new SnorocketReasoner<String>();
+        reasoner = new SnorocketReasoner();
     }
 
     // //////////////////////////////////////////////////////////////////////////

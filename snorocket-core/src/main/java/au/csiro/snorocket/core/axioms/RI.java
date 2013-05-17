@@ -33,7 +33,7 @@ import au.csiro.snorocket.core.IFactory;
  * 
  * @param rhs
  */
-public class RI<T> extends Inclusion<T> {
+public class RI extends Inclusion {
 
     /**
      * 
@@ -66,9 +66,8 @@ public class RI<T> extends Inclusion<T> {
         return rhs;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    public Inclusion<T>[] normalise1(final IFactory<T> factory) {
+    public Inclusion[] normalise1(final IFactory factory) {
         Inclusion[] result = { null, null };
 
         if (rule1(factory, result)) {
@@ -81,7 +80,7 @@ public class RI<T> extends Inclusion<T> {
     }
 
     @Override
-    public Inclusion<T>[] normalise2(final IFactory<T> factory) {
+    public Inclusion[] normalise2(final IFactory factory) {
         return null;
     }
 
@@ -93,7 +92,7 @@ public class RI<T> extends Inclusion<T> {
      * @param gcis
      * @return
      */
-    boolean rule1(final IFactory<T> factory, final Inclusion<T>[] gcis) {
+    boolean rule1(final IFactory factory, final Inclusion[] gcis) {
         boolean result = false;
 
         // TODO: make this "binarisation" more efficient by doing it for all
@@ -109,8 +108,8 @@ public class RI<T> extends Inclusion<T> {
 
             int[] newLhs2 = { u, lhs[k] };
 
-            gcis[0] = new RI<T>(newLhs1, u);
-            gcis[1] = new RI<T>(newLhs2, rhs);
+            gcis[0] = new RI(newLhs1, u);
+            gcis[1] = new RI(newLhs2, rhs);
         }
 
         return result;
@@ -121,7 +120,6 @@ public class RI<T> extends Inclusion<T> {
         return hashCode;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object obj) {
         if (this == obj)

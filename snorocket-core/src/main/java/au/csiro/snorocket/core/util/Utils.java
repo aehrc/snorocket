@@ -14,24 +14,24 @@ import au.csiro.ontology.Node;
  */
 public class Utils {
     
-    public static void printTaxonomy(Node<String> top, Node<String> bottom, Map<String, String> idNameMap) {
+    public static void printTaxonomy(Node top, Node bottom, Map<String, String> idNameMap) {
     	if(top.equals(bottom)) return;
         System.out.println(nodeToString(top, idNameMap));
-    	for(Node<String> child : top.getChildren()) {
+    	for(Node child : top.getChildren()) {
             printTaxonomyLevel(child, bottom, 1, idNameMap);
         }
     }
     
-    private static void printTaxonomyLevel(Node<String> root, 
-            Node<String> bottom, int level, Map<String, String> idNameMap) {
+    private static void printTaxonomyLevel(Node root, 
+            Node bottom, int level, Map<String, String> idNameMap) {
         if(root.equals(bottom)) return;
         System.out.println(spaces(level)+nodeToString(root, idNameMap));
-        for(Node<String> child : root.getChildren()) {
+        for(Node child : root.getChildren()) {
             printTaxonomyLevel(child, bottom, level+1, idNameMap);
         }
     }
     
-    private static String nodeToString(Node<String> node, Map<String, String> idNameMap) {
+    private static String nodeToString(Node node, Map<String, String> idNameMap) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         for(String concept : node.getEquivalentConcepts()) {
@@ -44,17 +44,16 @@ public class Utils {
         return sb.toString();
     }
     
-    public static void printTaxonomy(Node<String> top, Node<String> bottom) {
-        for(Node<String> child : top.getChildren()) {
+    public static void printTaxonomy(Node top, Node bottom) {
+        for(Node child : top.getChildren()) {
             printTaxonomyLevel(child, bottom, 0);
         }
     }
     
-    private static void printTaxonomyLevel(Node<String> root, 
-            Node<String> bottom, int level) {
+    private static void printTaxonomyLevel(Node root, Node bottom, int level) {
         if(root.equals(bottom)) return;
         System.out.println(spaces(level)+root.toString());
-        for(Node<String> child : root.getChildren()) {
+        for(Node child : root.getChildren()) {
             printTaxonomyLevel(child, bottom, level+1);
         }
     }

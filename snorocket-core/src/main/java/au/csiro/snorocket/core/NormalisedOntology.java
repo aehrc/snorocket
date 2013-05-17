@@ -111,18 +111,20 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
  * @author law223
  * 
  */
-public class NormalisedOntology<T extends Comparable<T>> implements Serializable {
+public class NormalisedOntology implements Serializable {
 
     /**
      * Serialisation version.
      */
     private static final long serialVersionUID = 1L;
 
-    // Logger
+    /**
+     * Logger.
+     */
     private final static Logger log = Logger.getLogger(
             NormalisedOntology.class);
 
-    final protected IFactory<T> factory;
+    final protected IFactory factory;
 
     /**
      * The set of NF1 terms in the ontology
@@ -211,7 +213,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     
     private boolean hasBeenIncrementallyClassified = false;
     
-    private transient Map<T, Node<T>> conceptNodeIndex;
+    private transient Map<String, Node> conceptNodeIndex;
 
     
     private static class ContextComparator implements Comparator<Context>, Serializable {
@@ -234,7 +236,7 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
     /**
      * New inclusions added incrementally.
      */
-    private Set<Inclusion<T>> inclusions = new HashSet<Inclusion<T>>();
+    private Set<Inclusion> inclusions = new HashSet<Inclusion>();
     
     /**
      * Normalised axioms added incrementally.
@@ -294,11 +296,11 @@ public class NormalisedOntology<T extends Comparable<T>> implements Serializable
      * @param factory
      * @param inclusions
      */
-    public NormalisedOntology(final IFactory<T> factory,
+    public NormalisedOntology(final IFactory factory,
             final Set<? extends IAxiom> inclusions) {
         this(factory);
         
-        for (Inclusion<T> i : normalise(inclusions)) {
+        for (Inclusion i : normalise(inclusions)) {
             addTerm(i.getNormalForm());
         }
     }
@@ -313,7 +315,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      *            impacted
      * @param roleCount
      */
-    public NormalisedOntology(final IFactory<T> factory) {
+    public NormalisedOntology(final IFactory factory) {
         // TODO: how do we estimate these numbers better?
         this(
             factory,
@@ -338,7 +340,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      * @param nf8q
      */
     protected NormalisedOntology(
-            final IFactory<T> factory,
+            final IFactory factory,
             final IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> nf1q,
             final IConceptMap<MonotonicCollection<NF2>> nf2q,
             final IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>> nf3q,
@@ -368,14 +370,14 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         long start = System.currentTimeMillis();
         if(log.isInfoEnabled())
             log.info("Loading " + inclusions.size() + " axioms");
-        Set<Inclusion<T>> normInclusions = normalise(inclusions);
+        Set<Inclusion> normInclusions = normalise(inclusions);
         if(log.isInfoEnabled())
             log.info("Processing " + normInclusions.size()
                 + " normalised axioms");
         Statistics.INSTANCE.setTime("normalisation",
                 System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
-        for (Inclusion<T> i : normInclusions) {
+        for (Inclusion i : normInclusions) {
             addTerm(i.getNormalForm());
         }
         Statistics.INSTANCE.setTime("indexing", 
@@ -389,16 +391,15 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      * @param axioms The axioms in the ontology model format.
      * @return The axioms in the internal model format.
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private Set<Inclusion<T>> transformAxiom(final Set<? extends IAxiom> axioms) {
-        Set<Inclusion<T>> res = new HashSet<Inclusion<T>>();
+    private Set<Inclusion> transformAxiom(final Set<? extends IAxiom> axioms) {
+        Set<Inclusion> res = new HashSet<Inclusion>();
         
         for(IAxiom aa : axioms) {
             if(aa instanceof IConceptInclusion) {
                 IConceptInclusion ci = (IConceptInclusion)aa;
                 IConcept lhs = ci.lhs();
                 IConcept rhs = ci.rhs();
-                res.add(new GCI<T>(transformConcept(lhs), transformConcept(rhs)));
+                res.add(new GCI(transformConcept(lhs), transformConcept(rhs)));
             } else if(aa instanceof IRoleInclusion) {
                 IRoleInclusion ri = (IRoleInclusion)aa;
                 IRole[] lh = ri.lhs();
@@ -425,14 +426,13 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      * @param c The concept in the ontology model format.
      * @return The concept in the internal model format.
      */
-    @SuppressWarnings("unchecked")
     private au.csiro.snorocket.core.model.AbstractConcept transformConcept(IConcept c) {
-        if(c == au.csiro.ontology.model.Concept.TOP) {
+        if(c.equals(au.csiro.ontology.model.Concept.TOP_CONCEPT)) {
             return new Concept(IFactory.TOP_CONCEPT);
-        } else if(c == au.csiro.ontology.model.Concept.BOTTOM) {
+        } else if(c.equals(au.csiro.ontology.model.Concept.BOTTOM_CONCEPT)) {
             return new Concept(IFactory.BOTTOM_CONCEPT);
         } else if(c instanceof au.csiro.ontology.model.Concept) {
-            return new Concept(factory.getConcept(((au.csiro.ontology.model.Concept<T>)c).getId()));
+            return new Concept(factory.getConcept(((au.csiro.ontology.model.Concept)c).getId()));
         } else if(c instanceof au.csiro.ontology.model.Conjunction) {
             IConcept[] modelCons = ((au.csiro.ontology.model.Conjunction)c).getConcepts();
             au.csiro.snorocket.core.model.AbstractConcept[] cons = 
@@ -442,11 +442,11 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             }
             return new Conjunction(cons);
         } else if(c instanceof au.csiro.ontology.model.Datatype) {
-            au.csiro.ontology.model.Datatype<T> dt = (au.csiro.ontology.model.Datatype<T>) c;
+            au.csiro.ontology.model.Datatype dt = (au.csiro.ontology.model.Datatype) c;
             return new Datatype(factory.getFeature(dt.getFeature().getId()), 
                     dt.getOperator(), transformLiteral(dt.getLiteral()));
         } else if(c instanceof au.csiro.ontology.model.Existential) {
-            au.csiro.ontology.model.Existential<T> e = (au.csiro.ontology.model.Existential<T>) c;
+            au.csiro.ontology.model.Existential e = (au.csiro.ontology.model.Existential) c;
             return new Existential(factory.getRole(e.getRole().getId()), 
                     transformConcept(e.getConcept())); 
         } else {
@@ -484,22 +484,21 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
     /**
      * Returns a set of Inclusions in normal form suitable for classifying.
      */
-    @SuppressWarnings("rawtypes")
-    public Set<Inclusion<T>> normalise(final Set<? extends IAxiom> inclusions) {
+    public Set<Inclusion> normalise(final Set<? extends IAxiom> inclusions) {
         
         // Exhaustively apply NF1 to NF4
-        Set<Inclusion<T>> newIs = transformAxiom(inclusions);
-        Set<Inclusion<T>> oldIs = new HashSet<Inclusion<T>>(newIs.size());
-        final Set<Inclusion<T>> done = new HashSet<Inclusion<T>>(newIs.size());
+        Set<Inclusion> newIs = transformAxiom(inclusions);
+        Set<Inclusion> oldIs = new HashSet<Inclusion>(newIs.size());
+        final Set<Inclusion> done = new HashSet<Inclusion>(newIs.size());
 
         do {
-            final Set<Inclusion<T>> tmp = oldIs;
+            final Set<Inclusion> tmp = oldIs;
             oldIs = newIs;
             newIs = tmp;
             newIs.clear();
 
-            for (Inclusion<T> i : oldIs) {
-                Inclusion<T>[] s = i.normalise1(factory);
+            for (Inclusion i : oldIs) {
+                Inclusion[] s = i.normalise1(factory);
                 if (null != s) {
                     for (int j = 0; j < s.length; j++) {
                         if (null != s[j]) {
@@ -517,13 +516,13 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
 
         // Then exhaustively apply NF5 to NF7
         do {
-            final Set<Inclusion<T>> tmp = oldIs;
+            final Set<Inclusion> tmp = oldIs;
             oldIs = newIs;
             newIs = tmp;
             newIs.clear();
 
-            for (Inclusion<T> i : oldIs) {
-                Inclusion<T>[] s = i.normalise2(factory);
+            for (Inclusion i : oldIs) {
+                Inclusion[] s = i.normalise2(factory);
                 if (null != s) {
                     for (int j = 0; j < s.length; j++) {
                         if (null != s[j]) {
@@ -538,7 +537,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         
         if(log.isTraceEnabled()) {
             log.trace("Normalised axioms:");
-            for(Inclusion<T> inc : done) {
+            for(Inclusion inc : done) {
                 StringBuilder sb = new StringBuilder();
                 if(inc instanceof GCI) {
                     GCI gci = (GCI)inc;
@@ -589,7 +588,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         } else if(o instanceof Datatype) {
             StringBuilder sb = new StringBuilder();
             Datatype d = (Datatype)o;
-            T feature = factory.lookupFeatureId(d.getFeature());
+            String feature = factory.lookupFeatureId(d.getFeature());
             sb.append(feature.toString());
             sb.append(".(");
             Operator op = d.getOperator();
@@ -757,7 +756,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         inclusions.addAll(normalise(incAxioms));
 
         // Add new axioms to corresponding normal form
-        for (Inclusion<T> i : inclusions) {
+        for (Inclusion i : inclusions) {
             NormalFormGCI nf = i.getNormalForm();
             as.addAxiom(nf);
             addTerm(nf);
@@ -779,7 +778,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         int numNewConcepts = 0;
 
         // Determine which contexts are affected
-        for (Inclusion<T> i : inclusions) {
+        for (Inclusion i : inclusions) {
             NormalFormGCI nf = i.getNormalForm();
 
             // Add a context to the context index for every new concept in the
@@ -1425,7 +1424,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         return count;
     }
 
-    public IFactory<T> getFactory() {
+    public IFactory getFactory() {
         return factory;
     }
     
@@ -1468,12 +1467,12 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             for(Iterator<NF2> it2 = mc.iterator(); it2.hasNext(); ) {
                 NF2 nf2 = it2.next();
                 Object oa = factory.lookupConceptId(nf2.lhsA);
-                T r = factory.lookupRoleId(nf2.rhsR);
+                String r = factory.lookupRoleId(nf2.rhsR).toString();
                 Object ob = factory.lookupConceptId(nf2.rhsB);
                 res.add(new ConceptInclusion(
                     transform(oa),
-                    new au.csiro.ontology.model.Existential<T>(
-                            new Role<T>(r), transform(ob))
+                    new au.csiro.ontology.model.Existential(
+                            new Role(r), transform(ob))
                 ));
             }
         }
@@ -1481,7 +1480,8 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         // These terms are of the form r.A [ b and indexed by A.
         for(IntIterator it = ontologyNF3.keyIterator(); it.hasNext(); ) {
             int a = it.next();
-            ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> mc = ontologyNF3.get(a);
+            ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> mc = 
+                    ontologyNF3.get(a);
             Set<Integer> keys = mc.keySet();
             for (int i : keys) {
                 Collection<IConjunctionQueueEntry> cc = mc.get(i);
@@ -1489,11 +1489,11 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
                         it2.hasNext(); ) {
                     IConjunctionQueueEntry nf3 = it2.next();
                     Object oa = factory.lookupConceptId(a);
-                    T r = factory.lookupRoleId(i);
+                    String r = factory.lookupRoleId(i).toString();
                     Object ob = factory.lookupConceptId(nf3.getB());
                     res.add(new ConceptInclusion(
-                        new au.csiro.ontology.model.Existential<T>(
-                            new Role<T>(r), transform(ob)),
+                        new au.csiro.ontology.model.Existential(
+                            new Role(r), transform(ob)),
                         transform(oa)  
                     ));
                 }
@@ -1507,8 +1507,8 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             
             res.add(
                 new RoleInclusion(
-                    new Role<T>(factory.lookupRoleId(r)),
-                    new Role<T>(factory.lookupRoleId(s))
+                    new Role(factory.lookupRoleId(r).toString()),
+                    new Role(factory.lookupRoleId(s).toString())
                 )
             );
         }
@@ -1522,10 +1522,10 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             res.add(
                 new RoleInclusion(
                     new IRole[] {
-                            new Role<T>(factory.lookupRoleId(r)),
-                            new Role<T>(factory.lookupRoleId(s))
+                            new Role(factory.lookupRoleId(r).toString()),
+                            new Role(factory.lookupRoleId(s).toString())
                     },
-                    new Role<T>(factory.lookupRoleId(t))
+                    new Role(factory.lookupRoleId(t).toString())
                 )
             );
         }
@@ -1535,7 +1535,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             res.add(
                 new RoleInclusion(
                     new IRole[] {},
-                    new Role<T>(factory.lookupRoleId(r))
+                    new Role(factory.lookupRoleId(r).toString())
                 )
             );
         }
@@ -1569,7 +1569,6 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         return res;
     }
     
-    @SuppressWarnings("unchecked")
     public IConcept transform(Object o) {
         if(o instanceof Conjunction) {
             Conjunction con = (Conjunction)o;
@@ -1583,11 +1582,11 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             AbstractConcept c = e.getConcept();
             IConcept iconcept = transform(c);
             int role = e.getRole();
-            INamedRole<T> irole = new Role<T>(factory.lookupRoleId(role));
-            return new au.csiro.ontology.model.Existential<T>(irole, iconcept);
+            INamedRole irole = new Role(factory.lookupRoleId(role).toString());
+            return new au.csiro.ontology.model.Existential(irole, iconcept);
         } else if(o instanceof Datatype) {
             Datatype d = (Datatype)o;
-            T feature = factory.lookupFeatureId(d.getFeature());
+            String feature = factory.lookupFeatureId(d.getFeature());
             Operator op = d.getOperator();
             AbstractLiteral literal = d.getLiteral();
             
@@ -1617,13 +1616,13 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
                 throw new RuntimeException("Unexpected literal "+
                         literal.getClass().getName());
             }
-            return new au.csiro.ontology.model.Datatype<T>(
-                    new Feature<T>(feature), op, iliteral);
+            return new au.csiro.ontology.model.Datatype(
+                    new Feature(feature), op, iliteral);
         } else if(o instanceof Concept) {
             Object obj = factory.lookupConceptId(((Concept)o).hashCode());
             return transform(obj);
-        } else if(o instanceof Comparable<?>) {
-            return new au.csiro.ontology.model.Concept<T>((T)o);
+        } else if(o instanceof String) {
+            return new au.csiro.ontology.model.Concept((String) o);
         } else {
             throw new RuntimeException("Unexpected object with class "+
                     o.getClass().getName());
@@ -1637,7 +1636,6 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         this.numThreads = numThreads;
     }
     
-    @SuppressWarnings("unchecked")
     protected void buildTaxonomyConcurrent() {
         long start = System.currentTimeMillis();
         
@@ -1654,7 +1652,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
         for (int j = 0; j < numThreads; j++) {
-            Runnable worker = new TaxonomyWorker1<T>(contextIndex, 
+            Runnable worker = new TaxonomyWorker1(contextIndex, 
                     equiv, direc, factory, todo);
             executor.execute(worker);
         }
@@ -1685,23 +1683,23 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         start = System.currentTimeMillis();
         
         // Part 2 - Creates a node per equivalent concepts
-        conceptNodeIndex = new ConcurrentHashMap<T, Node<T>>();
+        conceptNodeIndex = new ConcurrentHashMap<String, Node>();
         
-        Node<T> top = null;
-        Node<T> bottom = null;
+        Node top = null;
+        Node bottom = null;
         
         IConceptSet processed = new FastConceptHashSet();
-        Set<Node<T>> nodeSet = new HashSet<Node<T>>();
+        Set<Node> nodeSet = new HashSet<Node>();
         
         for(int key : equiv.keySet()) {
             if(processed.contains(key)) continue;
             IConceptSet equivs = equiv.get(key);
             processed.addAll(equivs);
             
-            Node<T> n = new Node<T>();
+            Node n = new Node();
             for(IntIterator it = equivs.iterator(); it.hasNext(); ) {
                 int val = it.next();
-                T tval = factory.lookupConceptId(val);
+                String tval = factory.lookupConceptId(val).toString();
                 n.getEquivalentConcepts().add(tval);
                 conceptNodeIndex.put(tval, n);
 
@@ -1714,15 +1712,15 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         }
             
         if(top == null) {
-            top = new Node<T>();
+            top = new Node();
             top.getEquivalentConcepts().add(
-                    (T)au.csiro.ontology.model.Concept.TOP);
+                    au.csiro.ontology.model.Concept.TOP);
         }
         
         if(bottom == null) {
-            bottom = new Node<T>();
+            bottom = new Node();
             bottom.getEquivalentConcepts().add(
-                    (T)au.csiro.ontology.model.Concept.BOTTOM);
+                    au.csiro.ontology.model.Concept.BOTTOM);
         }
         
         Statistics.INSTANCE.setTime("taxonomy 2",
@@ -1730,10 +1728,10 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         start = System.currentTimeMillis();
         
         // Step 3 - Connects nodes
-        Queue<Node<T>> todo2 = new ConcurrentLinkedQueue<Node<T>>(nodeSet);
+        Queue<Node> todo2 = new ConcurrentLinkedQueue<Node>(nodeSet);
         executor = Executors.newFixedThreadPool(numThreads);
         for (int j = 0; j < numThreads; j++) {
-            Runnable worker = new TaxonomyWorker2<T>(factory, 
+            Runnable worker = new TaxonomyWorker2(factory, 
                     conceptNodeIndex, direc, todo2, nodeSet);
             executor.execute(worker);
         }
@@ -1756,7 +1754,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         // Connect bottom
         nodeSet.remove(bottom);
         bottom.getParents().addAll(nodeSet);
-        for(Node<T> n : nodeSet) {
+        for(Node n : nodeSet) {
             n.getChildren().add(bottom);
         }
         
@@ -1765,11 +1763,11 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         start = System.currentTimeMillis();
         
         // Connect top
-        for (T key : conceptNodeIndex.keySet()) {
-            if (key == au.csiro.ontology.model.Concept.TOP || 
-                    key == au.csiro.ontology.model.Concept.BOTTOM)
+        for (String key : conceptNodeIndex.keySet()) {
+            if (key.equals(au.csiro.ontology.model.Concept.TOP) || 
+                    key.equals(au.csiro.ontology.model.Concept.BOTTOM))
                 continue;
-            Node<T> node = conceptNodeIndex.get(key);
+            Node node = conceptNodeIndex.get(key);
             if (node.getParents().isEmpty()) {
                 node.getParents().add(top);
                 top.getChildren().add(node);
@@ -1790,7 +1788,6 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         set.add(val);
     }
     
-    @SuppressWarnings("unchecked")
     protected void buildTaxonomySequential() {
         long start = System.currentTimeMillis();
         
@@ -1869,22 +1866,22 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
 
         // Introduce one taxonomy node for each distinct class of equivalent
         // concepts
-        conceptNodeIndex = new HashMap<T, Node<T>>();
+        conceptNodeIndex = new HashMap<String, Node>();
         
-        Node<T> top = new Node<T>();
-        top.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.TOP);
+        Node top = new Node();
+        top.getEquivalentConcepts().add(au.csiro.ontology.model.Concept.TOP);
         
-        Node<T> bottom = new Node<T>();
-        bottom.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.BOTTOM);
+        Node bottom = new Node();
+        bottom.getEquivalentConcepts().add(au.csiro.ontology.model.Concept.BOTTOM);
 
         for (IntIterator it = equiv.keyIterator(); it.hasNext();) {
             int key = it.next();
             IConceptSet equivs = equiv.get(key);
             // Check if any of the equivalent classes is already part of an
             // equivalent node
-            Node<T> n = null;
+            Node n = null;
             for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
-                T e = factory.lookupConceptId(it2.next());
+                String e = factory.lookupConceptId(it2.next()).toString();
                 if (conceptNodeIndex.containsKey(e)) {
                     n = conceptNodeIndex.get(e);
                     break;
@@ -1892,11 +1889,11 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             }
 
             if (n == null) {
-                n = new Node<T>();
+                n = new Node();
             }
-            n.getEquivalentConcepts().add(factory.lookupConceptId(key));
+            n.getEquivalentConcepts().add(factory.lookupConceptId(key).toString());
             for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
-                n.getEquivalentConcepts().add(factory.lookupConceptId(it2.next()));
+                n.getEquivalentConcepts().add(factory.lookupConceptId(it2.next()).toString());
             }
             
             for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
@@ -1905,24 +1902,24 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
                     top = n;
                 if (e == CoreFactory.BOTTOM_CONCEPT)
                     bottom = n;
-                conceptNodeIndex.put(factory.lookupConceptId(e), n);
+                conceptNodeIndex.put(factory.lookupConceptId(e).toString(), n);
             }
         }
 
         // Connect the nodes according to the direct super-concept relationships
-        Set<Node<T>> processed = new HashSet<Node<T>>();
-        for (T key : conceptNodeIndex.keySet()) {
-            Node<T> node = conceptNodeIndex.get(key);
+        Set<Node> processed = new HashSet<Node>();
+        for (String key : conceptNodeIndex.keySet()) {
+            Node node = conceptNodeIndex.get(key);
             if (processed.contains(node) || node == top || node == bottom)
                 continue;
             processed.add(node);
-            for (T c : node.getEquivalentConcepts()) {
+            for (String c : node.getEquivalentConcepts()) {
                 // Get direct super-concepts
                 IConceptSet dc = direc.get(factory.getConcept(c));
                 if (dc != null) {
                     for (IntIterator it3 = dc.iterator(); it3.hasNext();) {
                         int d = it3.next();
-                        Node<T> parent = conceptNodeIndex.get(factory.lookupConceptId(d));
+                        Node parent = conceptNodeIndex.get(factory.lookupConceptId(d));
                         if (parent != null) {
                             node.getParents().add(parent);
                             parent.getChildren().add(node);
@@ -1935,15 +1932,15 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
 
         // Add bottom
         if (bottom == null) {
-            bottom = new Node<T>();
-            bottom.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.BOTTOM);
-            conceptNodeIndex.put((T)au.csiro.ontology.model.Concept.BOTTOM, bottom);
+            bottom = new Node();
+            bottom.getEquivalentConcepts().add(au.csiro.ontology.model.Concept.BOTTOM);
+            conceptNodeIndex.put(au.csiro.ontology.model.Concept.BOTTOM, bottom);
         }
 
-        for (T key : conceptNodeIndex.keySet()) {
+        for (String key : conceptNodeIndex.keySet()) {
             if (key == au.csiro.ontology.model.Concept.TOP || key == au.csiro.ontology.model.Concept.BOTTOM)
                 continue;
-            Node<T> node = conceptNodeIndex.get(key);
+            Node node = conceptNodeIndex.get(key);
             if (node.getEquivalentConcepts().contains(au.csiro.ontology.model.Concept.BOTTOM))
                 continue;
             if (node.getChildren().isEmpty()) {
@@ -1954,15 +1951,16 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
 
         // Add top
         if (top == null) {
-            top = new Node<T>();
-            top.getEquivalentConcepts().add((T)au.csiro.ontology.model.Concept.TOP);
-            conceptNodeIndex.put((T)au.csiro.ontology.model.Concept.TOP, top);
+            top = new Node();
+            top.getEquivalentConcepts().add(au.csiro.ontology.model.Concept.TOP);
+            conceptNodeIndex.put(au.csiro.ontology.model.Concept.TOP, top);
         }
 
-        for (T key : conceptNodeIndex.keySet()) {
-            if (key == au.csiro.ontology.model.Concept.TOP || key == au.csiro.ontology.model.Concept.BOTTOM)
+        for (String key : conceptNodeIndex.keySet()) {
+            if (key == au.csiro.ontology.model.Concept.TOP || 
+                    key == au.csiro.ontology.model.Concept.BOTTOM)
                 continue;
-            Node<T> node = conceptNodeIndex.get(key);
+            Node node = conceptNodeIndex.get(key);
             if (node.getParents().isEmpty()) {
                 node.getParents().add(top);
                 top.getChildren().add(node);
@@ -1982,7 +1980,6 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      * 
      * @return
      */
-    @SuppressWarnings("unchecked")
     public void buildTaxonomy() {
         
         // Determine if a full or incremental calculation is required
@@ -2034,25 +2031,25 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             // 2. Create nodes for new concepts and connect to node hierarchy
             // a. First create the nodes and add to index
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
-                final T key = factory.lookupConceptId(itr.next());
-                Node<T> cn = new Node<T>();
+                final String key = factory.lookupConceptId(itr.next()).toString();
+                Node cn = new Node();
                 cn.getEquivalentConcepts().add(key);
                 conceptNodeIndex.put(key, cn);
             }
 
             // b. Now connect the nodes disregarding redundant connections
-            Node<T> bottomNode = conceptNodeIndex.get(au.csiro.ontology.model.Concept.BOTTOM);
+            Node bottomNode = conceptNodeIndex.get(au.csiro.ontology.model.Concept.BOTTOM);
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
                 int id = itr.next();
-                final T key = factory.lookupConceptId(id);
-                Node<T> cn = conceptNodeIndex.get(key);
+                final String key = factory.lookupConceptId(id).toString();
+                Node cn = conceptNodeIndex.get(key);
                 IConceptSet parents = allNew.get(id);
                 for (IntIterator itr2 = parents.iterator(); itr2.hasNext();) {
                     // Create a connection to each parent
                     int parentId = itr2.next();
                     if (parentId == id)
                         continue;
-                    Node<T> parent = conceptNodeIndex.get(factory.lookupConceptId(parentId));
+                    Node parent = conceptNodeIndex.get(factory.lookupConceptId(parentId));
                     cn.getParents().add(parent);
                     parent.getChildren().add(cn);
                     // All nodes that get new children and are connected to BOTTOM
@@ -2066,15 +2063,15 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
 
             for (IntIterator itr = allAffected.keyIterator(); itr.hasNext();) {
                 final int id = itr.next();
-                final T key = factory.lookupConceptId(id);
-                Node<T> cn = conceptNodeIndex.get(key);
+                final String key = factory.lookupConceptId(id).toString();
+                Node cn = conceptNodeIndex.get(key);
                 IConceptSet parents = allAffected.get(id);
                 for (IntIterator itr2 = parents.iterator(); itr2.hasNext();) {
                     // Create a connection to each parent
                     int parentId = itr2.next();
                     if (parentId == id)
                         continue;
-                    Node<T> parent = conceptNodeIndex.get(factory.lookupConceptId(parentId));
+                    Node parent = conceptNodeIndex.get(factory.lookupConceptId(parentId));
                     cn.getParents().add(parent);
                     parent.getChildren().add(cn);
                     // All nodes that get new children and are connected to BOTTOM
@@ -2087,11 +2084,11 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             }
 
             // 3. Connect new nodes without parents to TOP
-            Node<T> topNode = conceptNodeIndex.get(au.csiro.ontology.model.Concept.TOP);
+            Node topNode = conceptNodeIndex.get(au.csiro.ontology.model.Concept.TOP);
 
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
-                final T key = factory.lookupConceptId(itr.next());
-                Node<T> cn = conceptNodeIndex.get(key);
+                final String key = factory.lookupConceptId(itr.next()).toString();
+                Node cn = conceptNodeIndex.get(key);
                 if (cn.getParents().isEmpty()) {
                     cn.getParents().add(topNode);
                     topNode.getChildren().add(cn);
@@ -2102,36 +2099,36 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             // a. Check for equivalents
             Set<Pair> pairsToMerge = new HashSet<Pair>();
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
-                final T key = factory.lookupConceptId(itr.next());
-                Node<T> cn = conceptNodeIndex.get(key);
-                for (Node<T> parent : cn.getParents()) {
+                final String key = factory.lookupConceptId(itr.next()).toString();
+                Node cn = conceptNodeIndex.get(key);
+                for (Node parent : cn.getParents()) {
                     if (parent.getParents().contains(cn)) {
                         pairsToMerge.add(new Pair(cn, parent));
                     }
                 }
             }
             for (IntIterator itr = allAffected.keyIterator(); itr.hasNext();) {
-                final T key = factory.lookupConceptId(itr.next());
-                Node<T> cn = conceptNodeIndex.get(key);
-                for (Node<T> parent : cn.getParents()) {
+                final String key = factory.lookupConceptId(itr.next()).toString();
+                Node cn = conceptNodeIndex.get(key);
+                for (Node parent : cn.getParents()) {
                     if (parent.getParents().contains(cn)) {
                         pairsToMerge.add(new Pair(cn, parent));
                     }
                 }
             }
 
-            Set<Node<T>> affectedByMerge = new HashSet<Node<T>>();
+            Set<Node> affectedByMerge = new HashSet<Node>();
 
             // Merge equivalents
             for (Pair p : pairsToMerge) {
-                Node<T> cn1 = p.getA();
-                Node<T> cn2 = p.getB();
+                Node cn1 = p.getA();
+                Node cn2 = p.getB();
 
                 affectedByMerge.addAll(cn1.getChildren());
                 affectedByMerge.addAll(cn2.getChildren());
 
                 // Merge into cn1 - remove cn2 from index and replace with cn1
-                for (T n : cn2.getEquivalentConcepts()) {
+                for (String n : cn2.getEquivalentConcepts()) {
                     conceptNodeIndex.put(n, cn1);
                 }
 
@@ -2145,12 +2142,12 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
 
                 // Taxonomy is bidirectional
                 cn1.getParents().addAll(cn2.getParents());
-                for (Node<T> parent : cn2.getParents()) {
+                for (Node parent : cn2.getParents()) {
                     parent.getChildren().remove(cn2);
                     parent.getChildren().add(cn1);
                 }
                 cn1.getChildren().addAll(cn2.getChildren());
-                for (Node<T> child : cn2.getChildren()) {
+                for (Node child : cn2.getChildren()) {
                     child.getParents().remove(cn2);
                     child.getParents().add(cn1);
                 }
@@ -2159,7 +2156,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             }
 
             // b. Fix all new and affected nodes
-            Set<Node<T>> all = new HashSet<Node<T>>();
+            Set<Node> all = new HashSet<Node>();
             for (IntIterator it = allNew.keyIterator(); it.hasNext();) {
                 all.add(conceptNodeIndex.get(factory.lookupConceptId(it.next())));
             }
@@ -2168,14 +2165,14 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
                 all.add(conceptNodeIndex.get(factory.lookupConceptId(it.next())));
             }
 
-            for (Node<T> cn : affectedByMerge) {
+            for (Node cn : affectedByMerge) {
                 all.add(cn);
             }
 
             // Add also the children of the affected nodes
-            Set<Node<T>> childrenToAdd = new HashSet<Node<T>>();
-            for (Node<T> cn : all) {
-                for (Node<T> ccn : cn.getChildren()) {
+            Set<Node> childrenToAdd = new HashSet<Node>();
+            for (Node cn : all) {
+                for (Node ccn : cn.getChildren()) {
                     if (ccn.equals(bottomNode))
                         continue;
                     childrenToAdd.add(ccn);
@@ -2184,24 +2181,24 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             all.addAll(childrenToAdd);
 
             // Find redundant relationships
-            for (Node<T> cn : all) {
-                Set<Node<T>> ps = cn.getParents();
+            for (Node cn : all) {
+                Set<Node> ps = cn.getParents();
 
                 Object[] parents = ps.toArray(new Object[ps.size()]);
-                Set<Node<T>> toRemove = new HashSet<Node<T>>();
+                Set<Node> toRemove = new HashSet<Node>();
                 for (int i = 0; i < parents.length; i++) {
                     for (int j = i + 1; j < parents.length; j++) {
-                        if (isChild((Node<T>)parents[j], (Node<T>)parents[i])) {
-                            toRemove.add((Node<T>)parents[i]);
+                        if (isChild((Node)parents[j], (Node)parents[i])) {
+                            toRemove.add((Node)parents[i]);
                             continue;
                         }
-                        if (isChild((Node<T>)parents[i], (Node<T>)parents[j])) {
-                            toRemove.add((Node<T>)parents[j]);
+                        if (isChild((Node)parents[i], (Node)parents[j])) {
+                            toRemove.add((Node)parents[j]);
                             continue;
                         }
                     }
                 }
-                for (Node<T> tr : toRemove) {
+                for (Node tr : toRemove) {
                     cn.getParents().remove(tr);
                     tr.getChildren().remove(cn);
                 }
@@ -2210,7 +2207,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             // 5. Connect bottom to new and affected concepts with no children
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
                 final int key = itr.next();
-                Node<T> cn = conceptNodeIndex.get(factory.lookupConceptId(key));
+                Node cn = conceptNodeIndex.get(factory.lookupConceptId(key));
                 if (cn.getChildren().isEmpty()) {
                     cn.getChildren().add(bottomNode);
                     bottomNode.getParents().add(cn);
@@ -2218,7 +2215,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             }
             for (IntIterator itr = allAffected.keyIterator(); itr.hasNext();) {
                 final int key = itr.next();
-                Node<T> cn = conceptNodeIndex.get(factory.lookupConceptId(key));
+                Node cn = conceptNodeIndex.get(factory.lookupConceptId(key));
                 if (cn.getChildren().isEmpty()) {
                     cn.getChildren().add(bottomNode);
                     bottomNode.getParents().add(cn);
@@ -2228,7 +2225,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             // 6. Connect the top node to new and affected concepts with no parents
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
                 final int key = itr.next();
-                Node<T> cn = conceptNodeIndex.get(factory.lookupConceptId(key));
+                Node cn = conceptNodeIndex.get(factory.lookupConceptId(key));
                 if (cn.getParents().isEmpty()) {
                     cn.getParents().add(topNode);
                     topNode.getChildren().add(cn);
@@ -2236,7 +2233,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             }
             for (IntIterator itr = allAffected.keyIterator(); itr.hasNext();) {
                 final int key = itr.next();
-                Node<T> cn = conceptNodeIndex.get(factory.lookupConceptId(key));
+                Node cn = conceptNodeIndex.get(factory.lookupConceptId(key));
                 if (cn.getParents().isEmpty()) {
                     cn.getParents().add(topNode);
                     topNode.getChildren().add(cn);
@@ -2250,7 +2247,7 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      * 
      * @return
      */
-    public Map<T, Node<T>> getTaxonomy() {
+    public Map<String, Node> getTaxonomy() {
         return conceptNodeIndex;
     }
     
@@ -2260,16 +2257,16 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      * 
      * @return
      */
-    public Set<Node<T>> getAffectedNodes() {
-        Set<Node<T>> res = new HashSet<Node<T>>();
+    public Set<Node> getAffectedNodes() {
+        Set<Node> res = new HashSet<Node>();
         for(IntIterator it = getNewSubsumptions().keyIterator(); 
                         it.hasNext(); ) {
-            T key = factory.lookupConceptId(it.next());
+            String key = factory.lookupConceptId(it.next()).toString();
             res.add(conceptNodeIndex.get(key));
         }
         for(IntIterator it = getAffectedSubsumptions().keyIterator(); 
                         it.hasNext(); ) {
-            T key = factory.lookupConceptId(it.next());
+            String key = factory.lookupConceptId(it.next()).toString();
             res.add(conceptNodeIndex.get(key));
         }
         return res;
@@ -2282,18 +2279,18 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
      * @param cn2
      * @return
      */
-    private boolean isChild(Node<T> cn, Node<T> cn2) {
+    private boolean isChild(Node cn, Node cn2) {
         if (cn == cn2)
             return false;
 
-        Queue<Node<T>> toProcess = new LinkedList<Node<T>>();
+        Queue<Node> toProcess = new LinkedList<Node>();
         toProcess.addAll(cn.getParents());
 
         while (!toProcess.isEmpty()) {
-            Node<T> tcn = toProcess.poll();
+            Node tcn = toProcess.poll();
             if (tcn.equals(cn2))
                 return true;
-            Set<Node<T>> parents = tcn.getParents();
+            Set<Node> parents = tcn.getParents();
             if (parents != null && !parents.isEmpty())
                 toProcess.addAll(parents);
         }
@@ -2303,8 +2300,8 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
     
     class Pair {
 
-        private final Node<T> a;
-        private final Node<T> b;
+        private final Node a;
+        private final Node b;
 
         /**
          * Creates a new pair.
@@ -2312,10 +2309,9 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
          * @param a
          * @param b
          */
-        @SuppressWarnings("unchecked")
-        public Pair(Node<T> a, Node<T> b) {
-            T[] aa = (T[]) new Object[a.getEquivalentConcepts().size()];
-            T[] bb = (T[]) new Object[b.getEquivalentConcepts().size()];
+        public Pair(Node a, Node b) {
+            String[] aa = new String[a.getEquivalentConcepts().size()];
+            String[] bb = new String[b.getEquivalentConcepts().size()];
 
             if (aa.length < bb.length) {
                 this.a = a;
@@ -2325,11 +2321,11 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
                 this.b = a;
             } else {
                 int i = 0;
-                for (T c : a.getEquivalentConcepts()) {
+                for (String c : a.getEquivalentConcepts()) {
                     aa[i++] = c;
                 }
                 i = 0;
-                for (T c : b.getEquivalentConcepts()) {
+                for (String c : b.getEquivalentConcepts()) {
                     bb[i++] = c;
                 }
 
@@ -2361,14 +2357,14 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         /**
          * @return the a
          */
-        public Node<T> getA() {
+        public Node getA() {
             return a;
         }
 
         /**
          * @return the b
          */
-        public Node<T> getB() {
+        public Node getB() {
             return b;
         }
 
@@ -2382,7 +2378,6 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             return result;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public boolean equals(Object obj) {
             if (this == obj)
@@ -2407,7 +2402,6 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
             return true;
         }
 
-        @SuppressWarnings("rawtypes")
         private NormalisedOntology getOuterType() {
             return NormalisedOntology.this;
         }
@@ -2417,35 +2411,35 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         return conceptNodeIndex != null;
     }
     
-    public Node<T> getBottomNode() {
+    public Node getBottomNode() {
         return conceptNodeIndex.get(au.csiro.ontology.model.Concept.BOTTOM);
     }
     
-    public Node<T> getTopNode() {
+    public Node getTopNode() {
         return conceptNodeIndex.get(au.csiro.ontology.model.Concept.TOP);
     }
     
-    public Node<T> getEquivalents(T cid) {
+    public Node getEquivalents(String cid) {
         return conceptNodeIndex.get(cid);
     }
     
     public class TopBottomNodes {
-        private Node<T> top;
-        private Node<T> bottom;
+        private Node top;
+        private Node bottom;
 
-        public Node<T> getTop() {
+        public Node getTop() {
             return top;
         }
 
-        public void setTop(Node<T> top) {
+        public void setTop(Node top) {
             this.top = top;
         }
 
-        public Node<T> getBottom() {
+        public Node getBottom() {
             return bottom;
         }
 
-        public void setBottom(Node<T> bottom) {
+        public void setBottom(Node bottom) {
             this.bottom = bottom;
         }
     }

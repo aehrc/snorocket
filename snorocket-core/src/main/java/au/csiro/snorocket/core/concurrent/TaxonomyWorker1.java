@@ -20,7 +20,7 @@ import au.csiro.snorocket.core.util.IntIterator;
  * @author Alejandro Metke
  *
  */
-public class TaxonomyWorker1<T> implements Runnable {
+public class TaxonomyWorker1 implements Runnable {
     
     private final IConceptMap<Context> contextIndex;
     
@@ -28,7 +28,7 @@ public class TaxonomyWorker1<T> implements Runnable {
     
     private final ConcurrentMap<Integer, IConceptSet> direc;
     
-    private final IFactory<T> factory;
+    private final IFactory factory;
     
     private final Queue<Integer> todo;
     
@@ -37,7 +37,7 @@ public class TaxonomyWorker1<T> implements Runnable {
      */
     public TaxonomyWorker1(IConceptMap<Context> contextIndex, 
             ConcurrentMap<Integer, IConceptSet> equiv, 
-            ConcurrentMap<Integer, IConceptSet> direc, IFactory<T> factory,
+            ConcurrentMap<Integer, IConceptSet> direc, IFactory factory,
             Queue<Integer> todo) {
         this.contextIndex = contextIndex;
         this.equiv = equiv;

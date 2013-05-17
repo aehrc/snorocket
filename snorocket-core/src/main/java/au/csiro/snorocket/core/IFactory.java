@@ -28,11 +28,8 @@ import java.io.Serializable;
  * internally.
  * 
  * @author Alejandro Metke
- *
- * @param <T> The typeof the key used in the factory. The type should support
- * identity based on equals and hashcode.
  */
-public interface IFactory<T> extends Serializable {
+public interface IFactory extends Serializable {
     
     /**
      * Internal id used for the top concept.
@@ -66,7 +63,7 @@ public interface IFactory<T> extends Serializable {
      * @param key
      * @return
      */
-    boolean featureExists(final T key);
+    boolean featureExists(final String key);
     
     /**
      * Returns the internal id of a concept.
@@ -90,7 +87,7 @@ public interface IFactory<T> extends Serializable {
      * @param key
      * @return
      */
-    int getFeature(final T key);
+    int getFeature(final String key);
     
     /**
      * Returns the total number of concepts.
@@ -119,7 +116,7 @@ public interface IFactory<T> extends Serializable {
      * @param id
      * @return
      */
-    T lookupConceptId(final int id);
+    Object lookupConceptId(final int id);
     
     /**
      * Returns the external id of a role given its internal id.
@@ -127,7 +124,7 @@ public interface IFactory<T> extends Serializable {
      * @param id
      * @return
      */
-    T lookupRoleId(final int id);
+    Object lookupRoleId(final int id);
     
     /**
      * Returns a feature given its id.
@@ -135,7 +132,7 @@ public interface IFactory<T> extends Serializable {
      * @param id
      * @return
      */
-    T lookupFeatureId(final int id);
+    String lookupFeatureId(final int id);
     
     /**
      * Indicates if a concept, identified by its internal id, is virtual or

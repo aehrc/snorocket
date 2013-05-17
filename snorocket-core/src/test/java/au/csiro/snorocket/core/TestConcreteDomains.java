@@ -51,58 +51,58 @@ public class TestConcreteDomains {
      */
     //@Test
     public void testConcreteDomainsEqualityInts() {
-        IFactory<String> factory = new CoreFactory<String>();
+        IFactory factory = new CoreFactory();
 
         // Add roles
-        Role<String> container = new Role<String>("container");
-        Role<String> contains = new Role<String>("contains");
+        Role container = new Role("container");
+        Role contains = new Role("contains");
 
         // Add features
-        Feature<String> mgPerTablet = new Feature<String>("mgPerTablet");
+        Feature mgPerTablet = new Feature("mgPerTablet");
 
         // Add concepts
-        Concept<String> panadol = new Concept<String>("Panadol");
-        Concept<String> panadol_250mg = new Concept<String>("Panadol_250mg");
-        Concept<String> panadol_500mg = new Concept<String>("Panadol_500mg");
-        Concept<String> panadol_pack_250mg = 
-                new Concept<String>("Panadol_pack_250mg");
-        Concept<String> paracetamol = new Concept<String>("Paracetamol");
-        Concept<String> bottle = new Concept<String>("Bottle");
+        Concept panadol = new Concept("Panadol");
+        Concept panadol_250mg = new Concept("Panadol_250mg");
+        Concept panadol_500mg = new Concept("Panadol_500mg");
+        Concept panadol_pack_250mg = 
+                new Concept("Panadol_pack_250mg");
+        Concept paracetamol = new Concept("Paracetamol");
+        Concept bottle = new Concept("Bottle");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(panadol, 
-                new Existential<String>(contains, paracetamol));
+                new Existential(contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(250)) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
                 new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(250)) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(500)) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
                 new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(500)) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(250)),
-                        new Existential<String>(container, bottle) }));
+                        new Existential(container, bottle) }));
 
         Set<IAxiom> axioms = new HashSet<IAxiom>();
         axioms.add(a1);
@@ -113,46 +113,46 @@ public class TestConcreteDomains {
         axioms.add(a6);
 
         // Classify
-        NormalisedOntology<String> o = 
-                new NormalisedOntology<String>(factory, axioms);
+        NormalisedOntology o = 
+                new NormalisedOntology(factory, axioms);
         o.classify();
 
         // Build taxonomy
         o.buildTaxonomy();
 
         // Test results
-        Node<String> panadolNode = o.getEquivalents(panadol.getId());
-        Set<Node<String>> panadolRes = panadolNode.getParents();
+        Node panadolNode = o.getEquivalents(panadol.getId());
+        Set<Node> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
         assertTrue(panadolRes.contains(o.getTopNode()));
 
-        Node<String> panadol_250mgNode = o.getEquivalents(panadol_250mg.getId());
-        Set<Node<String>> panadol_250mgRes = panadol_250mgNode.getParents();
+        Node panadol_250mgNode = o.getEquivalents(panadol_250mg.getId());
+        Set<Node> panadol_250mgRes = panadol_250mgNode.getParents();
         assertTrue(panadol_250mgRes.size() == 1);
         assertTrue(panadol_250mgRes
                 .contains(o.getEquivalents(panadol.getId())));
 
-        Node<String> panadol_500mgNode = o.getEquivalents(panadol_500mg.getId());
-        Set<Node<String>> panadol_500mgRes = panadol_500mgNode.getParents();
+        Node panadol_500mgNode = o.getEquivalents(panadol_500mg.getId());
+        Set<Node> panadol_500mgRes = panadol_500mgNode.getParents();
         assertTrue(panadol_500mgRes.size() == 1);
         assertTrue(panadol_500mgRes
                 .contains(o.getEquivalents(panadol.getId())));
 
-        Node<String> panadol_pack_250mgNode = o
+        Node panadol_pack_250mgNode = o
                 .getEquivalents(panadol_pack_250mg.getId());
-        Set<Node<String>> panadol_pack_250mgRes = panadol_pack_250mgNode
+        Set<Node> panadol_pack_250mgRes = panadol_pack_250mgNode
                 .getParents();
         assertTrue(panadol_pack_250mgRes.size() == 1);
         assertTrue(panadol_pack_250mgRes.contains(o
                 .getEquivalents(panadol_250mg.getId())));
 
-        Node<String> paracetamolNode = o.getEquivalents(paracetamol.getId());
-        Set<Node<String>> paracetamolRes = paracetamolNode.getParents();
+        Node paracetamolNode = o.getEquivalents(paracetamol.getId());
+        Set<Node> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
         assertTrue(paracetamolRes.contains(o.getTopNode()));
 
-        Node<String> bottleNode = o.getEquivalents(bottle.getId());
-        Set<Node<String>> bottleRes = bottleNode.getParents();
+        Node bottleNode = o.getEquivalents(bottle.getId());
+        Set<Node> bottleRes = bottleNode.getParents();
         assertTrue(bottleRes.size() == 1);
         assertTrue(bottleRes.contains(o.getTopNode()));
     }
@@ -172,58 +172,58 @@ public class TestConcreteDomains {
      */
     //@Test
     public void testConcreteDomainsEqualityFloats() {
-        IFactory<String> factory = new CoreFactory<String>();
+        IFactory factory = new CoreFactory();
 
         // Add roles
-        Role<String> container = new Role<String>("container");
-        Role<String> contains = new Role<String>("contains");
+        Role container = new Role("container");
+        Role contains = new Role("contains");
 
         // Add features
-        Feature<String> mgPerTablet = new Feature<String>("mgPerTablet");
+        Feature mgPerTablet = new Feature("mgPerTablet");
 
         // Add concepts
-        Concept<String> panadol = new Concept<String>("Panadol");
-        Concept<String> panadol_250mg = new Concept<String>("Panadol_250mg");
-        Concept<String> panadol_500mg = new Concept<String>("Panadol_500mg");
-        Concept<String> panadol_pack_250mg = 
-                new Concept<String>("Panadol_pack_250mg");
-        Concept<String> paracetamol = new Concept<String>("Paracetamol");
-        Concept<String> bottle = new Concept<String>("Bottle");
+        Concept panadol = new Concept("Panadol");
+        Concept panadol_250mg = new Concept("Panadol_250mg");
+        Concept panadol_500mg = new Concept("Panadol_500mg");
+        Concept panadol_pack_250mg = 
+                new Concept("Panadol_pack_250mg");
+        Concept paracetamol = new Concept("Paracetamol");
+        Concept bottle = new Concept("Bottle");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(panadol, 
-                new Existential<String>(contains, paracetamol));
+                new Existential(contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new FloatLiteral(250.0f)) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
                 new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new FloatLiteral(250.0f)) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new FloatLiteral(500.0f)) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
                 new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new FloatLiteral(500.0f)) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new FloatLiteral(250.0f)),
-                        new Existential<String>(container, bottle) }));
+                        new Existential(container, bottle) }));
 
         Set<IAxiom> axioms = new HashSet<IAxiom>();
         axioms.add(a1);
@@ -234,46 +234,46 @@ public class TestConcreteDomains {
         axioms.add(a6);
 
         // Classify
-        NormalisedOntology<String> o = 
-                new NormalisedOntology<String>(factory, axioms);
+        NormalisedOntology o = 
+                new NormalisedOntology(factory, axioms);
         o.classify();
 
         // Build taxonomy
         o.buildTaxonomy();
 
         // Test results
-        Node<String> panadolNode = o.getEquivalents(panadol.getId());
-        Set<Node<String>> panadolRes = panadolNode.getParents();
+        Node panadolNode = o.getEquivalents(panadol.getId());
+        Set<Node> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
         assertTrue(panadolRes.contains(o.getTopNode()));
 
-        Node<String> panadol_250mgNode = o.getEquivalents(panadol_250mg.getId());
-        Set<Node<String>> panadol_250mgRes = panadol_250mgNode.getParents();
+        Node panadol_250mgNode = o.getEquivalents(panadol_250mg.getId());
+        Set<Node> panadol_250mgRes = panadol_250mgNode.getParents();
         assertTrue(panadol_250mgRes.size() == 1);
         assertTrue(panadol_250mgRes
                 .contains(o.getEquivalents(panadol.getId())));
 
-        Node<String> panadol_500mgNode = o.getEquivalents(panadol_500mg.getId());
-        Set<Node<String>> panadol_500mgRes = panadol_500mgNode.getParents();
+        Node panadol_500mgNode = o.getEquivalents(panadol_500mg.getId());
+        Set<Node> panadol_500mgRes = panadol_500mgNode.getParents();
         assertTrue(panadol_500mgRes.size() == 1);
         assertTrue(panadol_500mgRes
                 .contains(o.getEquivalents(panadol.getId())));
 
-        Node<String> panadol_pack_250mgNode = o
+        Node panadol_pack_250mgNode = o
                 .getEquivalents(panadol_pack_250mg.getId());
-        Set<Node<String>> panadol_pack_250mgRes = panadol_pack_250mgNode
+        Set<Node> panadol_pack_250mgRes = panadol_pack_250mgNode
                 .getParents();
         assertTrue(panadol_pack_250mgRes.size() == 1);
         assertTrue(panadol_pack_250mgRes.contains(o
                 .getEquivalents(panadol_250mg.getId())));
 
-        Node<String> paracetamolNode = o.getEquivalents(paracetamol.getId());
-        Set<Node<String>> paracetamolRes = paracetamolNode.getParents();
+        Node paracetamolNode = o.getEquivalents(paracetamol.getId());
+        Set<Node> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
         assertTrue(paracetamolRes.contains(o.getTopNode()));
 
-        Node<String> bottleNode = o.getEquivalents(bottle.getId());
-        Set<Node<String>> bottleRes = bottleNode.getParents();
+        Node bottleNode = o.getEquivalents(bottle.getId());
+        Set<Node> bottleRes = bottleNode.getParents();
         assertTrue(bottleRes.size() == 1);
         assertTrue(bottleRes.contains(o.getTopNode()));
     }
@@ -293,58 +293,58 @@ public class TestConcreteDomains {
      */
     //@Test
     public void testConcreteDomainsEqualityStrings() {
-        IFactory<String> factory = new CoreFactory<String>();
+        IFactory factory = new CoreFactory();
 
         // Add roles
-        Role<String> container = new Role<String>("container");
-        Role<String> contains = new Role<String>("contains");
+        Role container = new Role("container");
+        Role contains = new Role("contains");
 
         // Add features
-        Feature<String> mgPerTablet = new Feature<String>("mgPerTablet");
+        Feature mgPerTablet = new Feature("mgPerTablet");
 
         // Add concepts
-        Concept<String> panadol = new Concept<String>("Panadol");
-        Concept<String> panadol_250mg = new Concept<String>("Panadol_250mg");
-        Concept<String> panadol_500mg = new Concept<String>("Panadol_500mg");
-        Concept<String> panadol_pack_250mg = 
-                new Concept<String>("Panadol_pack_250mg");
-        Concept<String> paracetamol = new Concept<String>("Paracetamol");
-        Concept<String> bottle = new Concept<String>("Bottle");
+        Concept panadol = new Concept("Panadol");
+        Concept panadol_250mg = new Concept("Panadol_250mg");
+        Concept panadol_500mg = new Concept("Panadol_500mg");
+        Concept panadol_pack_250mg = 
+                new Concept("Panadol_pack_250mg");
+        Concept paracetamol = new Concept("Paracetamol");
+        Concept bottle = new Concept("Bottle");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(panadol, 
-                new Existential<String>(contains, paracetamol));
+                new Existential(contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new StringLiteral("250")) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
                 new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new StringLiteral("250")) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new StringLiteral("500")) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
                 new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new StringLiteral("500")) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new StringLiteral("250")),
-                        new Existential<String>(container, bottle) }));
+                        new Existential(container, bottle) }));
 
         Set<IAxiom> axioms = new HashSet<IAxiom>();
         axioms.add(a1);
@@ -355,46 +355,46 @@ public class TestConcreteDomains {
         axioms.add(a6);
 
         // Classify
-        NormalisedOntology<String> o = 
-                new NormalisedOntology<String>(factory, axioms);
+        NormalisedOntology o = 
+                new NormalisedOntology(factory, axioms);
         o.classify();
 
         // Build taxonomy
         o.buildTaxonomy();
 
         // Test results
-        Node<String> panadolNode = o.getEquivalents(panadol.getId());
-        Set<Node<String>> panadolRes = panadolNode.getParents();
+        Node panadolNode = o.getEquivalents(panadol.getId());
+        Set<Node> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
         assertTrue(panadolRes.contains(o.getTopNode()));
 
-        Node<String> panadol_250mgNode = o.getEquivalents(panadol_250mg.getId());
-        Set<Node<String>> panadol_250mgRes = panadol_250mgNode.getParents();
+        Node panadol_250mgNode = o.getEquivalents(panadol_250mg.getId());
+        Set<Node> panadol_250mgRes = panadol_250mgNode.getParents();
         assertTrue(panadol_250mgRes.size() == 1);
         assertTrue(panadol_250mgRes
                 .contains(o.getEquivalents(panadol.getId())));
 
-        Node<String> panadol_500mgNode = o.getEquivalents(panadol_500mg.getId());
-        Set<Node<String>> panadol_500mgRes = panadol_500mgNode.getParents();
+        Node panadol_500mgNode = o.getEquivalents(panadol_500mg.getId());
+        Set<Node> panadol_500mgRes = panadol_500mgNode.getParents();
         assertTrue(panadol_500mgRes.size() == 1);
         assertTrue(panadol_500mgRes
                 .contains(o.getEquivalents(panadol.getId())));
 
-        Node<String> panadol_pack_250mgNode = o
+        Node panadol_pack_250mgNode = o
                 .getEquivalents(panadol_pack_250mg.getId());
-        Set<Node<String>> panadol_pack_250mgRes = panadol_pack_250mgNode
+        Set<Node> panadol_pack_250mgRes = panadol_pack_250mgNode
                 .getParents();
         assertTrue(panadol_pack_250mgRes.size() == 1);
         assertTrue(panadol_pack_250mgRes.contains(o
                 .getEquivalents(panadol_250mg.getId())));
 
-        Node<String> paracetamolNode = o.getEquivalents(paracetamol.getId());
-        Set<Node<String>> paracetamolRes = paracetamolNode.getParents();
+        Node paracetamolNode = o.getEquivalents(paracetamol.getId());
+        Set<Node> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
         assertTrue(paracetamolRes.contains(o.getTopNode()));
 
-        Node<String> bottleNode = o.getEquivalents(bottle.getId());
-        Set<Node<String>> bottleRes = bottleNode.getParents();
+        Node bottleNode = o.getEquivalents(bottle.getId());
+        Set<Node> bottleRes = bottleNode.getParents();
         assertTrue(bottleRes.size() == 1);
         assertTrue(bottleRes.contains(o.getTopNode()));
     }
@@ -406,50 +406,50 @@ public class TestConcreteDomains {
      */
     //@Test
     public void testConcreteDomainsOperators() {
-        IFactory<String> factory = new CoreFactory<String>();
+        IFactory factory = new CoreFactory();
 
         // Add roles
-        Role<String> contains = new Role<String>("contains");
-        Role<String> hasPrescription = new Role<String>("hasPrescription");
+        Role contains = new Role("contains");
+        Role hasPrescription = new Role("hasPrescription");
 
         // Add features
-        Feature<String> mgPerTablet = new Feature<String>("mgPerTablet");
-        Feature<String> hasAge = new Feature<String>("hasAge");
+        Feature mgPerTablet = new Feature("mgPerTablet");
+        Feature hasAge = new Feature("hasAge");
 
         // Add concepts
-        Concept<String> panadol = new Concept<String>("Panadol");
-        Concept<String> paracetamol = new Concept<String>("Paracetamol");
-        Concept<String> patient = new Concept<String>("Patient");
-        Concept<String> X = new Concept<String>("X");
+        Concept panadol = new Concept("Panadol");
+        Concept paracetamol = new Concept("Paracetamol");
+        Concept patient = new Concept("Patient");
+        Concept X = new Concept("X");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(panadol, 
-                new Existential<String>(contains, 
+                new Existential(contains, 
                         new Conjunction(new IConcept[] {
                         paracetamol,
-                        new Datatype<String>(mgPerTablet, Operator.EQUALS,
+                        new Datatype(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(500)) })));
 
         ConceptInclusion a2 = new ConceptInclusion(
                 new Conjunction(new IConcept[] {
                         patient,
-                        new Datatype<String>(hasAge, Operator.LESS_THAN,
+                        new Datatype(hasAge, Operator.LESS_THAN,
                                 new IntegerLiteral(6)),
-                        new Existential<String>(hasPrescription, 
-                                new Existential<String>(contains,
+                        new Existential(hasPrescription, 
+                                new Existential(contains,
                                 new Conjunction(new IConcept[] {
                                         paracetamol,
-                                        new Datatype<String>(mgPerTablet,
+                                        new Datatype(mgPerTablet,
                                                 Operator.GREATER_THAN,
                                                 new IntegerLiteral(250)) }))) }),
-                Concept.BOTTOM);
+                Concept.BOTTOM_CONCEPT);
 
         ConceptInclusion a3 = new ConceptInclusion(X, new Conjunction(
                 new IConcept[] {
                         patient,
-                        new Datatype<String>(hasAge, Operator.EQUALS,
+                        new Datatype(hasAge, Operator.EQUALS,
                                 new IntegerLiteral(3)),
-                        new Existential<String>(hasPrescription, panadol) }));
+                        new Existential(hasPrescription, panadol) }));
 
         Set<IAxiom> axioms = new HashSet<IAxiom>();
         axioms.add(a1);
@@ -457,34 +457,34 @@ public class TestConcreteDomains {
         axioms.add(a3);
 
         // Classify
-        NormalisedOntology<String> o = 
-                new NormalisedOntology<String>(factory, axioms);
+        NormalisedOntology o = 
+                new NormalisedOntology(factory, axioms);
         o.classify();
         
         // Build taxonomy
         o.buildTaxonomy();
 
         // Test results
-        Node<String> panadolNode = o.getEquivalents(panadol.getId());
-        Set<Node<String>> panadolRes = panadolNode.getParents();
+        Node panadolNode = o.getEquivalents(panadol.getId());
+        Set<Node> panadolRes = panadolNode.getParents();
         assertTrue(panadolRes.size() == 1);
         assertTrue(panadolRes
                 .contains(o.getTopNode()));
 
-        Node<String> paracetamolNode = o.getEquivalents(paracetamol.getId());
-        Set<Node<String>> paracetamolRes = paracetamolNode.getParents();
+        Node paracetamolNode = o.getEquivalents(paracetamol.getId());
+        Set<Node> paracetamolRes = paracetamolNode.getParents();
         assertTrue(paracetamolRes.size() == 1);
         assertTrue(paracetamolRes.contains(o.getTopNode()));
 
-        Node<String> patientNode = o.getEquivalents(patient.getId());
-        Set<Node<String>> patientRes = patientNode.getParents();
+        Node patientNode = o.getEquivalents(patient.getId());
+        Set<Node> patientRes = patientNode.getParents();
         assertTrue(patientRes.size() == 1);
         assertTrue(patientRes.contains(o.getTopNode()));
 
-        Node<String> bottomNode = o.getBottomNode();
+        Node bottomNode = o.getBottomNode();
         assertTrue(bottomNode.getEquivalentConcepts().size() == 2);
         assertTrue(bottomNode.getEquivalentConcepts().contains(X.getId()));
-        Set<Node<String>> bottomRes = bottomNode.getParents();
+        Set<Node> bottomRes = bottomNode.getParents();
         assertTrue(bottomRes.size() == 3);
         assertTrue(bottomRes.contains(o.getEquivalents(panadol.getId())));
         assertTrue(bottomRes.contains(o.getEquivalents(paracetamol.getId())));
@@ -493,30 +493,30 @@ public class TestConcreteDomains {
     
     @Test
     public void testConcreteDomainsInequality() {
-        IFactory<String> factory = new CoreFactory<String>();
+        IFactory factory = new CoreFactory();
 
         // Add features
-        Feature<String> strength = new Feature<String>("strength");
+        Feature strength = new Feature("strength");
 
         // Add concepts
-        Concept<String> cat10 = new Concept<String>("CAT10");
-        Concept<String> catLt10 = new Concept<String>("CAT_LT10");
+        Concept cat10 = new Concept("CAT10");
+        Concept catLt10 = new Concept("CAT_LT10");
 
         // Add axioms
         ConceptInclusion ax1 = new ConceptInclusion(cat10, 
-                new Datatype<String>(strength, Operator.EQUALS, 
+                new Datatype(strength, Operator.EQUALS, 
                 new FloatLiteral(10)));
         
         ConceptInclusion ax1b = new ConceptInclusion( 
-                new Datatype<String>(strength, Operator.EQUALS, 
+                new Datatype(strength, Operator.EQUALS, 
                 new FloatLiteral(10)), cat10);
         
         ConceptInclusion ax2 = new ConceptInclusion(catLt10, 
-                new Datatype<String>(strength, Operator.LESS_THAN, 
+                new Datatype(strength, Operator.LESS_THAN, 
                 new FloatLiteral(10)));
         
         ConceptInclusion ax2b = new ConceptInclusion( 
-                new Datatype<String>(strength, Operator.LESS_THAN, 
+                new Datatype(strength, Operator.LESS_THAN, 
                 new FloatLiteral(10)), catLt10);
 
         
@@ -528,24 +528,24 @@ public class TestConcreteDomains {
         axioms.add(ax2b);
 
         // Classify
-        NormalisedOntology<String> o = 
-                new NormalisedOntology<String>(factory, axioms);
+        NormalisedOntology o = 
+                new NormalisedOntology(factory, axioms);
         o.classify();
         
         // Build taxonomy
         o.buildTaxonomy();
 
         // Test results
-        Node<String> cat10Node = o.getEquivalents(cat10.getId());
-        Set<Node<String>> cat10Children = cat10Node.getChildren();
+        Node cat10Node = o.getEquivalents(cat10.getId());
+        Set<Node> cat10Children = cat10Node.getChildren();
         Assert.assertEquals(1, cat10Children.size());
-        Node<String> cat10Child = cat10Children.iterator().next();
+        Node cat10Child = cat10Children.iterator().next();
         Assert.assertEquals(o.getBottomNode(), cat10Child);
 
-        Node<String> catLt10Node = o.getEquivalents(catLt10.getId());
-        Set<Node<String>> catLt10Children = catLt10Node.getChildren();
+        Node catLt10Node = o.getEquivalents(catLt10.getId());
+        Set<Node> catLt10Children = catLt10Node.getChildren();
         Assert.assertEquals(1, catLt10Children.size());
-        Node<String> catLt10Child = catLt10Children.iterator().next();
+        Node catLt10Child = catLt10Children.iterator().next();
         Assert.assertEquals(o.getBottomNode(), catLt10Child);
     }
 
