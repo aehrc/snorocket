@@ -49,7 +49,7 @@ public class TestConcreteDomains {
      *   -Paracetamol
      * 
      */
-    //@Test
+    @Test
     public void testConcreteDomainsEqualityInts() {
         IFactory factory = new CoreFactory();
 
@@ -170,7 +170,7 @@ public class TestConcreteDomains {
      *   -Paracetamol
      * 
      */
-    //@Test
+    @Test
     public void testConcreteDomainsEqualityFloats() {
         IFactory factory = new CoreFactory();
 
@@ -291,7 +291,7 @@ public class TestConcreteDomains {
      *   -Paracetamol
      * 
      */
-    //@Test
+    @Test
     public void testConcreteDomainsEqualityStrings() {
         IFactory factory = new CoreFactory();
 
@@ -404,7 +404,7 @@ public class TestConcreteDomains {
      * the Description Logic EL with Numerical Datatypes". It uses integer
      * values and the operators less than, equals, and greater than.
      */
-    //@Test
+    @Test
     public void testConcreteDomainsOperators() {
         IFactory factory = new CoreFactory();
 
@@ -547,6 +547,173 @@ public class TestConcreteDomains {
         Assert.assertEquals(1, catLt10Children.size());
         Node catLt10Child = catLt10Children.iterator().next();
         Assert.assertEquals(o.getBottomNode(), catLt10Child);
+    }
+    
+    @Test
+    public void testConcreteDomainsRolesSimple() {
+        IFactory factory = new CoreFactory();
+
+        // Add features
+        Feature count = new Feature("count");
+        
+        // Add roles
+        Role prop = new Role("prop");
+
+        // Add concepts
+        Concept bar1 = new Concept("Bar1");
+        Concept bar2 = new Concept("Bar2");
+        Concept baz1 = new Concept("Baz1");
+        Concept baz2 = new Concept("Baz2");
+        Concept other = new Concept("other");
+
+        // Add axioms
+        ConceptInclusion ax1 = new ConceptInclusion(
+                bar1, 
+                new Datatype(count, Operator.EQUALS, new IntegerLiteral(100))
+        );
+        
+        ConceptInclusion ax1b = new ConceptInclusion( 
+                new Datatype(count, Operator.EQUALS, new IntegerLiteral(100)),
+                bar1
+        );
+        
+        ConceptInclusion ax2 = new ConceptInclusion(
+                bar2, 
+                new Datatype(count, Operator.EQUALS, new IntegerLiteral(100))
+        );
+        
+        ConceptInclusion ax3 = new ConceptInclusion(
+                baz1, 
+                new Conjunction(new IConcept[] { new Existential(prop, other), bar1})
+        );
+        
+        ConceptInclusion ax3b = new ConceptInclusion(
+                new Conjunction(new IConcept[] { new Existential(prop, other), bar1}),
+                baz1
+        );
+        
+        ConceptInclusion ax4 = new ConceptInclusion(
+                baz2, 
+                new Conjunction(new IConcept[] { new Existential(prop, other), bar2})
+        );
+        
+        ConceptInclusion ax4b = new ConceptInclusion(
+                new Conjunction(new IConcept[] { new Existential(prop, other), bar2}),
+                baz2
+        );
+
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        axioms.add(ax1);
+        axioms.add(ax1b);
+        axioms.add(ax2);
+        axioms.add(ax3);
+        axioms.add(ax3b);
+        axioms.add(ax4);
+        axioms.add(ax4b);
+
+        // Classify
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.classify();
+        
+        // Build taxonomy
+        o.buildTaxonomy();
+
+        // Test results
+        Node bar1Node = o.getEquivalents(bar1.getId());
+        Set<Node> bar1Children = bar1Node.getChildren();
+        Assert.assertEquals(2, bar1Children.size());
+        
+        Node baz1Node = o.getEquivalents(baz1.getId());
+        Set<Node> baz1Children = baz1Node.getChildren();
+        Assert.assertEquals(1, baz1Children.size());
+        
+        Node baz2Node = baz1Children.iterator().next();
+        Assert.assertEquals(1, baz2Node.getEquivalentConcepts().size());
+        Assert.assertEquals(baz2.getId(), baz2Node.getEquivalentConcepts().iterator().next());
+    }
+    
+    @Test
+    public void testConcreteDomainsRoles() {
+        IFactory factory = new CoreFactory();
+
+        // Add features
+        Feature count = new Feature("count");
+        
+        // Add roles
+        Role prop = new Role("prop");
+
+        // Add concepts
+        Concept foo = new Concept("Foo");
+        Concept bar1 = new Concept("Bar1");
+        Concept bar2 = new Concept("Bar2");
+        Concept baz1 = new Concept("Baz1");
+        Concept baz2 = new Concept("Baz2");
+        Concept other = new Concept("other");
+
+        // Add axioms
+        ConceptInclusion ax1 = new ConceptInclusion(
+                bar1, 
+                new Conjunction(new IConcept[] { new Datatype(count, Operator.EQUALS, new IntegerLiteral(100)), foo})
+        );
+        
+        ConceptInclusion ax1b = new ConceptInclusion( 
+                new Conjunction(new IConcept[] { new Datatype(count, Operator.EQUALS, new IntegerLiteral(100)), foo}),
+                bar1
+        );
+        
+        ConceptInclusion ax2 = new ConceptInclusion(
+                bar2, 
+                new Conjunction(new IConcept[] { new Datatype(count, Operator.EQUALS, new IntegerLiteral(100)), foo})
+        );
+        
+        ConceptInclusion ax3 = new ConceptInclusion(
+                baz1, 
+                new Conjunction(new IConcept[] { new Existential(prop, other), bar1})
+        );
+        
+        ConceptInclusion ax3b = new ConceptInclusion(
+                new Conjunction(new IConcept[] { new Existential(prop, other), bar1}),
+                baz1
+        );
+        
+        ConceptInclusion ax4 = new ConceptInclusion(
+                baz2, 
+                new Conjunction(new IConcept[] { new Existential(prop, other), bar2})
+        );
+        
+        ConceptInclusion ax4b = new ConceptInclusion(
+                new Conjunction(new IConcept[] { new Existential(prop, other), bar2}),
+                baz2
+        );
+
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        axioms.add(ax1);
+        axioms.add(ax1b);
+        axioms.add(ax2);
+        axioms.add(ax3);
+        axioms.add(ax3b);
+        axioms.add(ax4);
+        axioms.add(ax4b);
+
+        // Classify
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.classify();
+        
+        // Build taxonomy
+        o.buildTaxonomy();
+
+        // Test results
+        Node bar1Node = o.getEquivalents(bar1.getId());
+        Set<Node> bar1Children = bar1Node.getChildren();
+        Assert.assertEquals(2, bar1Children.size());
+        
+        Node baz1Node = o.getEquivalents(baz1.getId());
+        Set<Node> baz1Children = baz1Node.getChildren();
+        Assert.assertEquals(1, baz1Children.size());
+        
+        Node baz2Node = baz1Children.iterator().next();
+        Assert.assertEquals(1, baz2Node.getEquivalentConcepts().size());
+        Assert.assertEquals(baz2.getId(), baz2Node.getEquivalentConcepts().iterator().next());
     }
 
 }

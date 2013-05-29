@@ -38,13 +38,13 @@ import au.csiro.snorocket.core.util.RoleSet;
 import au.csiro.snorocket.core.util.SparseConceptSet;
 
 /**
- * Represents a context where derivations associated to one concept are
- * executed.
+ * Represents a context where derivations associated to one concept are executed.
  * 
  * @author Alejandro Metke
  * 
  */
 public class Context implements Serializable {
+    
     /**
      * Serialisation version.
      */
@@ -61,32 +61,25 @@ public class Context implements Serializable {
     private final AtomicBoolean active = new AtomicBoolean(false);
 
     /**
-     * Queue (List) of ConjunctionQueueEntries indicating work to be done for
-     * this concept.
+     * Queue (List) of ConjunctionQueueEntries indicating work to be done for this concept.
      */
-    private final Queue<IConjunctionQueueEntry> conceptQueue = 
-            new ConcurrentLinkedQueue<IConjunctionQueueEntry>();
+    private final Queue<IConjunctionQueueEntry> conceptQueue = new ConcurrentLinkedQueue<IConjunctionQueueEntry>();
 
     /**
-     * Queue (List) of RoleQueueEntries indicating work to be done for this
-     * concept.
+     * Queue (List) of RoleQueueEntries indicating work to be done for this concept.
      */
-    private final IQueue<IRoleQueueEntry> roleQueue = 
-            new QueueImpl<IRoleQueueEntry>(IRoleQueueEntry.class);
+    private final IQueue<IRoleQueueEntry> roleQueue = new QueueImpl<IRoleQueueEntry>(IRoleQueueEntry.class);
 
     /**
-     * Queue (List) of FeatureQueueEntries indicating work to be done for this
-     * concept. Queue entries of the form A [ f.(o, v).
+     * Queue (List) of FeatureQueueEntries indicating work to be done for this concept. Queue entries of the form 
+     * A [ f.(o, v).
      */
-    private final IQueue<IFeatureQueueEntry> featureQueue = 
-            new QueueImpl<IFeatureQueueEntry>(IFeatureQueueEntry.class);
+    private final IQueue<IFeatureQueueEntry> featureQueue = new QueueImpl<IFeatureQueueEntry>(IFeatureQueueEntry.class);
 
     /**
-     * Queue used to process entries from other contexts that trigger calls to
-     * processNewEdge.
+     * Queue used to process entries from other contexts that trigger calls to processNewEdge.
      */
-    private final Queue<IRoleQueueEntry> externalQueue = 
-            new ConcurrentLinkedQueue<IRoleQueueEntry>();
+    private final Queue<IRoleQueueEntry> externalQueue = new ConcurrentLinkedQueue<IRoleQueueEntry>();
 
     /**
      * Keeps track of the parents of this concept.
@@ -94,38 +87,32 @@ public class Context implements Serializable {
     private final IConceptSet s;
 
     /**
-     * Keeps track of the concepts that are linked this concept through some
-     * role.
+     * Keeps track of the concepts that are linked this concept through some role.
      */
     private final CR pred;
 
     /**
-     * Keeps track of the concepts that this concept is liked to through some
-     * role.
+     * Keeps track of the concepts that this concept is liked to through some role.
      */
     private final CR succ;
 
     /**
-     * Flag to indicate if changes to the subsumptions of this context should be
-     * tracked.
+     * Flag to indicate if changes to the subsumptions of this context should be tracked.
      */
     private AtomicBoolean track = new AtomicBoolean(false);
 
     /**
-     * Flag used to indicate if this context has generated new subsumptions
-     * while being tracked.
+     * Flag used to indicate if this context has generated new subsumptions while being tracked.
      */
     private boolean changed = false;
 
     /**
-     * Reference to the parent context queue. Used to add this context back to
-     * the queue when reactivated.
+     * Reference to the parent context queue. Used to add this context back to the queue when reactivated.
      */
     private static Queue<Context> parentTodo;
 
     /**
-     * Reference to the parent context index. Used to add queue entries to other
-     * contexts.
+     * Reference to the parent context index. Used to add queue entries to other contexts.
      */
     private static IConceptMap<Context> contextIndex;
 
@@ -248,8 +235,7 @@ public class Context implements Serializable {
     }
 
     private void primeQueue() {
-        final MonotonicCollection<IConjunctionQueueEntry> nf1e = ontologyNF1
-                .get(concept);
+        final MonotonicCollection<IConjunctionQueueEntry> nf1e = ontologyNF1.get(concept);
         if (nf1e != null)
             addToConceptQueue(nf1e);
 
@@ -263,8 +249,7 @@ public class Context implements Serializable {
     }
 
     /**
-     * Adds queue entries for this concept based on the new axioms added in an
-     * incremental classification.
+     * Adds queue entries for this concept based on the new axioms added in an incremental classification.
      * 
      * @param conceptEntries
      * @param roleEntries
@@ -292,8 +277,7 @@ public class Context implements Serializable {
     }
 
     /**
-     * Returns the data structure used to hold the concepts and roles that point
-     * to this concept.
+     * Returns the data structure used to hold the concepts and roles that point to this concept.
      * 
      * @return
      */
@@ -302,8 +286,7 @@ public class Context implements Serializable {
     }
 
     /**
-     * Returns the data structure used to hold the concepts and roles that this
-     * concept points at.
+     * Returns the data structure used to hold the concepts and roles that this concept points at.
      * 
      * @return
      */
@@ -312,8 +295,8 @@ public class Context implements Serializable {
     }
 
     /**
-     * Activates the context. Returns true if the context was inactive and was
-     * activated by this method call or false otherwise.
+     * Activates the context. Returns true if the context was inactive and was activated by this method call or false 
+     * otherwise.
      * 
      * @return boolean
      */
@@ -322,13 +305,12 @@ public class Context implements Serializable {
     }
 
     /**
-     * Deactivates the context. Returns true if the context was active and was
-     * deactivated by this method call or false otherwise.
+     * Deactivates the context. Returns true if the context was active and was deactivated by this method call or false 
+     * otherwise.
      */
     public void deactivate() {
         active.set(false);
-        if (!(conceptQueue.isEmpty() && roleQueue.isEmpty() && featureQueue
-                .isEmpty())) {
+        if (!(conceptQueue.isEmpty() && roleQueue.isEmpty() && featureQueue.isEmpty())) {
             if (activate()) {
                 parentTodo.add(this);
             }
@@ -368,8 +350,7 @@ public class Context implements Serializable {
     }
 
     /**
-     * Triggers the processing of an edge based on events that happened in
-     * another {@link Context}.
+     * Triggers the processing of an edge based on events that happened in another {@link Context}.
      * 
      * @param role
      * @param src
@@ -412,7 +393,7 @@ public class Context implements Serializable {
 
         do {
             done = true;
-
+            
             // Process concept queue
             if (!conceptQueue.isEmpty()) {
                 do {
@@ -440,8 +421,7 @@ public class Context implements Serializable {
 
                     // Get right hand sides from NF8 expressions that
                     // match d on their left hand side
-                    MonotonicCollection<NF8> entries = ontologyNF8.get(d
-                            .getFeature());
+                    MonotonicCollection<NF8> entries = ontologyNF8.get(d.getFeature());
 
                     if (entries == null)
                         continue;
@@ -497,8 +477,7 @@ public class Context implements Serializable {
 
     private void processNewSubsumption(final int b) {
         // Get the set of parent concepts of (b n x) in the ontology
-        final MonotonicCollection<IConjunctionQueueEntry> bConceptEntries = 
-                ontologyNF1.get(b);
+        final MonotonicCollection<IConjunctionQueueEntry> bConceptEntries = ontologyNF1.get(b);
         if (null != bConceptEntries && bConceptEntries.size() > 0) {
             // Add these to the queue of a
             addToConceptQueue(bConceptEntries);
@@ -511,8 +490,7 @@ public class Context implements Serializable {
         // inlined ontHat(conceptQueues.get(pairA(p)), r, b) in following
         // to move test and fetch outside innermost loop
         //
-        final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = 
-                ontologyNF3.get(b);
+        final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = ontologyNF3.get(b);
         if (null != map) {
             final Set<Integer> keySet = map.keySet();
             for (int r : keySet) {
@@ -520,8 +498,7 @@ public class Context implements Serializable {
 
                 if (null != entries) {
                     final IConceptSet aPrimes = pred.lookupConcept(r);
-                    for (final IntIterator itr = aPrimes.iterator(); itr
-                            .hasNext();) {
+                    for (final IntIterator itr = aPrimes.iterator(); itr.hasNext();) {
                         final int aa = itr.next();
                         // Add to queue aa
                         if (concept == aa) {
@@ -538,11 +515,15 @@ public class Context implements Serializable {
                 }
             }
         }
+        
+        final MonotonicCollection<NF7> nf7Entries = ontologyNF7.get(b);
+        if (null != nf7Entries && nf7Entries.size() > 0) {
+            featureQueue.addAll(nf7Entries);
+        }
     }
 
     /**
-     * Evaluates the equivalence of two {@link Datatype}s. This method assumes
-     * that the literals both have the same feature and therefore also have
+     * Evaluates the equivalence of two {@link Datatype}s. This method assumes that the literals both have the same 
      * matching literal types.
      * 
      * @param d1
@@ -664,8 +645,8 @@ public class Context implements Serializable {
     }
 
     /**
-     * Return 0 if both literals are equals. Returns an int > 0 if l1 is greater
-     * than l2 and an int < 0 if l1 is less than l2.
+     * Return 0 if both literals are equals. Returns an int > 0 if l1 is greater than l2 and an int < 0 if l1 is less 
+     * than l2.
      * 
      * @param l1
      * @param l2
@@ -708,8 +689,7 @@ public class Context implements Serializable {
         // Computes the minimal set of QueueEntries from s.a [ bb is in O
         for (IntIterator itr = sb.iterator(); itr.hasNext();) {
             final int bb = itr.next();
-            final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = 
-                    ontologyNF3.get(bb);
+            final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = ontologyNF3.get(bb);
 
             if (null != map) {
                 final Collection<IConjunctionQueueEntry> entries = map.get(s);
@@ -745,8 +725,7 @@ public class Context implements Serializable {
 
                 // Again in this case there is a dependency with the
                 // predecessors of an external context.
-                final IConceptSet bUPrimes = contextIndex.get(b).getPred()
-                        .lookupConcept(u);
+                final IConceptSet bUPrimes = contextIndex.get(b).getPred().lookupConcept(u);
 
                 for (final IntIterator itr = aTPrimes.iterator(); 
                         itr.hasNext();) {
@@ -779,8 +758,7 @@ public class Context implements Serializable {
                 final int u = nf5.getT();
                 // In this case there is a dependency with the
                 // successors of an external context.
-                final IConceptSet bTPrimes = contextIndex.get(b).getSucc()
-                        .lookupConcept(t);
+                final IConceptSet bTPrimes = contextIndex.get(b).getSucc().lookupConcept(t);
                 final IConceptSet aUPrimes = succ.lookupConcept(u);
 
                 for (final IntIterator itr = bTPrimes.iterator(); 
@@ -817,9 +795,8 @@ public class Context implements Serializable {
     }
 
     /**
-     * Starts tracking changes in the context's subsumptions. It is used in
-     * incremental classification to detect which contexts have been affected by
-     * the new axioms.
+     * Starts tracking changes in the context's subsumptions. It is used in incremental classification to detect which 
+     * contexts have been affected by the new axioms.
      */
     public void startTracking() {
         if (track.compareAndSet(false, true)) {
@@ -937,8 +914,7 @@ public class Context implements Serializable {
 
     private void processNewSubsumptionTracking(final int b) {
         // Get the set of parent concepts of (b n x) in the ontology
-        final MonotonicCollection<IConjunctionQueueEntry> bConceptEntries = 
-                ontologyNF1.get(b);
+        final MonotonicCollection<IConjunctionQueueEntry> bConceptEntries = ontologyNF1.get(b);
         if (null != bConceptEntries && bConceptEntries.size() > 0) {
             // Add these to the queue of a
             addToConceptQueue(bConceptEntries);
@@ -960,8 +936,7 @@ public class Context implements Serializable {
 
                 if (null != entries) {
                     final IConceptSet aPrimes = pred.lookupConcept(r);
-                    for (final IntIterator itr = aPrimes.iterator(); itr
-                            .hasNext();) {
+                    for (final IntIterator itr = aPrimes.iterator(); itr.hasNext();) {
                         final int aa = itr.next();
                         // Add to queue aa
                         if (concept == aa) {
@@ -979,6 +954,11 @@ public class Context implements Serializable {
                     }
                 }
             }
+        }
+        
+        final MonotonicCollection<NF7> nf7Entries = ontologyNF7.get(b);
+        if (null != nf7Entries && nf7Entries.size() > 0) {
+            featureQueue.addAll(nf7Entries);
         }
     }
 
@@ -1008,8 +988,7 @@ public class Context implements Serializable {
         // Computes the minimal set of QueueEntries from s.a [ bb is in O
         for (IntIterator itr = sb.iterator(); itr.hasNext();) {
             final int bb = itr.next();
-            final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = 
-                    ontologyNF3.get(bb);
+            final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = ontologyNF3.get(bb);
 
             if (null != map) {
                 final Collection<IConjunctionQueueEntry> entries = map.get(s);

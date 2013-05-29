@@ -121,8 +121,7 @@ public class NormalisedOntology implements Serializable {
     /**
      * Logger.
      */
-    private final static Logger log = Logger.getLogger(
-            NormalisedOntology.class);
+    private final static Logger log = Logger.getLogger(NormalisedOntology.class);
 
     final protected IFactory factory;
 
@@ -303,9 +302,13 @@ public class NormalisedOntology implements Serializable {
         for (Inclusion i : normalise(inclusions)) {
             addTerm(i.getNormalForm());
         }
+        
+        if(log.isTraceEnabled()) {
+            printNormalisedAxioms();
+        }
     }
 
-final static int CONCEPT_COUNT_ESTIMATE = 500000;
+    final static int CONCEPT_COUNT_ESTIMATE = 500000;
 
     /**
      * 
@@ -2442,6 +2445,122 @@ final static int CONCEPT_COUNT_ESTIMATE = 500000;
         public void setBottom(Node bottom) {
             this.bottom = bottom;
         }
+    }
+    
+    private void printNormalisedAxioms() {
+        for(IntIterator it = ontologyNF1.keyIterator(); it.hasNext(); ) {
+            int key = it.next();
+            MonotonicCollection<IConjunctionQueueEntry> entries = ontologyNF1.get(key);
+            Iterator<IConjunctionQueueEntry> it2 = entries.iterator();
+            while(it2.hasNext()) {
+                IConjunctionQueueEntry entry = it2.next();
+                
+                Object a = factory.lookupConceptId(key);
+                String as = (a instanceof String) ? (String) a : "[" + a.toString() + "]";
+                Object bi = factory.lookupConceptId(entry.getBi());
+                String bis = (bi instanceof String) ? (String) bi :  "[" + bi.toString() + "]";
+                Object b = factory.lookupConceptId(entry.getB());
+                String bs = (b instanceof String) ? (String) b :  "[" + b.toString() + "]";
+                System.out.println("NF1: " + as + " + " + bis + " [ " + bs);
+            }
+        }
+
+        for(IntIterator it = ontologyNF2.keyIterator(); it.hasNext(); ) {
+            int key = it.next();
+            MonotonicCollection<NF2> entries = ontologyNF2.get(key);
+            Iterator<NF2> it2 = entries.iterator();
+            while(it2.hasNext()) {
+                NF2 entry = it2.next();
+                
+                // These terms are of the form A [ r.B and are indexed by A.
+                
+                Object a = factory.lookupConceptId(entry.lhsA);
+                String as = (a instanceof String) ? (String) a : "[" + a.toString() + "]";
+                Object r = factory.lookupRoleId(entry.rhsR);
+                String rs = (r instanceof String) ? (String) r :  "[" + r.toString() + "]";
+                Object b = factory.lookupConceptId(entry.rhsB);
+                String bs = (b instanceof String) ? (String) b :  "[" + b.toString() + "]";
+                System.out.println("NF2: " + as + " [ " + rs + "." + bs);
+            }
+        }
+        
+        for(IntIterator it = ontologyNF3.keyIterator(); it.hasNext(); ) {
+            int aId = it.next();
+            ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> entries = ontologyNF3.get(aId);
+            for(Integer rId : entries.keySet()) {
+                
+                // These terms are of the form r.A [ b and indexed by A (and then by r)
+                
+                for(IConjunctionQueueEntry entry : entries.get(rId)) {
+                    int bId = entry.getB();
+                    Object r = factory.lookupRoleId(rId.intValue());
+                    String rs = (r instanceof String) ? (String) r :  "[" + r.toString() + "]";
+                    Object a = factory.lookupConceptId(aId);
+                    String as = (a instanceof String) ? (String) a : "[" + a.toString() + "]";
+                    Object b = factory.lookupConceptId(bId);
+                    String bs = (b instanceof String) ? (String) b :  "[" + b.toString() + "]";
+                    System.out.println("NF3: " + rs + "." + as + " [ " + bs);
+                }
+            }
+        }
+        
+        for(Iterator<NF4> it = ontologyNF4.iterator(); it.hasNext(); ) {
+            NF4 nf4 = it.next();
+            
+            Object r = factory.lookupRoleId(nf4.getR());
+            String rs = (r instanceof String) ? (String) r :  "[" + r.toString() + "]";
+            Object s = factory.lookupRoleId(nf4.getS());
+            String ss = (s instanceof String) ? (String) s :  "[" + s.toString() + "]";
+            System.out.println("NF4: " + rs + " [ " + ss);
+        }
+        
+        for(Iterator<NF5> it = ontologyNF5.iterator(); it.hasNext(); ) {
+            NF5 nf5 = it.next();
+            
+            Object r = factory.lookupRoleId(nf5.getR());
+            String rs = (r instanceof String) ? (String) r :  "[" + r.toString() + "]";
+            Object s = factory.lookupRoleId(nf5.getS());
+            String ss = (s instanceof String) ? (String) s :  "[" + s.toString() + "]";
+            Object t = factory.lookupRoleId(nf5.getT());
+            String ts = (t instanceof String) ? (String) t :  "[" + t.toString() + "]";
+            System.out.println("NF5: " + rs + " o " + ss + " [ " + ts);
+        }
+        
+        for(IntIterator it = ontologyNF7.keyIterator(); it.hasNext(); ) {
+            int key = it.next();
+            MonotonicCollection<NF7> entries = ontologyNF7.get(key);
+            
+            for(Iterator<NF7> it2 = entries.iterator(); it2.hasNext(); ) {
+                NF7 nf7 = it2.next();
+                int aId = nf7.lhsA;
+                Datatype dt = nf7.rhsD;
+                int fId = dt.getFeature();
+                
+                Object a = factory.lookupConceptId(aId);
+                String as = (a instanceof String) ? (String) a : "[" + a.toString() + "]";
+                String f = factory.lookupFeatureId(fId);
+                
+                System.out.println("NF7: " + as + " [ " + f + ".(" + dt.getOperator() + ", "+ dt.getLiteral() +")");
+            }
+        }
+        
+        FeatureSet keys = ontologyNF8.keySet();
+        for (int i = keys.nextSetBit(0); i >= 0; i = keys.nextSetBit(i+1)) {
+            MonotonicCollection<NF8> mc = ontologyNF8.get(i);
+            for(Iterator<NF8> it2 = mc.iterator(); it2.hasNext(); ) {
+                NF8 nf8 = it2.next();
+                Datatype dt = nf8.lhsD;
+                int bId = nf8.rhsB;
+                int fId = dt.getFeature();
+                
+                Object b = factory.lookupConceptId(bId);
+                String bs = (b instanceof String) ? (String) b : "[" + b.toString() + "]";
+                String f = factory.lookupFeatureId(fId);
+                
+                System.out.println("NF8: " + f + ".(" + dt.getOperator() + ", "+ dt.getLiteral() +")" + " [ " + bs);
+            }
+        }
+        
     }
     
 }
