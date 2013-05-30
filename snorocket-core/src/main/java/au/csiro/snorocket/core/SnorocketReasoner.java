@@ -48,6 +48,7 @@ import au.csiro.ontology.model.Conjunction;
 import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.IConjunction;
+import au.csiro.ontology.model.IDatatype;
 import au.csiro.ontology.model.IExistential;
 import au.csiro.ontology.model.INamedConcept;
 import au.csiro.ontology.model.INamedRole;
@@ -332,7 +333,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         final private IFactory factory;
         final private Map<Integer, RoleSet> rc;
 
-        final private List<IExistential> items = new ArrayList<IExistential>();
+        final private Set<IExistential> items = new HashSet<IExistential>();
 
         private Builder(NormalisedOntology no) {
             this.no = no;
@@ -372,6 +373,8 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
                 return build(no, ((IConjunction) concept).getConcepts());
             } else if (concept instanceof INamedConcept) {
                 return concept;
+            } else if (concept instanceof IDatatype) {
+                return concept;
             } else {
                 throw new RuntimeException("Unexpected type: " + concept);
             }
@@ -385,7 +388,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
          */
         private void build(INamedRole role, IConcept concept) {
             if (!(concept instanceof INamedConcept)) {
-                log.debug("WARNING: pass through of complex value: " + concept);
+                log.info("WARNING: pass through of complex value: " + concept);
                 doAdd(role, concept);
                 return;
             }
@@ -400,7 +403,13 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             boolean subsumed = false;
 
             for (IExistential candidate: items) {
-                final int dInt = factory.getConcept(((INamedConcept) candidate.getConcept()).getId());
+                final IConcept value = candidate.getConcept();
+                if (!(value instanceof INamedConcept)) {
+                    log.warn("WARNING: pass through of nested complex value: " + value);
+                    continue;
+                }
+                
+                final int dInt = factory.getConcept(((INamedConcept) value).getId());
                 final IConceptSet dAncestorSet = getAncestors(no, dInt);
                 final int sInt = factory.getRole(candidate.getRole().getId());
                 final RoleSet sSet = rc.get(sInt);
