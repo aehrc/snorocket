@@ -1564,7 +1564,7 @@ public class NormalisedOntology implements Serializable {
                 NF8 nf8 = it2.next();
                 res.add(new ConceptInclusion(
                     transform(nf8.lhsD),
-                    transform(factory.lookupConceptId(i))
+                    transform(factory.lookupConceptId(nf8.rhsB))
                 ));
             }
         }
@@ -2242,7 +2242,7 @@ public class NormalisedOntology implements Serializable {
                     topNode.getChildren().add(cn);
                 }
             }
-        }
+        }  
     }
     
     /**
