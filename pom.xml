@@ -24,7 +24,7 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>1.3.4</ontology-core.version>
+        <ontology-core.version>1.3.5</ontology-core.version>
         <owl-api.version>3.3</owl-api.version>
         <protege.version>4.1.0</protege.version>
     </properties>
@@ -107,9 +107,8 @@
   </build>
   
   <scm>
-    <connection>scm:git:git@github.com:aehrc/snorocket.git</connection>
-    <developerConnection>scm:git:git@github.com:aehrc/snorocket.git</developerConnection>
-    <url>https://github.com/aehrc/snorocket.git</url>
-    <tag>HEAD</tag>
+    <connection>scm:git:https://stash.csiro.au/scm/sno/snorocket.git</connection>
+    <developerConnection>scm:git:https://stash.csiro.au/scm/sno/snorocket.git</developerConnection>
+    <url>https://stash.csiro.au/scm/sno/snorocket.git</url>
   </scm>
 </project>
