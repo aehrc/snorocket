@@ -173,8 +173,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
     @Override
     public IOntology getClassifiedOntology() {
         // Check ontology is classified
-        if(!isClassified) throw new RuntimeException(
-                "Ontology is not classified!");
+        if(!isClassified) classify();
         
         log.info("Building taxonomy");
         no.buildTaxonomy();
@@ -187,8 +186,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
     @Override
     public IOntology getClassifiedOntology(IOntology ont) {
         // Check ontology is classified
-        if(!isClassified) throw new RuntimeException(
-                "Ontology is not classified!");
+        if(!isClassified) classify();
         
         log.info("Building taxonomy");
         no.buildTaxonomy();
@@ -219,9 +217,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
     public Collection<IAxiom> getInferredAxioms() {
         final Collection<IAxiom> inferred = new HashSet<IAxiom>();
         
-        if(!isClassified) {
-            classify();  
-        }
+        if(!isClassified) classify();
         
         if (!no.isTaxonomyComputed()) {
             log.info("Building taxonomy");

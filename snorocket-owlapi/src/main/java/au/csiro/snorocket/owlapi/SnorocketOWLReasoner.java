@@ -275,11 +275,13 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         Iterator<IOntology> it = null;
         try {
             it = oi.getOntologyVersions(monitor);
+            while(it.hasNext()) {
+                IOntology o = it.next();
+                canAxioms.addAll(o.getStatedAxioms());
+            }
         } catch(RuntimeException e) {
-            // Build message
             StringBuilder sb = new StringBuilder();
-            sb.append("Could not import ontology. " +
-            		"The following problems were identified:");
+            sb.append("Could not import ontology. The following problems were identified:");
             for(String problem : oi.getProblems()) {
                 sb.append("\n");
                 sb.append(problem);
@@ -287,11 +289,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             
             log.error(sb.toString());
             monitor.taskEnded();
-            return null;
-        }
-        while(it.hasNext()) {
-            IOntology o = it.next();
-            canAxioms.addAll(o.getStatedAxioms());
+            throw new ReasonerInternalException(sb.toString());
         }
         
         return canAxioms;
@@ -656,13 +654,12 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             ClassExpressionNotInProfileException, FreshEntitiesException,
             InconsistentOntologyException {
         if (classExpression.isAnonymous()) {
-            return true;
+            return false;
         } else {
             // If the node that contains OWLNothing contains this OWLClass then
             // it is not satisfiable
             Object id = getId(classExpression.asOWLClass());
-            au.csiro.ontology.Node bottom = 
-                    getTaxonomy().getBottomNode();
+            au.csiro.ontology.Node bottom = getTaxonomy().getBottomNode();
             return !bottom.getEquivalentConcepts().contains(id);
         }
     }
