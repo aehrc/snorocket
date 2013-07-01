@@ -63,18 +63,35 @@ public class BooleanLiteral extends AbstractLiteral {
         return "false";
     }
 
-    public int compareTo(AbstractLiteral o) {
-        BooleanLiteral bl = (BooleanLiteral) o;
-        boolean otherValue = bl.value;
-        if (value == otherValue) {
-            return 0;
-        } else {
-            if (value == false) {
-                return -1;
-            } else {
-                return 1;
-            }
-        }
+    @Override
+    public boolean equals(AbstractLiteral other) {
+        BooleanLiteral ol = (BooleanLiteral) other;
+        return value == ol.value;
+    }
+
+    @Override
+    public boolean covers(AbstractLiteral other) {
+        return equals(other);
+    }
+
+    @Override
+    public boolean intersects(AbstractLiteral other) {
+        return equals(other);
+    }
+
+    @Override
+    public void evaluate() {
+        // Nothing to do!
+    }
+
+    @Override
+    public void merge(AbstractLiteral other) {
+        // Nothing to do - BooleanLiterals cannot be merged!
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return false;
     }
 
 }

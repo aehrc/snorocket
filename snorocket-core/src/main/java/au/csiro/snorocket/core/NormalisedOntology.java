@@ -48,7 +48,6 @@ import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.axioms.IConceptInclusion;
 import au.csiro.ontology.axioms.IRoleInclusion;
 import au.csiro.ontology.axioms.RoleInclusion;
-import au.csiro.ontology.model.Feature;
 import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.ILiteral;
 import au.csiro.ontology.model.INamedRole;
@@ -213,7 +212,11 @@ public class NormalisedOntology implements Serializable {
     private boolean hasBeenIncrementallyClassified = false;
     
     private transient Map<String, Node> conceptNodeIndex;
-
+    
+    /**
+     * A map used to store NF7 terms and collapse them before saturation. First key is lhs and second key is feature.
+     */
+    private transient Map<Integer, Map<Integer, List<NF7>>> tempNf7Map = new HashMap<Integer, Map<Integer, List<NF7>>>();
     
     private static class ContextComparator implements Comparator<Context>, Serializable {
         /**
@@ -295,13 +298,10 @@ public class NormalisedOntology implements Serializable {
      * @param factory
      * @param inclusions
      */
-    public NormalisedOntology(final IFactory factory,
-            final Set<? extends IAxiom> inclusions) {
+    public NormalisedOntology(final IFactory factory, final Set<? extends IAxiom> inclusions) {
         this(factory);
         
-        for (Inclusion i : normalise(inclusions)) {
-            addTerm(i.getNormalForm());
-        }
+        loadAxioms(inclusions);
         
         if(log.isTraceEnabled()) {
             printNormalisedAxioms();
@@ -374,22 +374,49 @@ public class NormalisedOntology implements Serializable {
         if(log.isInfoEnabled())
             log.info("Loading " + inclusions.size() + " axioms");
         Set<Inclusion> normInclusions = normalise(inclusions);
-        if(log.isInfoEnabled())
-            log.info("Processing " + normInclusions.size()
-                + " normalised axioms");
-        Statistics.INSTANCE.setTime("normalisation",
-                System.currentTimeMillis() - start);
+        if(log.isInfoEnabled()) log.info("Processing " + normInclusions.size() + " normalised axioms");
+        Statistics.INSTANCE.setTime("normalisation", System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
         for (Inclusion i : normInclusions) {
             addTerm(i.getNormalForm());
         }
-        Statistics.INSTANCE.setTime("indexing", 
-                System.currentTimeMillis() - start);
+        
+        // Collapse NF7
+        for(Integer key1 : tempNf7Map.keySet()) {
+            Map<Integer, List<NF7>> m = tempNf7Map.get(key1);
+            for(Integer key2 : m.keySet()) {
+                // These nf7 terms are "collapsible"
+                List<NF7> nf7s = m.get(key2);
+                NF7 first = nf7s.get(0);
+                AbstractLiteral lit = first.getD().getLiteral();
+                for(int i = 1; i < nf7s.size(); i++) {
+                    lit.merge(nf7s.get(i).getD().getLiteral());
+                }
+                
+                lit.evaluate();
+                
+                // Test if the collaased NF7 entry entails bottom
+                if(lit.isEmpty()) {
+                    addTerm(NF1a.getInstance(key1.intValue(), IFactory.BOTTOM_CONCEPT));
+                } else {
+                    // Index the collapsed NF7 entry
+                    MonotonicCollection<NF7> set = ontologyNF7.get(first.lhsA);
+                    if (null == set) {
+                        set = new MonotonicCollection<NF7>(2);
+                        ontologyNF7.put(first.lhsA, set);
+                    }
+                    set.add(first);
+                }
+            }
+        }
+        
+        tempNf7Map.clear();
+        
+        Statistics.INSTANCE.setTime("indexing", System.currentTimeMillis() - start);
     }
     
     /**
-     * Transforms a {@link Set} of {@link AbstractAxiom}s into a {@link Set} of
-     * {@link Inclusion}s.
+     * Transforms a {@link Set} of {@link AbstractAxiom}s into a {@link Set} of {@link Inclusion}s.
      * 
      * @param axioms The axioms in the ontology model format.
      * @return The axioms in the internal model format.
@@ -423,8 +450,7 @@ public class NormalisedOntology implements Serializable {
     }
     
     /**
-     * Transforms an {@link AbstractConcept} into an 
-     * {@link au.csiro.snorocket.core.model.AbstractConcept}.
+     * Transforms an {@link AbstractConcept} into an {@link au.csiro.snorocket.core.model.AbstractConcept}.
      * 
      * @param c The concept in the ontology model format.
      * @return The concept in the internal model format.
@@ -446,8 +472,8 @@ public class NormalisedOntology implements Serializable {
             return new Conjunction(cons);
         } else if(c instanceof au.csiro.ontology.model.Datatype) {
             au.csiro.ontology.model.Datatype dt = (au.csiro.ontology.model.Datatype) c;
-            return new Datatype(factory.getFeature(dt.getFeature().getId()), 
-                    dt.getOperator(), transformLiteral(dt.getLiteral()));
+            return new Datatype(factory.getFeature(dt.getFeature().getId()), transformLiteral(dt.getOperator(), 
+                    dt.getLiteral()));
         } else if(c instanceof au.csiro.ontology.model.Existential) {
             au.csiro.ontology.model.Existential e = (au.csiro.ontology.model.Existential) c;
             return new Existential(factory.getRole(e.getRole().getId()), 
@@ -464,19 +490,19 @@ public class NormalisedOntology implements Serializable {
      * @param l The literal in the ontology model format.
      * @return The literal in the internal model format.
      */
-    private au.csiro.snorocket.core.model.AbstractLiteral transformLiteral(ILiteral l) {
+    private au.csiro.snorocket.core.model.AbstractLiteral transformLiteral(Operator op, ILiteral l) {
         if(l instanceof au.csiro.ontology.model.BooleanLiteral) {
             return new BooleanLiteral(((au.csiro.ontology.model.BooleanLiteral) l).getValue());
         } else if(l instanceof au.csiro.ontology.model.DateLiteral) {
-            return new DateLiteral(((au.csiro.ontology.model.DateLiteral) l).getValue());
+            return new DateLiteral(op, ((au.csiro.ontology.model.DateLiteral) l).getValue());
         } else if(l instanceof au.csiro.ontology.model.DoubleLiteral) {
-            return new DoubleLiteral(((au.csiro.ontology.model.DoubleLiteral) l).getValue());
+            return new DoubleLiteral(op, ((au.csiro.ontology.model.DoubleLiteral) l).getValue());
         } else if(l instanceof au.csiro.ontology.model.FloatLiteral) {
-            return new FloatLiteral(((au.csiro.ontology.model.FloatLiteral) l).getValue());
+            return new FloatLiteral(op, ((au.csiro.ontology.model.FloatLiteral) l).getValue());
         } else if(l instanceof au.csiro.ontology.model.IntegerLiteral) {
-            return new IntegerLiteral(((au.csiro.ontology.model.IntegerLiteral) l).getValue());
+            return new IntegerLiteral(op, ((au.csiro.ontology.model.IntegerLiteral) l).getValue());
         } else if(l instanceof au.csiro.ontology.model.LongLiteral) {
-            return new LongLiteral(((au.csiro.ontology.model.LongLiteral) l).getValue());
+            return new LongLiteral(op, ((au.csiro.ontology.model.LongLiteral) l).getValue());
         } else if(l instanceof au.csiro.ontology.model.StringLiteral) {
             return new StringLiteral(((au.csiro.ontology.model.StringLiteral) l).getValue());
         } else {
@@ -594,9 +620,6 @@ public class NormalisedOntology implements Serializable {
             String feature = factory.lookupFeatureId(d.getFeature());
             sb.append(feature.toString());
             sb.append(".(");
-            Operator op = d.getOperator();
-            sb.append(op.toString());
-            sb.append(",");
             AbstractLiteral literal = d.getLiteral();
             sb.append(literal);
             sb.append(")");
@@ -651,7 +674,7 @@ public class NormalisedOntology implements Serializable {
             reflexiveRoles.add(((NF6) term).getR());
         } else if (term instanceof NF7) {
             final NF7 nf7 = (NF7) term;
-            addTerms(ontologyNF7, nf7);
+            addTerms(nf7);
         } else if (term instanceof NF8) {
             final NF8 nf8 = (NF8) term;
             addTerms(ontologyNF8, nf8);
@@ -667,9 +690,8 @@ public class NormalisedOntology implements Serializable {
      * @param a
      * @param queueEntry
      */
-    protected void addTerms(
-            final IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> entries,
-            final int a, final IConjunctionQueueEntry queueEntry) {
+    protected void addTerms(final IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> entries, final int a, 
+            final IConjunctionQueueEntry queueEntry) {
         MonotonicCollection<IConjunctionQueueEntry> queueA = entries.get(a);
         if (null == queueA) {
             queueA = new MonotonicCollection<IConjunctionQueueEntry>(2);
@@ -698,8 +720,7 @@ public class NormalisedOntology implements Serializable {
      * @param queue
      * @param nf3
      */
-    protected void addTerms(
-            final IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>> queue,
+    protected void addTerms(final IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>> queue,
             final NF3 nf3) {
         ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = queue.get(nf3.lhsA);
         Collection<IConjunctionQueueEntry> entry;
@@ -725,14 +746,21 @@ public class NormalisedOntology implements Serializable {
      * @param entries
      * @param nf7
      */
-    protected void addTerms(
-            final IConceptMap<MonotonicCollection<NF7>> entries, final NF7 nf7) {
-        MonotonicCollection<NF7> set = entries.get(nf7.lhsA);
-        if (null == set) {
-            set = new MonotonicCollection<NF7>(2);
-            entries.put(nf7.lhsA, set);
+    protected void addTerms(final NF7 nf7) {
+        int key1 = nf7.lhsA;
+        int key2 = nf7.rhsD.getFeature();
+        Map<Integer, List<NF7>> m = tempNf7Map.get(key1);
+        if(m == null) {
+            m = new HashMap<Integer, List<NF7>>();
+            tempNf7Map.put(key1, m);
         }
-        set.add(nf7);
+        List<NF7> l = m.get(key2);
+        if(l == null) {
+            l = new ArrayList<NF7>();
+            m.put(key2, l);
+        }
+        
+        l.add(nf7);
     }
 
     /**
@@ -740,8 +768,7 @@ public class NormalisedOntology implements Serializable {
      * @param entries
      * @param nf8
      */
-    protected void addTerms(final FeatureMap<MonotonicCollection<NF8>> entries,
-            final NF8 nf8) {
+    protected void addTerms(final FeatureMap<MonotonicCollection<NF8>> entries, final NF8 nf8) {
         MonotonicCollection<NF8> set = entries.get(nf8.lhsD.getFeature());
         if (null == set) {
             set = new MonotonicCollection<NF8>(2);
@@ -764,6 +791,8 @@ public class NormalisedOntology implements Serializable {
             as.addAxiom(nf);
             addTerm(nf);
         }
+        
+        // TODO: need to collapse NF7 for this to work!
     }
 
     /**
@@ -1166,9 +1195,8 @@ public class NormalisedOntology implements Serializable {
     }
 
     /**
-     * These axioms are of the form A [ f.(o, v) and are indexed by A. A feature
-     * queue element must be added to the contexts that have A in their
-     * subsumptions.
+     * These axioms are of the form A [ f.(o, v) and are indexed by A. A feature queue element must be added to the 
+     * contexts that have A in their subsumptions.
      * 
      * @param as
      * @param subsumptions
@@ -1179,12 +1207,12 @@ public class NormalisedOntology implements Serializable {
             return;
         IConceptMap<MonotonicCollection<NF7>> deltaNF7 = new SparseConceptMap<MonotonicCollection<NF7>>(size);
         for (NF7 nf7 : as.getNf7Axioms()) {
-            addTerms(deltaNF7, nf7);
+            // addTerms(deltaNF7, nf7);
+            // TODO: implement this - these terms are already collapsed
         }
 
         // Get all the subsumptions a [ x
-        for (final IntIterator aItr = subsumptions.keyIterator(); aItr
-                .hasNext();) {
+        for (final IntIterator aItr = subsumptions.keyIterator(); aItr.hasNext();) {
             final int a = aItr.next();
 
             final IConceptSet Sa = subsumptions.get(a);
@@ -1432,7 +1460,8 @@ public class NormalisedOntology implements Serializable {
     }
     
     /**
-     * Returns the stated axioms in the ontology.
+     * Returns the stated axioms in the ontology. 
+     * TODO: this method has to be modified once the range constructs are added in ontology-core
      * 
      * @return
      */
@@ -1456,8 +1485,7 @@ public class NormalisedOntology implements Serializable {
                     Object obi = factory.lookupConceptId(bi);
                     res.add(new ConceptInclusion(
                         new au.csiro.ontology.model.Conjunction(
-                            new IConcept[] {transform(oa), transform(obi)}),
-                        transform(ob)
+                            new IConcept[] {transform(oa), transform(obi)}), transform(ob)
                     ));
                 }
             }
@@ -1474,8 +1502,7 @@ public class NormalisedOntology implements Serializable {
                 Object ob = factory.lookupConceptId(nf2.rhsB);
                 res.add(new ConceptInclusion(
                     transform(oa),
-                    new au.csiro.ontology.model.Existential(
-                            new Role(r), transform(ob))
+                    new au.csiro.ontology.model.Existential(new Role(r), transform(ob))
                 ));
             }
         }
@@ -1495,8 +1522,7 @@ public class NormalisedOntology implements Serializable {
                     String r = factory.lookupRoleId(i).toString();
                     Object ob = factory.lookupConceptId(nf3.getB());
                     res.add(new ConceptInclusion(
-                        new au.csiro.ontology.model.Existential(
-                            new Role(r), transform(ob)),
+                        new au.csiro.ontology.model.Existential(new Role(r), transform(ob)),
                         transform(oa)  
                     ));
                 }
@@ -1572,6 +1598,11 @@ public class NormalisedOntology implements Serializable {
         return res;
     }
     
+    /**
+     * TODO: this has to be modified when the ranges construct is added to ontology-core
+     * @param o
+     * @return
+     */
     public IConcept transform(Object o) {
         if(o instanceof Conjunction) {
             Conjunction con = (Conjunction)o;
@@ -1588,6 +1619,7 @@ public class NormalisedOntology implements Serializable {
             INamedRole irole = new Role(factory.lookupRoleId(role).toString());
             return new au.csiro.ontology.model.Existential(irole, iconcept);
         } else if(o instanceof Datatype) {
+            /*
             Datatype d = (Datatype)o;
             String feature = factory.lookupFeatureId(d.getFeature());
             Operator op = d.getOperator();
@@ -1621,6 +1653,7 @@ public class NormalisedOntology implements Serializable {
             }
             return new au.csiro.ontology.model.Datatype(
                     new Feature(feature), op, iliteral);
+                    */ return null;
         } else if(o instanceof Concept) {
             Object obj = factory.lookupConceptId(((Concept)o).hashCode());
             return transform(obj);
@@ -2540,7 +2573,7 @@ public class NormalisedOntology implements Serializable {
                 String as = (a instanceof String) ? (String) a : "[" + a.toString() + "]";
                 String f = factory.lookupFeatureId(fId);
                 
-                System.out.println("NF7: " + as + " [ " + f + ".(" + dt.getOperator() + ", "+ dt.getLiteral() +")");
+                System.out.println("NF7: " + as + " [ " + f + ".(" + dt.getLiteral() +")");
             }
         }
         
@@ -2557,7 +2590,7 @@ public class NormalisedOntology implements Serializable {
                 String bs = (b instanceof String) ? (String) b : "[" + b.toString() + "]";
                 String f = factory.lookupFeatureId(fId);
                 
-                System.out.println("NF8: " + f + ".(" + dt.getOperator() + ", "+ dt.getLiteral() +")" + " [ " + bs);
+                System.out.println("NF8: " + f + ".(" + dt.getLiteral() +")" + " [ " + bs);
             }
         }
         
