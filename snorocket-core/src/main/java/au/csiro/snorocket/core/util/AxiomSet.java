@@ -111,5 +111,11 @@ public class AxiomSet implements Serializable {
         nf7Axioms.clear();
         nf8Axioms.clear();
     }
+    
+    public boolean isEmpty() {
+        return nf1aAxioms.isEmpty() && nf1bAxioms.isEmpty() && nf2Axioms.isEmpty() && nf3Axioms.isEmpty() && 
+                nf4Axioms.isEmpty() && nf5Axioms.isEmpty() && nf6Axioms.isEmpty() && nf7Axioms.isEmpty() && 
+                nf8Axioms.isEmpty();
+    }
 
 }

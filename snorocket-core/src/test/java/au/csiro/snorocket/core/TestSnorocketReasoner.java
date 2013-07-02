@@ -512,5 +512,175 @@ public class TestSnorocketReasoner {
         Assert.assertTrue("Node F was not found in affected nodes", 
         		affectedIds.contains("F"));
     }
+    
+    @Test
+    public void testBottom() {
+        IFactory factory = new CoreFactory();
 
+        // Add concepts
+        Concept a = new Concept("A");
+        Concept b = new Concept("B");
+
+        // Add axioms
+        ConceptInclusion a1 = new ConceptInclusion(a, Concept.BOTTOM_CONCEPT);
+        ConceptInclusion a2 = new ConceptInclusion(b, Concept.TOP_CONCEPT);
+
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        axioms.add(a1);
+        axioms.add(a2);
+
+        // Classify
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.classify();
+        
+        // Build taxonomy
+        o.buildTaxonomy();
+
+        // Test results
+        Node bNode = o.getEquivalents(b.getId());
+        Set<Node> bParents = bNode.getParents();
+        assertTrue(bParents.size() == 1);
+        assertTrue(bParents.contains(o.getTopNode()));
+
+        Node bottomNode = o.getBottomNode();
+        assertTrue(bottomNode.getEquivalentConcepts().size() == 2);
+        bottomNode.getEquivalentConcepts().contains(a.getId());
+        Set<Node> bottomParents = bottomNode.getParents();
+        assertTrue(bottomParents.size() == 1);
+        assertTrue(bottomParents.contains(o.getEquivalents(b.getId())));
+    }
+    
+    @Test
+    public void testBottom2() {
+        IFactory factory = new CoreFactory();
+
+        // Add concepts
+        Concept a = new Concept("A");
+        Concept b = new Concept("B");
+
+        // Add axioms
+        ConceptInclusion a1 = new ConceptInclusion(a, b);
+        ConceptInclusion a2 = new ConceptInclusion(a, Concept.BOTTOM_CONCEPT);
+
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        axioms.add(a1);
+        axioms.add(a2);
+
+        // Classify
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.classify();
+        
+        // Build taxonomy
+        o.buildTaxonomy();
+
+        // Test results
+        Node bNode = o.getEquivalents(b.getId());
+        Set<Node> bParents = bNode.getParents();
+        assertTrue(bParents.size() == 1);
+        assertTrue(bParents.contains(o.getTopNode()));
+
+        Node bottomNode = o.getBottomNode();
+        assertTrue(bottomNode.getEquivalentConcepts().size() == 2);
+        bottomNode.getEquivalentConcepts().contains(a.getId());
+        Set<Node> bottomParents = bottomNode.getParents();
+        assertTrue(bottomParents.size() == 1);
+        assertTrue(bottomParents.contains(o.getEquivalents(b.getId())));
+    }
+    
+    @Test
+    public void testBottomIncremental() {
+        IFactory factory = new CoreFactory();
+
+        // Add concepts
+        Concept a = new Concept("A");
+        Concept b = new Concept("B");
+
+        // Add axioms
+        ConceptInclusion a1 = new ConceptInclusion(a, b);
+        ConceptInclusion a2 = new ConceptInclusion(a, Concept.BOTTOM_CONCEPT);
+
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        axioms.add(a1);
+
+        // Classify
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.classify();
+        
+        // Build taxonomy
+        o.buildTaxonomy();
+        
+        axioms.clear();
+        axioms.add(a2);
+        o.loadIncremental(axioms);
+        o.classifyIncremental();
+        o.buildTaxonomy();
+
+        // Test results
+        Node bNode = o.getEquivalents(b.getId());
+        Set<Node> bParents = bNode.getParents();
+        assertTrue(bParents.size() == 1);
+        assertTrue(bParents.contains(o.getTopNode()));
+
+        Node bottomNode = o.getBottomNode();
+        assertTrue(bottomNode.getEquivalentConcepts().size() == 2);
+        bottomNode.getEquivalentConcepts().contains(a.getId());
+        Set<Node> bottomParents = bottomNode.getParents();
+        assertTrue(bottomParents.size() == 1);
+        assertTrue(bottomParents.contains(o.getEquivalents(b.getId())));
+    }
+
+    @Test
+    public void testBottomIncremental2() {
+        IFactory factory = new CoreFactory();
+
+        // Add concepts
+        Concept a = new Concept("A");
+        Concept b = new Concept("B");
+        Concept c = new Concept("C");
+
+        // Add axioms
+        ConceptInclusion a1 = new ConceptInclusion(a, b);
+        ConceptInclusion a2 = new ConceptInclusion(c, b);
+        ConceptInclusion a3 = new ConceptInclusion(c, Concept.BOTTOM_CONCEPT);
+
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        axioms.add(a1);
+
+        // Classify
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.classify();
+        
+        // Build taxonomy
+        o.buildTaxonomy();
+        
+        axioms.clear();
+        axioms.add(a2);
+        axioms.add(a3);
+        o.loadIncremental(axioms);
+        o.classifyIncremental();
+        o.buildTaxonomy();
+
+        // Test results
+        Node bNode = o.getEquivalents(b.getId());
+        Set<Node> bParents = bNode.getParents();
+        assertTrue(bParents.size() == 1);
+        assertTrue(bParents.contains(o.getTopNode()));
+        Set<Node> bChildren = bNode.getChildren();
+        assertTrue(bChildren.size() == 1);
+        assertTrue(bChildren.contains(o.getEquivalents(a.getId())));
+        
+        Node bottomNode = o.getBottomNode();
+        Node aNode = o.getEquivalents(a.getId());
+        Set<Node> aParents = aNode.getParents();
+        assertTrue(aParents.size() == 1);
+        assertTrue(aParents.contains(bNode));
+        Set<Node> aChildren = aNode.getChildren();
+        assertTrue(aChildren.size() == 1);
+        assertTrue(aChildren.contains(o.getBottomNode()));
+        assertTrue(bottomNode.getEquivalentConcepts().size() == 2);
+        assertTrue(bottomNode.getEquivalentConcepts().contains(c.getId()));
+        Set<Node> bottomParents = bottomNode.getParents();
+        assertTrue(bottomParents.size() == 1);
+        assertTrue(bottomParents.contains(aNode));
+    }
 }

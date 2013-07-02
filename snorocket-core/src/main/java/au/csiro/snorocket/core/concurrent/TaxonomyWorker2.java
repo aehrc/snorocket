@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import au.csiro.ontology.Node;
+import au.csiro.ontology.model.Concept;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
@@ -46,6 +47,7 @@ public class TaxonomyWorker2 implements Runnable {
         while(true) {
             Node node = todo.poll();
             if(node == null) break;
+            if(node.getEquivalentConcepts().contains(Concept.BOTTOM)) continue;
             
             for (String c : node.getEquivalentConcepts()) {
                 // Get direct super-concepts

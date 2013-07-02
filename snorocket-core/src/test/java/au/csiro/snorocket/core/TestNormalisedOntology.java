@@ -380,8 +380,7 @@ public class TestNormalisedOntology {
         axioms.add(a10);
         axioms.add(a11);
 
-        NormalisedOntology o = 
-                new NormalisedOntology(factory, axioms);
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
         o.classify();
         o.buildTaxonomy();
 

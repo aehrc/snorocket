@@ -150,6 +150,7 @@ public class DateLiteral extends AbstractLiteral {
         ub = cal;
         
         Calendar exact = null;
+        boolean hasOtherThanEq = false;
         
         for(Entry entry : entries) {
             Calendar val = entry.value;
@@ -188,7 +189,7 @@ public class DateLiteral extends AbstractLiteral {
                     break;
             }
         }
-        if(lb.after(ub) || (exact != null && (!lb.equals(exact) || !ub.equals(exact)))) empty = true;
+        if(lb.after(ub) || (exact != null && (hasOtherThanEq && (!lb.equals(exact) || !ub.equals(exact))))) empty = true;
     }
 
     @Override

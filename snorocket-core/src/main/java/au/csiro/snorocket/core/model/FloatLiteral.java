@@ -168,6 +168,7 @@ public class FloatLiteral extends AbstractLiteral {
         empty = false;
         
         float exact = Float.MIN_VALUE;
+        boolean hasOtherThanEq = false;
         
         for(Entry entry : entries) {
             float val = entry.value;
@@ -183,24 +184,26 @@ public class FloatLiteral extends AbstractLiteral {
                     }
                     break;
                 case GREATER_THAN:
-                    // Calculate the intersection
+                    hasOtherThanEq = true;
                     lb = Math.max(val + EPSILON, lb);
                     break;
                 case GREATER_THAN_EQUALS:
-                    // Calculate the intersection
+                    hasOtherThanEq = true;
                     lb = Math.max(val, lb);
                     break;
                 case LESS_THAN:
+                    hasOtherThanEq = true;
                     ub = Math.min(val - EPSILON, ub);
                     break;
                 case LESS_THAN_EQUALS:
+                    hasOtherThanEq = true;
                     ub = Math.min(val, ub);
                     break;
                 default:
                     break;
             }
         }
-        if(lb > ub || (exact != Integer.MIN_VALUE && (!equals(lb, exact) || !equals(ub, exact)))) empty = true;
+        if(lb > ub || (!equals(exact, Float.MIN_VALUE) && (hasOtherThanEq && (lb != exact || ub != exact)))) empty = true; 
     }
 
     @Override

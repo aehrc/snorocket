@@ -171,6 +171,7 @@ public class DoubleLiteral extends AbstractLiteral {
         empty = false;
         
         double exact = Double.MIN_VALUE;
+        boolean hasOtherThanEq = false;
         
         for(Entry entry : entries) {
             double val = entry.value;
@@ -186,24 +187,26 @@ public class DoubleLiteral extends AbstractLiteral {
                     }
                     break;
                 case GREATER_THAN:
-                    // Calculate the intersection
+                    hasOtherThanEq = true;
                     lb = Math.max(val + EPSILON, lb);
                     break;
                 case GREATER_THAN_EQUALS:
-                    // Calculate the intersection
+                    hasOtherThanEq = true;
                     lb = Math.max(val, lb);
                     break;
                 case LESS_THAN:
+                    hasOtherThanEq = true;
                     ub = Math.min(val - EPSILON, ub);
                     break;
                 case LESS_THAN_EQUALS:
+                    hasOtherThanEq = true;
                     ub = Math.min(val, ub);
                     break;
                 default:
                     break;
             }
         }
-        if(lb > ub || (exact != Integer.MIN_VALUE && (!equals(lb, exact) || !equals(ub, exact)))) empty = true;
+        if(lb > ub || (!equals(exact, Double.MIN_VALUE) && (hasOtherThanEq && (lb != exact || ub != exact)))) empty = true; 
     }
 
     @Override

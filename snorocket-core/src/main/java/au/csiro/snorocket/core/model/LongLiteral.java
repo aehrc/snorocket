@@ -142,13 +142,14 @@ public class LongLiteral extends AbstractLiteral {
         empty = false;
         lb = Long.MIN_VALUE;
         ub = Long.MAX_VALUE;
-        long exact = Integer.MIN_VALUE;
+        long exact = Long.MIN_VALUE;
+        boolean hasOtherThanEq = false;
         
         for(Entry entry : entries) {
             long val = entry.value;
             switch(entry.op) {
                 case EQUALS:
-                    if(exact == Integer.MIN_VALUE) {
+                    if(exact == Long.MIN_VALUE) {
                         // Exact value not set
                         exact = val;
                     } else if(exact != val) {
@@ -158,24 +159,26 @@ public class LongLiteral extends AbstractLiteral {
                     }
                     break;
                 case GREATER_THAN:
-                    // Calculate the intersection
+                    hasOtherThanEq = true;
                     lb = Math.max(val + 1, lb);
                     break;
                 case GREATER_THAN_EQUALS:
-                    // Calculate the intersection
+                    hasOtherThanEq = true;
                     lb = Math.max(val, lb);
                     break;
                 case LESS_THAN:
+                    hasOtherThanEq = true;
                     ub = Math.min(val - 1, ub);
                     break;
                 case LESS_THAN_EQUALS:
+                    hasOtherThanEq = true;
                     ub = Math.min(val, ub);
                     break;
                 default:
                     break;
             }
         }
-        if(lb > ub || (exact != Integer.MIN_VALUE && (lb != exact || ub != exact))) empty = true;    
+        if(lb > ub || (exact != Long.MIN_VALUE && (hasOtherThanEq && (lb != exact || ub != exact)))) empty = true; 
     }
 
     @Override

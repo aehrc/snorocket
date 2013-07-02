@@ -105,6 +105,7 @@ public class IntegerLiteral extends AbstractLiteral {
         lb = Integer.MIN_VALUE;
         ub = Integer.MAX_VALUE;
         int exact = Integer.MIN_VALUE;
+        boolean hasOtherThanEq = false;
         
         for(Entry entry : entries) {
             int val = entry.value;
@@ -120,24 +121,26 @@ public class IntegerLiteral extends AbstractLiteral {
                     }
                     break;
                 case GREATER_THAN:
-                    // Calculate the intersection
+                    hasOtherThanEq = true;
                     lb = Math.max(val + 1, lb);
                     break;
                 case GREATER_THAN_EQUALS:
-                    // Calculate the intersection
+                    hasOtherThanEq = true;
                     lb = Math.max(val, lb);
                     break;
                 case LESS_THAN:
+                    hasOtherThanEq = true;
                     ub = Math.min(val - 1, ub);
                     break;
                 case LESS_THAN_EQUALS:
+                    hasOtherThanEq = true;
                     ub = Math.min(val, ub);
                     break;
                 default:
                     break;
             }
         }
-        if(lb > ub || (exact != Integer.MIN_VALUE && (lb != exact || ub != exact))) empty = true;
+        if(lb > ub || (exact != Integer.MIN_VALUE && (hasOtherThanEq && (lb != exact || ub != exact)))) empty = true;
     }
     
     @Override

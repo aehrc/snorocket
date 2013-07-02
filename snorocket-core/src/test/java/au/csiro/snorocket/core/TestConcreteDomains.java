@@ -106,8 +106,7 @@ public class TestConcreteDomains {
         axioms.add(a6);
 
         // Classify
-        NormalisedOntology o = 
-                new NormalisedOntology(factory, axioms);
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
         o.classify();
 
         // Build taxonomy
@@ -727,6 +726,68 @@ public class TestConcreteDomains {
     }
     
     /**
+     * Completeness test with incremental classification.
+     */
+    @Test
+    public void testConcreteDomainsOperatorsCompletenessIncremental() {
+        IFactory factory = new CoreFactory();
+
+        // Add features
+        Feature f = new Feature("f");
+
+        // Add concepts
+        Concept a = new Concept("A");
+        Concept b = new Concept("B");
+
+        // Add axioms
+        ConceptInclusion a1 = new ConceptInclusion(a, 
+                new Conjunction(new IConcept[] { 
+                        new Datatype(f, Operator.LESS_THAN, new IntegerLiteral(2)), 
+                        new Datatype(f, Operator.GREATER_THAN, new IntegerLiteral(0)) 
+                    }
+                )
+        );
+        
+        ConceptInclusion a2 = new ConceptInclusion(new Datatype(f, Operator.EQUALS, new IntegerLiteral(1)), 
+                b
+        );
+
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        axioms.add(a1);
+
+        // Classify
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.classify();
+        
+        // Build taxonomy
+        o.buildTaxonomy();
+        
+        axioms.clear();
+        axioms.add(a2);
+        
+        o.loadIncremental(axioms);
+        o.classifyIncremental();
+        o.buildTaxonomy();
+
+        // Test results
+        Node aNode = o.getEquivalents(a.getId());
+        Set<Node> aParents = aNode.getParents();
+        assertTrue(aParents.size() == 1);
+        assertTrue(aParents.iterator().next().getEquivalentConcepts().contains(b.getId()));
+
+        Node bNode = o.getEquivalents(b.getId());
+        Set<Node> bParents = bNode.getParents();
+        assertTrue(bParents.size() == 1);
+        assertTrue(bParents.contains(o.getTopNode()));
+
+        Node bottomNode = o.getBottomNode();
+        assertTrue(bottomNode.getEquivalentConcepts().size() == 1);
+        Set<Node> bottomParents = bottomNode.getParents();
+        assertTrue(bottomParents.size() == 1);
+        assertTrue(bottomParents.contains(o.getEquivalents(a.getId())));
+    }
+    
+    /**
      * Tests classification when a combination of NF7 axioms makes a concept equivalent to bottom.
      */
     @Test
@@ -762,6 +823,64 @@ public class TestConcreteDomains {
         o.classify();
         
         // Build taxonomy
+        o.buildTaxonomy();
+
+        // Test results
+        Node bNode = o.getEquivalents(b.getId());
+        Set<Node> bParents = bNode.getParents();
+        assertTrue(bParents.size() == 1);
+        assertTrue(bParents.contains(o.getTopNode()));
+
+        Node bottomNode = o.getBottomNode();
+        assertTrue(bottomNode.getEquivalentConcepts().size() == 2);
+        bottomNode.getEquivalentConcepts().contains(a.getId());
+        Set<Node> bottomParents = bottomNode.getParents();
+        assertTrue(bottomParents.size() == 1);
+        assertTrue(bottomParents.contains(o.getEquivalents(b.getId())));
+    }
+    
+    /**
+     * Another completeness test with incremental classification.
+     */
+    @Test
+    public void testConcreteDomainsOperatorsCompletenessIncremental2() {
+        IFactory factory = new CoreFactory();
+
+        // Add features
+        Feature f = new Feature("f");
+
+        // Add concepts
+        Concept a = new Concept("A");
+        Concept b = new Concept("B");
+
+        // Add axioms
+        ConceptInclusion a1 = new ConceptInclusion(a, 
+                new Conjunction(new IConcept[] { 
+                        new Datatype(f, Operator.LESS_THAN, new IntegerLiteral(2)), 
+                        new Datatype(f, Operator.GREATER_THAN, new IntegerLiteral(0)) 
+                    }
+                )
+        );
+        
+        ConceptInclusion a2 = new ConceptInclusion(new Datatype(f, Operator.EQUALS, new IntegerLiteral(1)), b);
+        ConceptInclusion a3 = new ConceptInclusion(a, new Datatype(f, Operator.EQUALS, new IntegerLiteral(2)));
+
+        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        axioms.add(a1);
+        axioms.add(a2);
+
+        // Classify
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.classify();
+        
+        // Build taxonomy
+        o.buildTaxonomy();
+        
+        axioms.clear();
+        axioms.add(a3);
+        
+        o.loadIncremental(axioms);
+        o.classifyIncremental();
         o.buildTaxonomy();
 
         // Test results
