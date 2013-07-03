@@ -36,6 +36,13 @@ public class LongLiteral extends AbstractLiteral {
         return ub;
     }
 
+    /**
+     * @return the entries
+     */
+    public List<Entry> getEntries() {
+        return entries;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

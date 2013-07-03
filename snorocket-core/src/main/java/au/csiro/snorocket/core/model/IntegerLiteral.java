@@ -54,6 +54,13 @@ public class IntegerLiteral extends AbstractLiteral {
         return empty;
     }
 
+    /**
+     * @return the entries
+     */
+    public List<Entry> getEntries() {
+        return entries;
+    }
+
     @Override
     public boolean equals(AbstractLiteral other) {
         IntegerLiteral ol = (IntegerLiteral) other;

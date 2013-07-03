@@ -48,6 +48,7 @@ import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.axioms.IConceptInclusion;
 import au.csiro.ontology.axioms.IRoleInclusion;
 import au.csiro.ontology.axioms.RoleInclusion;
+import au.csiro.ontology.model.Feature;
 import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.ILiteral;
 import au.csiro.ontology.model.INamedRole;
@@ -86,6 +87,7 @@ import au.csiro.snorocket.core.model.DoubleLiteral;
 import au.csiro.snorocket.core.model.Existential;
 import au.csiro.snorocket.core.model.FloatLiteral;
 import au.csiro.snorocket.core.model.IntegerLiteral;
+import au.csiro.snorocket.core.model.IntegerLiteral.Entry;
 import au.csiro.snorocket.core.model.LongLiteral;
 import au.csiro.snorocket.core.model.StringLiteral;
 import au.csiro.snorocket.core.util.AxiomSet;
@@ -812,16 +814,10 @@ public class NormalisedOntology implements Serializable {
      */
     public void loadIncremental(Set<IAxiom> incAxioms) {
         
-        
-        // NF7 axioms have to be collapsed with existing axioms.
-        // TODO: if a match is found, can we still safely classify incrementally?
-        // TODO: this is really slow because all the collapsing is done again!
-        
         // Normalise
         Set<Inclusion> norm = normalise(incAxioms);
         
         // Prepare temp structure for NF7 collapse - reload existing axioms affected by new ones based on added axioms
-        //Map<Integer, Set<Integer>> afs = new HashMap<Integer, Set<Integer>>();
         for (Inclusion i : norm) {
             NormalFormGCI nf = i.getNormalForm();
             if(nf instanceof NF7) {
@@ -985,8 +981,7 @@ public class NormalisedOntology implements Serializable {
     }
 
     protected int processInclusion(int numNewConcepts, NormalFormGCI nf) {
-        // Add a context to the context index for every new concept in the
-        // axioms being added incrementally
+        // Add a context to the context index for every new concept in the axioms being added incrementally
         int[] cids = nf.getConceptsInAxiom();
 
         for (int j = 0; j < cids.length; j++) {
@@ -1578,8 +1573,7 @@ public class NormalisedOntology implements Serializable {
     }
     
     /**
-     * Returns the stated axioms in the ontology. 
-     * TODO: this method has to be modified once the range constructs are added in ontology-core
+     * Returns the stated axioms in the ontology.
      * 
      * @return
      */
@@ -1717,7 +1711,6 @@ public class NormalisedOntology implements Serializable {
     }
     
     /**
-     * TODO: this has to be modified when the ranges construct is added to ontology-core
      * @param o
      * @return
      */
@@ -1737,49 +1730,67 @@ public class NormalisedOntology implements Serializable {
             INamedRole irole = new Role(factory.lookupRoleId(role).toString());
             return new au.csiro.ontology.model.Existential(irole, iconcept);
         } else if(o instanceof Datatype) {
-            /*
-            Datatype d = (Datatype)o;
+            Datatype d = (Datatype) o;
             String feature = factory.lookupFeatureId(d.getFeature());
-            Operator op = d.getOperator();
             AbstractLiteral literal = d.getLiteral();
             
-            ILiteral iliteral = null;
             if(literal instanceof BooleanLiteral) {
-                iliteral = new au.csiro.ontology.model.BooleanLiteral(
-                        ((BooleanLiteral)literal).getValue());
+                ILiteral iliteral = new au.csiro.ontology.model.BooleanLiteral(((BooleanLiteral)literal).getValue());
+                return new au.csiro.ontology.model.Datatype(new Feature(feature), Operator.EQUALS, iliteral);
             } else if(literal instanceof DateLiteral) {
-                iliteral = new au.csiro.ontology.model.DateLiteral(
-                        ((DateLiteral)literal).getValue());
+                DateLiteral il = (DateLiteral) literal;
+                List<IConcept> concepts = new ArrayList<IConcept>();
+                for(au.csiro.snorocket.core.model.DateLiteral.Entry e : il.getEntries()) {
+                    ILiteral iliteral = new au.csiro.ontology.model.DateLiteral(e.getValue());
+                    concepts.add(new au.csiro.ontology.model.Datatype(new Feature(feature), e.getOp(), iliteral));
+                }
+                return new au.csiro.ontology.model.Conjunction(concepts);
             } else if(literal instanceof DoubleLiteral) {
-                iliteral = new au.csiro.ontology.model.DoubleLiteral(
-                        ((DoubleLiteral)literal).getValue());
+                DoubleLiteral il = (DoubleLiteral) literal;
+                List<IConcept> concepts = new ArrayList<IConcept>();
+                for(au.csiro.snorocket.core.model.DoubleLiteral.Entry e : il.getEntries()) {
+                    ILiteral iliteral = new au.csiro.ontology.model.DoubleLiteral(e.getValue());
+                    concepts.add(new au.csiro.ontology.model.Datatype(new Feature(feature), e.getOp(), iliteral));
+                }
+                return new au.csiro.ontology.model.Conjunction(concepts);
             } else if(literal instanceof FloatLiteral) {
-                iliteral = new au.csiro.ontology.model.FloatLiteral(
-                        ((FloatLiteral)literal).getValue());
+                FloatLiteral il = (FloatLiteral) literal;
+                List<IConcept> concepts = new ArrayList<IConcept>();
+                for(au.csiro.snorocket.core.model.FloatLiteral.Entry e : il.getEntries()) {
+                    ILiteral iliteral = new au.csiro.ontology.model.FloatLiteral(e.getValue());
+                    concepts.add(new au.csiro.ontology.model.Datatype(new Feature(feature), e.getOp(), iliteral));
+                }
+                return new au.csiro.ontology.model.Conjunction(concepts);
             } else if(literal instanceof IntegerLiteral) {
-                iliteral = new au.csiro.ontology.model.IntegerLiteral(
-                        ((IntegerLiteral)literal).getValue());
+                IntegerLiteral il = (IntegerLiteral) literal;
+                List<IConcept> concepts = new ArrayList<IConcept>();
+                for(Entry e : il.getEntries()) {
+                    ILiteral iliteral = new au.csiro.ontology.model.IntegerLiteral(e.getValue());
+                    concepts.add(new au.csiro.ontology.model.Datatype(new Feature(feature), e.getOp(), iliteral));
+                }
+                return new au.csiro.ontology.model.Conjunction(concepts);
             } else if(literal instanceof LongLiteral) {
-                iliteral = new au.csiro.ontology.model.LongLiteral(
-                        ((LongLiteral)literal).getValue());
+                LongLiteral il = (LongLiteral) literal;
+                List<IConcept> concepts = new ArrayList<IConcept>();
+                for(au.csiro.snorocket.core.model.LongLiteral.Entry e : il.getEntries()) {
+                    ILiteral iliteral = new au.csiro.ontology.model.LongLiteral(e.getValue());
+                    concepts.add(new au.csiro.ontology.model.Datatype(new Feature(feature), e.getOp(), iliteral));
+                }
+                return new au.csiro.ontology.model.Conjunction(concepts);
             } else if(literal instanceof StringLiteral) {
-                iliteral = new au.csiro.ontology.model.StringLiteral(
-                        ((StringLiteral)literal).getValue());
+                ILiteral iliteral = new au.csiro.ontology.model.BooleanLiteral(((BooleanLiteral)literal).getValue());
+                return new au.csiro.ontology.model.Datatype(new Feature(feature), Operator.EQUALS, iliteral);
             } else {
-                throw new RuntimeException("Unexpected literal "+
-                        literal.getClass().getName());
+                throw new RuntimeException("Unexpected literal " + literal.getClass().getName());
             }
-            return new au.csiro.ontology.model.Datatype(
-                    new Feature(feature), op, iliteral);
-                    */ return null;
+            
         } else if(o instanceof Concept) {
             Object obj = factory.lookupConceptId(((Concept)o).hashCode());
             return transform(obj);
         } else if(o instanceof String) {
             return new au.csiro.ontology.model.Concept((String) o);
         } else {
-            throw new RuntimeException("Unexpected object with class "+
-                    o.getClass().getName());
+            throw new RuntimeException("Unexpected object with class "+o.getClass().getName());
         }
     }
 
@@ -2217,9 +2228,6 @@ public class NormalisedOntology implements Serializable {
                 if(parents.contains(IFactory.BOTTOM_CONCEPT)) {
                     // Special case - bottom is parent
                     
-                    // TODO: probably need to add special handling for new concepts that are added as equivalents to
-                    // bottom
-                    
                     // a. add equivalents to bottom node
                     bottomNode.getEquivalentConcepts().addAll(cn.getEquivalentConcepts());
                     
@@ -2251,8 +2259,7 @@ public class NormalisedOntology implements Serializable {
                         Node parent = conceptNodeIndex.get(factory.lookupConceptId(parentId));
                         cn.getParents().add(parent);
                         parent.getChildren().add(cn);
-                        // All nodes that get new children and are connected to BOTTOM
-                        // must be disconnected
+                        // All nodes that get new children and are connected to BOTTOM must be disconnected
                         if (parent.getChildren().contains(bottomNode)) {
                             parent.getChildren().remove(bottomNode);
                             bottomNode.getParents().remove(parent);

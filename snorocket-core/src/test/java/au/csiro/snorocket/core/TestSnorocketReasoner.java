@@ -58,34 +58,26 @@ public class TestSnorocketReasoner {
         Concept criticalDisease = new Concept("CriticalDisease");
 
         ConceptInclusion a2 = new ConceptInclusion(heartWall, new Conjunction(
-                new IConcept[] { bodyWall,
-                        new Existential(partOf, heart) }));
+                new IConcept[] { bodyWall, new Existential(partOf, heart) }));
 
         ConceptInclusion a3 = new ConceptInclusion(heartValve, new Conjunction(
-                new IConcept[] { bodyValve,
-                        new Existential(partOf, heart) }));
+                new IConcept[] { bodyValve, new Existential(partOf, heart) }));
 
         ConceptInclusion a5 = new ConceptInclusion(inflammation,
-                new Conjunction(new IConcept[] { disease,
-                        new Existential(actsOn, tissue) }));
+                new Conjunction(new IConcept[] { disease, new Existential(actsOn, tissue) }));
 
         ConceptInclusion a6 = new ConceptInclusion(new Conjunction(
-                new IConcept[] { heartdisease,
-                        new Existential(hasLoc, heartValve) }), criticalDisease);
+                new IConcept[] { heartdisease, new Existential(hasLoc, heartValve) }), criticalDisease);
 
         ConceptInclusion a7 = new ConceptInclusion(heartdisease,
-                new Conjunction(new IConcept[] { disease,
-                        new Existential(hasLoc, heart) }));
+                new Conjunction(new IConcept[] { disease, new Existential(hasLoc, heart) }));
 
         ConceptInclusion a8 = new ConceptInclusion(
-                new Conjunction(new IConcept[] { disease,
-                        new Existential(hasLoc, heart) }), heartdisease);
+                new Conjunction(new IConcept[] { disease, new Existential(hasLoc, heart) }), heartdisease);
 
-        RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf },
-                partOf);
+        RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf }, partOf);
         RoleInclusion a10 = new RoleInclusion(partOf, contIn);
-        RoleInclusion a11 = new RoleInclusion(new Role[] { hasLoc, contIn },
-                hasLoc);
+        RoleInclusion a11 = new RoleInclusion(new Role[] { hasLoc, contIn }, hasLoc);
 
         // Partial ontology
         Set<IAxiom> axioms = new HashSet<IAxiom>();
@@ -125,8 +117,7 @@ public class TestSnorocketReasoner {
                         new Existential(contIn, heartValve) }));
 
         ConceptInclusion a4 = new ConceptInclusion(endocarditis,
-                new Conjunction(new IConcept[] { inflammation,
-                        new Existential(hasLoc, endocardium) }));
+                new Conjunction(new IConcept[] { inflammation, new Existential(hasLoc, endocardium) }));
 
         Set<IAxiom> incAxioms = new HashSet<IAxiom>();
         incAxioms.add(a1);
@@ -342,11 +333,9 @@ public class TestSnorocketReasoner {
                         new Existential(hasLoc, heart) }), 
                         heartdisease);
 
-        RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf },
-                partOf);
+        RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf }, partOf);
         RoleInclusion a10 = new RoleInclusion(partOf, contIn);
-        RoleInclusion a11 = new RoleInclusion(new Role[] { hasLoc, contIn },
-                hasLoc);
+        RoleInclusion a11 = new RoleInclusion(new Role[] { hasLoc, contIn }, hasLoc);
 
         Set<IAxiom> axioms = new HashSet<IAxiom>();
         axioms.add(a1);
@@ -506,11 +495,9 @@ public class TestSnorocketReasoner {
         
         System.out.println("Affected node ids: "+affectedIds);
         
-        Assert.assertTrue("Node G was not found in affected nodes", 
-        		affectedIds.contains("G"));
+        Assert.assertTrue("Node G was not found in affected nodes", affectedIds.contains("G"));
         
-        Assert.assertTrue("Node F was not found in affected nodes", 
-        		affectedIds.contains("F"));
+        Assert.assertTrue("Node F was not found in affected nodes", affectedIds.contains("F"));
     }
     
     @Test
@@ -683,4 +670,5 @@ public class TestSnorocketReasoner {
         assertTrue(bottomParents.size() == 1);
         assertTrue(bottomParents.contains(aNode));
     }
+    
 }

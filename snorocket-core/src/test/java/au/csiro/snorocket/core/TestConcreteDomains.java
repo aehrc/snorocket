@@ -214,8 +214,7 @@ public class TestConcreteDomains {
         axioms.add(a6);
 
         // Classify
-        NormalisedOntology o = 
-                new NormalisedOntology(factory, axioms);
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
         o.classify();
 
         // Build taxonomy
@@ -286,8 +285,7 @@ public class TestConcreteDomains {
         Concept bottle = new Concept("Bottle");
 
         // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(panadol, 
-                new Existential(contains, paracetamol));
+        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential(contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
                 new Conjunction(new IConcept[] {

@@ -54,6 +54,13 @@ public class FloatLiteral extends AbstractLiteral {
         return empty;
     }
     
+    /**
+     * @return the entries
+     */
+    public List<Entry> getEntries() {
+        return entries;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
