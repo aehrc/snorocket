@@ -39,8 +39,7 @@ public final class NF7 extends NormalFormGCI implements IFeatureQueueEntry {
     }
 
     public String toString() {
-        return lhsA + " [ " + rhsD.getFeature() + ".(" + rhsD.getOperator()
-                + "," + rhsD.getLiteral() + ")";
+        return lhsA + " [ " + rhsD.getFeature() + ".(" + rhsD.getLiteral() + ")";
     }
 
     @Override

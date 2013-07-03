@@ -67,39 +67,29 @@ public class TestNormalisedOntology {
                         new Existential(contIn, heartValve) }));
 
         ConceptInclusion a2 = new ConceptInclusion(heartWall, new Conjunction(
-                new IConcept[] { bodyWall,
-                        new Existential(partOf, heart) }));
+                new IConcept[] { bodyWall, new Existential(partOf, heart) }));
 
         ConceptInclusion a3 = new ConceptInclusion(heartValve, new Conjunction(
-                new IConcept[] { bodyValve,
-                        new Existential(partOf, heart) }));
+                new IConcept[] { bodyValve, new Existential(partOf, heart) }));
 
         ConceptInclusion a4 = new ConceptInclusion(endocarditis,
-                new Conjunction(new IConcept[] { inflammation,
-                        new Existential(hasLoc, endocardium) }));
+                new Conjunction(new IConcept[] { inflammation, new Existential(hasLoc, endocardium) }));
 
         ConceptInclusion a5 = new ConceptInclusion(inflammation,
-                new Conjunction(new IConcept[] { disease,
-                        new Existential(actsOn, tissue) }));
+                new Conjunction(new IConcept[] { disease, new Existential(actsOn, tissue) }));
 
-        ConceptInclusion a6 = new ConceptInclusion(new Conjunction(
-                new IConcept[] { heartdisease,
-                        new Existential(hasLoc, heartValve) }), 
-                        criticalDisease);
+        ConceptInclusion a6 = new ConceptInclusion(
+                new Conjunction(new IConcept[] { heartdisease, new Existential(hasLoc, heartValve) }), criticalDisease);
 
         ConceptInclusion a7 = new ConceptInclusion(heartdisease,
-                new Conjunction(new IConcept[] { disease,
-                        new Existential(hasLoc, heart) }));
+                new Conjunction(new IConcept[] { disease, new Existential(hasLoc, heart) }));
 
         ConceptInclusion a8 = new ConceptInclusion(
-                new Conjunction(new IConcept[] { disease,
-                        new Existential(hasLoc, heart) }), heartdisease);
+                new Conjunction(new IConcept[] { disease, new Existential(hasLoc, heart) }), heartdisease);
 
-        RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf },
-                partOf);
+        RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf }, partOf);
         RoleInclusion a10 = new RoleInclusion(partOf, contIn);
-        RoleInclusion a11 = new RoleInclusion(new Role[] { hasLoc, contIn },
-                hasLoc);
+        RoleInclusion a11 = new RoleInclusion(new Role[] { hasLoc, contIn }, hasLoc);
 
         Set<IAxiom> axioms = new HashSet<IAxiom>();
         axioms.add(a1);
@@ -116,8 +106,7 @@ public class TestNormalisedOntology {
 
         // Classify
         IFactory factory = new CoreFactory();
-        NormalisedOntology o = 
-                new NormalisedOntology(factory, axioms);
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
         
         int total = factory.getTotalConcepts();
         for(int i = 2; i < total; i++) {
@@ -153,18 +142,14 @@ public class TestNormalisedOntology {
         Node endocarditisNode = o.getEquivalents(endocarditis.getId());
         Set<Node> endocarditisRes = endocarditisNode.getParents();
         assertTrue(endocarditisRes.size() == 3);
-        assertTrue(endocarditisRes.contains(o.getEquivalents(inflammation
-                .getId())));
-        assertTrue(endocarditisRes.contains(o.getEquivalents(heartdisease
-                .getId())));
-        assertTrue(endocarditisRes.contains(o.getEquivalents(criticalDisease
-                .getId())));
+        assertTrue(endocarditisRes.contains(o.getEquivalents(inflammation.getId())));
+        assertTrue(endocarditisRes.contains(o.getEquivalents(heartdisease.getId())));
+        assertTrue(endocarditisRes.contains(o.getEquivalents(criticalDisease.getId())));
 
         Node inflammationNode = o.getEquivalents(inflammation.getId());
         Set<Node> inflammationRes = inflammationNode.getParents();
         assertTrue(inflammationRes.size() == 1);
-        assertTrue(inflammationRes
-                .contains(o.getEquivalents(disease.getId())));
+        assertTrue(inflammationRes.contains(o.getEquivalents(disease.getId())));
 
         Node endocardiumNode = o.getEquivalents(endocardium.getId());
         Set<Node> endocardiumRes = endocardiumNode.getParents();
@@ -174,8 +159,7 @@ public class TestNormalisedOntology {
         Node heartdiseaseNode = o.getEquivalents(heartdisease.getId());
         Set<Node> heartdiseaseRes = heartdiseaseNode.getParents();
         assertTrue(heartdiseaseRes.size() == 1);
-        assertTrue(heartdiseaseRes
-                .contains(o.getEquivalents(disease.getId())));
+        assertTrue(heartdiseaseRes.contains(o.getEquivalents(disease.getId())));
 
         Node heartWallNode = o.getEquivalents(heartWall.getId());
         Set<Node> heartWallRes = heartWallNode.getParents();
@@ -185,8 +169,7 @@ public class TestNormalisedOntology {
         Node heartValveNode = o.getEquivalents(heartValve.getId());
         Set<Node> heartValveRes = heartValveNode.getParents();
         assertTrue(heartValveRes.size() == 1);
-        assertTrue(heartValveRes
-                .contains(o.getEquivalents(bodyValve.getId())));
+        assertTrue(heartValveRes.contains(o.getEquivalents(bodyValve.getId())));
 
         Node diseaseNode = o.getEquivalents(disease.getId());
         Set<Node> diseaseRes = diseaseNode.getParents();
@@ -213,8 +196,7 @@ public class TestNormalisedOntology {
         assertTrue(bodyWallRes.size() == 1);
         assertTrue(bodyWallRes.contains(o.getTopNode()));
 
-        Node criticalDiseaseNode = o.getEquivalents(criticalDisease
-                .getId());
+        Node criticalDiseaseNode = o.getEquivalents(criticalDisease.getId());
         Set<Node> criticalDiseaseRes = criticalDiseaseNode.getParents();
         assertTrue(criticalDiseaseRes.size() == 1);
         assertTrue(criticalDiseaseRes.contains(o.getTopNode()));
@@ -235,45 +217,37 @@ public class TestNormalisedOntology {
         Concept panadol = new Concept("Panadol");
         Concept panadol_250mg = new Concept("Panadol_250mg");
         Concept panadol_500mg = new Concept("Panadol_500mg");
-        Concept panadol_pack_250mg = 
-                new Concept("Panadol_pack_250mg");
+        Concept panadol_pack_250mg = new Concept("Panadol_pack_250mg");
         Concept paracetamol = new Concept("Paracetamol");
         Concept bottle = new Concept("Bottle");
 
         // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(panadol, 
-                new Existential(
-                contains, paracetamol));
+        ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential(contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Operator.EQUALS,
-                                new IntegerLiteral(250)) }));
+                        new Datatype(mgPerTablet, Operator.EQUALS, new IntegerLiteral(250)) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
                 new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Operator.EQUALS,
-                                new IntegerLiteral(250)) }), panadol_250mg);
+                        new Datatype(mgPerTablet, Operator.EQUALS, new IntegerLiteral(250)) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Operator.EQUALS,
-                                new IntegerLiteral(500)) }));
+                        new Datatype(mgPerTablet, Operator.EQUALS, new IntegerLiteral(500)) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
                 new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Operator.EQUALS,
-                                new IntegerLiteral(500)) }), panadol_500mg);
+                        new Datatype(mgPerTablet, Operator.EQUALS, new IntegerLiteral(500)) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
                 new Conjunction(new IConcept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Operator.EQUALS,
-                                new IntegerLiteral(250)),
+                        new Datatype(mgPerTablet, Operator.EQUALS, new IntegerLiteral(250)),
                         new Existential(container, bottle) }));
 
         Set<IAxiom> axioms = new HashSet<IAxiom>();
@@ -339,34 +313,26 @@ public class TestNormalisedOntology {
         Concept criticalDisease = new Concept("CriticalDisease");
 
         ConceptInclusion a2 = new ConceptInclusion(heartWall, new Conjunction(
-                new IConcept[] { bodyWall,
-                        new Existential(partOf, heart) }));
+                new IConcept[] { bodyWall, new Existential(partOf, heart) }));
 
         ConceptInclusion a3 = new ConceptInclusion(heartValve, new Conjunction(
-                new IConcept[] { bodyValve,
-                        new Existential(partOf, heart) }));
+                new IConcept[] { bodyValve, new Existential(partOf, heart) }));
 
         ConceptInclusion a5 = new ConceptInclusion(inflammation,
-                new Conjunction(new IConcept[] { disease,
-                        new Existential(actsOn, tissue) }));
+                new Conjunction(new IConcept[] { disease, new Existential(actsOn, tissue) }));
 
         ConceptInclusion a6 = new ConceptInclusion(new Conjunction(
-                new IConcept[] { heartdisease,
-                        new Existential(hasLoc, heartValve) }), criticalDisease);
+                new IConcept[] { heartdisease, new Existential(hasLoc, heartValve) }), criticalDisease);
 
         ConceptInclusion a7 = new ConceptInclusion(heartdisease,
-                new Conjunction(new IConcept[] { disease,
-                        new Existential(hasLoc, heart) }));
+                new Conjunction(new IConcept[] { disease, new Existential(hasLoc, heart) }));
 
         ConceptInclusion a8 = new ConceptInclusion(
-                new Conjunction(new IConcept[] { disease,
-                        new Existential(hasLoc, heart) }), heartdisease);
+                new Conjunction(new IConcept[] { disease, new Existential(hasLoc, heart) }), heartdisease);
 
-        RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf },
-                partOf);
+        RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf }, partOf);
         RoleInclusion a10 = new RoleInclusion(partOf, contIn);
-        RoleInclusion a11 = new RoleInclusion(new Role[] { hasLoc, contIn },
-                hasLoc);
+        RoleInclusion a11 = new RoleInclusion(new Role[] { hasLoc, contIn }, hasLoc);
 
         // Partial ontology
         Set<IAxiom> axioms = new HashSet<IAxiom>();
@@ -380,8 +346,7 @@ public class TestNormalisedOntology {
         axioms.add(a10);
         axioms.add(a11);
 
-        NormalisedOntology o = 
-                new NormalisedOntology(factory, axioms);
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
         o.classify();
         o.buildTaxonomy();
 
@@ -395,8 +360,7 @@ public class TestNormalisedOntology {
                         new Existential(contIn, heartValve) }));
 
         ConceptInclusion a4 = new ConceptInclusion(endocarditis,
-                new Conjunction(new IConcept[] { inflammation,
-                        new Existential(hasLoc, endocardium) }));
+                new Conjunction(new IConcept[] { inflammation, new Existential(hasLoc, endocardium) }));
 
         Set<IAxiom> incAxioms = new HashSet<IAxiom>();
         incAxioms.add(a1);
@@ -420,18 +384,14 @@ public class TestNormalisedOntology {
         Node endocarditisNode = o.getEquivalents(endocarditis.getId());
         Set<Node> endocarditisRes = endocarditisNode.getParents();
         assertTrue(endocarditisRes.size() == 3);
-        assertTrue(endocarditisRes.contains(o.getEquivalents(inflammation
-                .getId())));
-        assertTrue(endocarditisRes.contains(o.getEquivalents(heartdisease
-                .getId())));
-        assertTrue(endocarditisRes.contains(o.getEquivalents(criticalDisease
-                .getId())));
+        assertTrue(endocarditisRes.contains(o.getEquivalents(inflammation.getId())));
+        assertTrue(endocarditisRes.contains(o.getEquivalents(heartdisease.getId())));
+        assertTrue(endocarditisRes.contains(o.getEquivalents(criticalDisease.getId())));
 
         Node inflammationNode = o.getEquivalents(inflammation.getId());
         Set<Node> inflammationRes = inflammationNode.getParents();
         assertTrue(inflammationRes.size() == 1);
-        assertTrue(inflammationRes
-                .contains(o.getEquivalents(disease.getId())));
+        assertTrue(inflammationRes.contains(o.getEquivalents(disease.getId())));
 
         Node endocardiumNode = o.getEquivalents(endocardium.getId());
         Set<Node> endocardiumRes = endocardiumNode.getParents();
@@ -451,8 +411,7 @@ public class TestNormalisedOntology {
         Node heartValveNode = o.getEquivalents(heartValve.getId());
         Set<Node> heartValveRes = heartValveNode.getParents();
         assertTrue(heartValveRes.size() == 1);
-        assertTrue(heartValveRes
-                .contains(o.getEquivalents(bodyValve.getId())));
+        assertTrue(heartValveRes.contains(o.getEquivalents(bodyValve.getId())));
 
         Node diseaseNode = o.getEquivalents(disease.getId());
         Set<Node> diseaseRes = diseaseNode.getParents();
@@ -479,8 +438,7 @@ public class TestNormalisedOntology {
         assertTrue(bodyWallRes.size() == 1);
         assertTrue(bodyWallRes.contains(o.getTopNode()));
 
-        Node criticalDiseaseNode = o.getEquivalents(criticalDisease
-                .getId());
+        Node criticalDiseaseNode = o.getEquivalents(criticalDisease.getId());
         Set<Node> criticalDiseaseRes = criticalDiseaseNode.getParents();
         assertTrue(criticalDiseaseRes.size() == 1);
         assertTrue(criticalDiseaseRes.contains(o.getTopNode()));

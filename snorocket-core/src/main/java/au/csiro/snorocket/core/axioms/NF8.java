@@ -35,8 +35,7 @@ public final class NF8 extends NormalFormGCI {
     }
 
     public String toString() {
-        return lhsD.getFeature() + ".(" + lhsD.getOperator() + ","
-                + lhsD.getLiteral() + ")" + " [ " + rhsB;
+        return lhsD.getFeature() + ".(" + lhsD.getLiteral() + ")" + " [ " + rhsB;
     }
 
     @Override

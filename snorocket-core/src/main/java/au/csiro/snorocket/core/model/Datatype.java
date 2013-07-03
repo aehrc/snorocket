@@ -4,12 +4,10 @@
  */
 package au.csiro.snorocket.core.model;
 
-import au.csiro.ontology.model.Operator;
 
 /**
- * A datatype expression that represents a set of individuals that have a
- * property with a certain value. The expression consists of a feature, an
- * operator (=, <, <=, >, >=), and a literal value.
+ * A datatype expression that represents a set of individuals that have a property with a certain value. The expression 
+ * consists of a feature and a literal value. The literal value is a range of values.
  * 
  * @author Alejandro Metke
  * 
@@ -22,24 +20,18 @@ public class Datatype extends AbstractConcept {
     private static final long serialVersionUID = 1L;
     
     private int feature;
-    private Operator operator;
     private AbstractLiteral literal;
 
     /**
 	 * 
 	 */
-    public Datatype(int feature, Operator operator, AbstractLiteral literal) {
+    public Datatype(int feature, AbstractLiteral literal) {
         this.feature = feature;
-        this.operator = operator;
         this.literal = literal;
     }
 
     public int getFeature() {
         return feature;
-    }
-
-    public Operator getOperator() {
-        return operator;
     }
 
     public AbstractLiteral getLiteral() {
@@ -48,7 +40,7 @@ public class Datatype extends AbstractConcept {
 
     @Override
     public String toString() {
-        return feature + ".(" + operator + "," + literal + ")";
+        return feature + ".(" + literal + ")";
     }
 
     @Override
@@ -57,8 +49,6 @@ public class Datatype extends AbstractConcept {
         int result = 1;
         result = prime * result + feature;
         result = prime * result + ((literal == null) ? 0 : literal.hashCode());
-        result = prime * result
-                + ((operator == null) ? 0 : operator.hashCode());
         return result;
     }
 
@@ -78,8 +68,6 @@ public class Datatype extends AbstractConcept {
                 return false;
         } else if (!literal.equals(other.literal))
             return false;
-        if (operator != other.operator)
-            return false;
         return true;
     }
 
@@ -93,13 +81,7 @@ public class Datatype extends AbstractConcept {
         final int featureCompare = feature - otherDatatype.feature;
 
         if (featureCompare == 0) {
-            final int operatorCompare = operator.compareTo(
-                    otherDatatype.operator);
-            if (operatorCompare == 0) {
-                return literal.toString().compareTo(otherDatatype.literal.toString());
-            } else {
-                return operatorCompare;
-            }
+            return literal.toString().compareTo(otherDatatype.literal.toString());
         } else {
             return featureCompare;
         }
