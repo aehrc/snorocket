@@ -60,11 +60,11 @@ import org.semanticweb.owlapi.reasoner.impl.OWLNamedIndividualNodeSet;
 import org.semanticweb.owlapi.reasoner.impl.OWLObjectPropertyNode;
 import org.semanticweb.owlapi.util.Version;
 
-import au.csiro.ontology.IOntology;
-import au.csiro.ontology.axioms.IAxiom;
+import au.csiro.ontology.Ontology;
 import au.csiro.ontology.classification.IReasoner;
 import au.csiro.ontology.importer.owl.OWLImporter;
-import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.model.Axiom;
+import au.csiro.ontology.model.NamedConcept;
 import au.csiro.ontology.util.IProgressMonitor;
 import au.csiro.snorocket.core.ClassNode;
 import au.csiro.snorocket.core.SnorocketReasoner;
@@ -116,7 +116,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     private IReasoner reasoner = new SnorocketReasoner();
     
     // The taxonomy
-    private IOntology taxonomy = null;
+    private Ontology taxonomy = null;
 
     /**
      * 
@@ -153,9 +153,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      */
     private OWLClass getOWLClass(Object id) {
         // Special cases top and bottom
-        if(id == Concept.TOP) {
+        if(id == NamedConcept.TOP) {
             return owlFactory.getOWLThing();
-        } else if(id == Concept.BOTTOM) {
+        } else if(id == NamedConcept.BOTTOM) {
             return owlFactory.getOWLNothing();
         } else {
             String iri = (String)id;
@@ -177,10 +177,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         
         if(id.equals("<"+OWLImporter.THING_IRI+">") || 
                 id.equals(OWLImporter.THING_IRI)) {
-            return Concept.TOP;
+            return NamedConcept.TOP;
         } else if(id.equals("<"+OWLImporter.NOTHING_IRI+">") || 
                 id.equals(OWLImporter.NOTHING_IRI)) {
-            return Concept.BOTTOM;
+            return NamedConcept.BOTTOM;
         } else {
             return id;
         }
@@ -200,9 +200,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         
         if(id instanceof String) {
             n = getTaxonomy().getNode((String)id);
-        } else if(id == Concept.TOP) {
+        } else if(id == NamedConcept.TOP) {
             n = getTaxonomy().getTopNode();
-        } else if(id == Concept.BOTTOM) {
+        } else if(id == NamedConcept.BOTTOM) {
             n = getTaxonomy().getBottomNode();
         } else {
             throw new RuntimeException("Unexpected id "+id);
@@ -268,15 +268,15 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         return new OWLClassNodeSet(temp);
     }
     
-    private Set<IAxiom> getAxioms(OWLOntology ont) {
-        Set<IAxiom> canAxioms = new HashSet<IAxiom>();
+    private Set<Axiom> getAxioms(OWLOntology ont) {
+        Set<Axiom> canAxioms = new HashSet<Axiom>();
         OWLImporter oi = new OWLImporter(ont);
         
-        Iterator<IOntology> it = null;
+        Iterator<Ontology> it = null;
         try {
             it = oi.getOntologyVersions(monitor);
             while(it.hasNext()) {
-                IOntology o = it.next();
+                Ontology o = it.next();
                 canAxioms.addAll(o.getStatedAxioms());
             }
         } catch(RuntimeException e) {
@@ -287,6 +287,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
                 sb.append(problem);
             }
             
+            sb.append("\n");
+            sb.append(e.getMessage());
+            
             log.error(sb.toString());
             monitor.taskEnded();
             throw new ReasonerInternalException(sb.toString());
@@ -295,11 +298,11 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         return canAxioms;
     }
     
-    private Set<IAxiom> getAxioms(List<OWLAxiom> axioms) {
-        Set<IAxiom> canAxioms = new HashSet<IAxiom>();
+    private Set<Axiom> getAxioms(List<OWLAxiom> axioms) {
+        Set<Axiom> canAxioms = new HashSet<Axiom>();
         OWLImporter oi = new OWLImporter(axioms);
         
-        Iterator<IOntology> it = null;
+        Iterator<Ontology> it = null;
         try {
             it = oi.getOntologyVersions(monitor);
         } catch(RuntimeException e) {
@@ -317,7 +320,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             return null;
         }
         while(it.hasNext()) {
-            IOntology o = it.next();
+            Ontology o = it.next();
             canAxioms.addAll(o.getStatedAxioms());
         }
         
@@ -344,7 +347,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * 
      * @return
      */
-    private IOntology getTaxonomy() {
+    private Ontology getTaxonomy() {
         if(taxonomy == null) {
             taxonomy = reasoner.getClassifiedOntology();
         }
@@ -417,7 +420,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         }
         
         // Transform the axioms into the canonical model
-        Set<IAxiom> canAxioms = getAxioms(newAxioms);
+        Set<Axiom> canAxioms = getAxioms(newAxioms);
         
         // Classify
         monitor.taskStarted("Classifying incrementally");

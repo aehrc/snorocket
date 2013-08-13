@@ -24,7 +24,7 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>1.3.6</ontology-core.version>
+        <ontology-core.version>2.2.0</ontology-core.version>
         <owl-api.version>3.3</owl-api.version>
         <protege.version>4.1.0</protege.version>
     </properties>
@@ -33,6 +33,7 @@
         <module>snorocket-core</module>
         <module>snorocket-owlapi</module>
         <module>snorocket-protege</module>
+		 <module>snorocket-examples</module>
     </modules>
     
     <dependencies>
@@ -48,6 +49,20 @@
           <version>1.2.16</version>
         </dependency>
     </dependencies>
+	
+	<profiles>
+	  <profile>
+        <id>extended-tests</id>
+        <activation>
+          <property>
+              <name>runAllTests</name>
+          </property>
+        </activation>
+        <modules>
+		    <module>snorocket-tests</module>
+	    </modules>
+      </profile>
+	</profiles>
     
     <distributionManagement>
     <repository>

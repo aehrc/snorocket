@@ -43,18 +43,15 @@ import java.util.concurrent.Executors;
 import org.apache.log4j.Logger;
 
 import au.csiro.ontology.Node;
-import au.csiro.ontology.axioms.ConceptInclusion;
-import au.csiro.ontology.axioms.IAxiom;
-import au.csiro.ontology.axioms.IConceptInclusion;
-import au.csiro.ontology.axioms.IRoleInclusion;
-import au.csiro.ontology.axioms.RoleInclusion;
-import au.csiro.ontology.model.Feature;
-import au.csiro.ontology.model.IConcept;
-import au.csiro.ontology.model.ILiteral;
-import au.csiro.ontology.model.INamedRole;
-import au.csiro.ontology.model.IRole;
+import au.csiro.ontology.model.Axiom;
+import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.model.ConceptInclusion;
+import au.csiro.ontology.model.Literal;
+import au.csiro.ontology.model.NamedFeature;
+import au.csiro.ontology.model.NamedRole;
 import au.csiro.ontology.model.Operator;
 import au.csiro.ontology.model.Role;
+import au.csiro.ontology.model.RoleInclusion;
 import au.csiro.ontology.util.Statistics;
 import au.csiro.snorocket.core.axioms.GCI;
 import au.csiro.snorocket.core.axioms.IConjunctionQueueEntry;
@@ -79,7 +76,6 @@ import au.csiro.snorocket.core.concurrent.Worker;
 import au.csiro.snorocket.core.model.AbstractConcept;
 import au.csiro.snorocket.core.model.AbstractLiteral;
 import au.csiro.snorocket.core.model.BooleanLiteral;
-import au.csiro.snorocket.core.model.Concept;
 import au.csiro.snorocket.core.model.Conjunction;
 import au.csiro.snorocket.core.model.Datatype;
 import au.csiro.snorocket.core.model.DateLiteral;
@@ -295,7 +291,7 @@ public class NormalisedOntology implements Serializable {
      * @param factory
      * @param inclusions
      */
-    public NormalisedOntology(final IFactory factory, final Set<? extends IAxiom> inclusions) {
+    public NormalisedOntology(final IFactory factory, final Set<? extends Axiom> inclusions) {
         this(factory);
         
         loadAxioms(inclusions);
@@ -366,7 +362,7 @@ public class NormalisedOntology implements Serializable {
      * 
      * @param inclusions
      */
-    public void loadAxioms(final Set<? extends IAxiom> inclusions) {
+    public void loadAxioms(final Set<? extends Axiom> inclusions) {
         long start = System.currentTimeMillis();
         if(log.isInfoEnabled())
             log.info("Loading " + inclusions.size() + " axioms");
@@ -443,23 +439,23 @@ public class NormalisedOntology implements Serializable {
      * @param axioms The axioms in the ontology model format.
      * @return The axioms in the internal model format.
      */
-    private Set<Inclusion> transformAxiom(final Set<? extends IAxiom> axioms) {
+    private Set<Inclusion> transformAxiom(final Set<? extends Axiom> axioms) {
         Set<Inclusion> res = new HashSet<Inclusion>();
         
-        for(IAxiom aa : axioms) {
-            if(aa instanceof IConceptInclusion) {
-                IConceptInclusion ci = (IConceptInclusion)aa;
-                IConcept lhs = ci.lhs();
-                IConcept rhs = ci.rhs();
+        for(Axiom aa : axioms) {
+            if(aa instanceof ConceptInclusion) {
+                ConceptInclusion ci = (ConceptInclusion)aa;
+                Concept lhs = ci.getLhs();
+                Concept rhs = ci.getRhs();
                 res.add(new GCI(transformConcept(lhs), transformConcept(rhs)));
-            } else if(aa instanceof IRoleInclusion) {
-                IRoleInclusion ri = (IRoleInclusion)aa;
-                IRole[] lh = ri.lhs();
-                INamedRole[] lhs = new INamedRole[lh.length];
+            } else if(aa instanceof RoleInclusion) {
+                RoleInclusion ri = (RoleInclusion)aa;
+                Role[] lh = ri.getLhs();
+                NamedRole[] lhs = new NamedRole[lh.length];
                 for(int i = 0; i < lh.length; i++) {
-                    lhs[i] = (INamedRole)lh[i];
+                    lhs[i] = (NamedRole) lh[i];
                 }
-                INamedRole rhs = (INamedRole)ri.rhs();
+                NamedRole rhs = (NamedRole) ri.getRhs();
                 int[] lhsInt = new int[lhs.length];
                 for(int i = 0; i < lhsInt.length; i++) {
                     lhsInt[i] = factory.getRole(lhs[i].getId());
@@ -477,15 +473,16 @@ public class NormalisedOntology implements Serializable {
      * @param c The concept in the ontology model format.
      * @return The concept in the internal model format.
      */
-    private au.csiro.snorocket.core.model.AbstractConcept transformConcept(IConcept c) {
-        if(c.equals(au.csiro.ontology.model.Concept.TOP_CONCEPT)) {
-            return new Concept(IFactory.TOP_CONCEPT);
-        } else if(c.equals(au.csiro.ontology.model.Concept.BOTTOM_CONCEPT)) {
-            return new Concept(IFactory.BOTTOM_CONCEPT);
-        } else if(c instanceof au.csiro.ontology.model.Concept) {
-            return new Concept(factory.getConcept(((au.csiro.ontology.model.Concept)c).getId()));
+    private au.csiro.snorocket.core.model.AbstractConcept transformConcept(Concept c) {
+        if(c.equals(au.csiro.ontology.model.NamedConcept.TOP_CONCEPT)) {
+            return new au.csiro.snorocket.core.model.Concept(IFactory.TOP_CONCEPT);
+        } else if(c.equals(au.csiro.ontology.model.NamedConcept.BOTTOM_CONCEPT)) {
+            return new au.csiro.snorocket.core.model.Concept(IFactory.BOTTOM_CONCEPT);
+        } else if(c instanceof au.csiro.ontology.model.NamedConcept) {
+            return new au.csiro.snorocket.core.model.Concept(
+                    factory.getConcept(((au.csiro.ontology.model.NamedConcept) c).getId()));
         } else if(c instanceof au.csiro.ontology.model.Conjunction) {
-            IConcept[] modelCons = ((au.csiro.ontology.model.Conjunction)c).getConcepts();
+            Concept[] modelCons = ((au.csiro.ontology.model.Conjunction)c).getConcepts();
             au.csiro.snorocket.core.model.AbstractConcept[] cons = 
                     new au.csiro.snorocket.core.model.AbstractConcept[modelCons.length];
             for(int i = 0; i < modelCons.length; i++) {
@@ -494,11 +491,12 @@ public class NormalisedOntology implements Serializable {
             return new Conjunction(cons);
         } else if(c instanceof au.csiro.ontology.model.Datatype) {
             au.csiro.ontology.model.Datatype dt = (au.csiro.ontology.model.Datatype) c;
-            return new Datatype(factory.getFeature(dt.getFeature().getId()), transformLiteral(dt.getOperator(), 
+            return new Datatype(factory.getFeature(((NamedFeature) dt.getFeature()).getId()), 
+                    transformLiteral(dt.getOperator(), 
                     dt.getLiteral()));
         } else if(c instanceof au.csiro.ontology.model.Existential) {
             au.csiro.ontology.model.Existential e = (au.csiro.ontology.model.Existential) c;
-            return new Existential(factory.getRole(e.getRole().getId()), 
+            return new Existential(factory.getRole(((NamedRole) e.getRole()).getId()), 
                     transformConcept(e.getConcept())); 
         } else {
             throw new RuntimeException("Unexpected AbstractConcept "+c.getClass().getName());
@@ -512,7 +510,7 @@ public class NormalisedOntology implements Serializable {
      * @param l The literal in the ontology model format.
      * @return The literal in the internal model format.
      */
-    private au.csiro.snorocket.core.model.AbstractLiteral transformLiteral(Operator op, ILiteral l) {
+    private au.csiro.snorocket.core.model.AbstractLiteral transformLiteral(Operator op, Literal l) {
         if(l instanceof au.csiro.ontology.model.BooleanLiteral) {
             return new BooleanLiteral(((au.csiro.ontology.model.BooleanLiteral) l).getValue());
         } else if(l instanceof au.csiro.ontology.model.DateLiteral) {
@@ -535,7 +533,7 @@ public class NormalisedOntology implements Serializable {
     /**
      * Returns a set of Inclusions in normal form suitable for classifying.
      */
-    public Set<Inclusion> normalise(final Set<? extends IAxiom> inclusions) {
+    public Set<Inclusion> normalise(final Set<? extends Axiom> inclusions) {
         
         // Exhaustively apply NF1 to NF4
         Set<Inclusion> newIs = transformAxiom(inclusions);
@@ -648,9 +646,9 @@ public class NormalisedOntology implements Serializable {
             return sb.toString();
         } else if(o instanceof Concept) {
             Object obj = factory.lookupConceptId(((Concept)o).hashCode());
-            if(obj == au.csiro.ontology.model.Concept.TOP) {
+            if(obj == au.csiro.ontology.model.NamedConcept.TOP) {
                 return "TOP";
-            } else if(obj == au.csiro.ontology.model.Concept.BOTTOM) {
+            } else if(obj == au.csiro.ontology.model.NamedConcept.BOTTOM) {
                 return "BOTTOM";
             } else if(obj instanceof AbstractConcept) {
                 return "<"+printInternalObject(obj)+">";
@@ -805,6 +803,8 @@ public class NormalisedOntology implements Serializable {
             set = new MonotonicCollection<NF8>(2);
             entries.put(nf8.lhsD.getFeature(), set);
         }
+        // Fixes bug detected in AMT classification - NF8 literals must be evaluated!
+        nf8.lhsD.getLiteral().evaluate();
         set.add(nf8);
     }
     
@@ -812,7 +812,7 @@ public class NormalisedOntology implements Serializable {
      * 
      * @param incAxioms
      */
-    public void loadIncremental(Set<IAxiom> incAxioms) {
+    public void loadIncremental(Set<Axiom> incAxioms) {
         
         // Normalise
         Set<Inclusion> norm = normalise(incAxioms);
@@ -1577,8 +1577,8 @@ public class NormalisedOntology implements Serializable {
      * 
      * @return
      */
-    public Set<IAxiom> getStatedAxioms() {
-        Set<IAxiom> res = new HashSet<IAxiom>();
+    public Set<Axiom> getStatedAxioms() {
+        Set<Axiom> res = new HashSet<Axiom>();
         // These terms are of the form A n Bi [ B and are indexed by A.
         for(IntIterator it = ontologyNF1.keyIterator(); it.hasNext(); ) {
             int a = it.next();
@@ -1597,7 +1597,7 @@ public class NormalisedOntology implements Serializable {
                     Object obi = factory.lookupConceptId(bi);
                     res.add(new ConceptInclusion(
                         new au.csiro.ontology.model.Conjunction(
-                            new IConcept[] {transform(oa), transform(obi)}), transform(ob)
+                            new Concept[] {transform(oa), transform(obi)}), transform(ob)
                     ));
                 }
             }
@@ -1614,7 +1614,7 @@ public class NormalisedOntology implements Serializable {
                 Object ob = factory.lookupConceptId(nf2.rhsB);
                 res.add(new ConceptInclusion(
                     transform(oa),
-                    new au.csiro.ontology.model.Existential(new Role(r), transform(ob))
+                    new au.csiro.ontology.model.Existential(new NamedRole(r), transform(ob))
                 ));
             }
         }
@@ -1634,7 +1634,7 @@ public class NormalisedOntology implements Serializable {
                     String r = factory.lookupRoleId(i).toString();
                     Object ob = factory.lookupConceptId(nf3.getB());
                     res.add(new ConceptInclusion(
-                        new au.csiro.ontology.model.Existential(new Role(r), transform(ob)),
+                        new au.csiro.ontology.model.Existential(new NamedRole(r), transform(ob)),
                         transform(oa)  
                     ));
                 }
@@ -1648,8 +1648,8 @@ public class NormalisedOntology implements Serializable {
             
             res.add(
                 new RoleInclusion(
-                    new Role(factory.lookupRoleId(r).toString()),
-                    new Role(factory.lookupRoleId(s).toString())
+                    new NamedRole(factory.lookupRoleId(r).toString()),
+                    new NamedRole(factory.lookupRoleId(s).toString())
                 )
             );
         }
@@ -1662,11 +1662,11 @@ public class NormalisedOntology implements Serializable {
             
             res.add(
                 new RoleInclusion(
-                    new IRole[] {
-                            new Role(factory.lookupRoleId(r).toString()),
-                            new Role(factory.lookupRoleId(s).toString())
+                    new Role[] {
+                            new NamedRole(factory.lookupRoleId(r).toString()),
+                            new NamedRole(factory.lookupRoleId(s).toString())
                     },
-                    new Role(factory.lookupRoleId(t).toString())
+                    new NamedRole(factory.lookupRoleId(t).toString())
                 )
             );
         }
@@ -1675,8 +1675,8 @@ public class NormalisedOntology implements Serializable {
             int r = it.next();
             res.add(
                 new RoleInclusion(
-                    new IRole[] {},
-                    new Role(factory.lookupRoleId(r).toString())
+                    new Role[] {},
+                    new NamedRole(factory.lookupRoleId(r).toString())
                 )
             );
         }
@@ -1714,10 +1714,10 @@ public class NormalisedOntology implements Serializable {
      * @param o
      * @return
      */
-    public IConcept transform(Object o) {
+    public Concept transform(Object o) {
         if(o instanceof Conjunction) {
             Conjunction con = (Conjunction)o;
-            List<IConcept> concepts = new ArrayList<IConcept>();
+            List<Concept> concepts = new ArrayList<Concept>();
             for(AbstractConcept ac : con.getConcepts()) {
                 concepts.add(transform(ac));
             }
@@ -1725,9 +1725,9 @@ public class NormalisedOntology implements Serializable {
         } else if(o instanceof Existential) {
             Existential e = (Existential)o;
             AbstractConcept c = e.getConcept();
-            IConcept iconcept = transform(c);
+            Concept iconcept = transform(c);
             int role = e.getRole();
-            INamedRole irole = new Role(factory.lookupRoleId(role).toString());
+            NamedRole irole = new NamedRole(factory.lookupRoleId(role).toString());
             return new au.csiro.ontology.model.Existential(irole, iconcept);
         } else if(o instanceof Datatype) {
             Datatype d = (Datatype) o;
@@ -1735,51 +1735,51 @@ public class NormalisedOntology implements Serializable {
             AbstractLiteral literal = d.getLiteral();
             
             if(literal instanceof BooleanLiteral) {
-                ILiteral iliteral = new au.csiro.ontology.model.BooleanLiteral(((BooleanLiteral)literal).getValue());
-                return new au.csiro.ontology.model.Datatype(new Feature(feature), Operator.EQUALS, iliteral);
+                Literal iliteral = new au.csiro.ontology.model.BooleanLiteral(((BooleanLiteral)literal).getValue());
+                return new au.csiro.ontology.model.Datatype(new NamedFeature(feature), Operator.EQUALS, iliteral);
             } else if(literal instanceof DateLiteral) {
                 DateLiteral il = (DateLiteral) literal;
-                List<IConcept> concepts = new ArrayList<IConcept>();
+                List<Concept> concepts = new ArrayList<Concept>();
                 for(au.csiro.snorocket.core.model.DateLiteral.Entry e : il.getEntries()) {
-                    ILiteral iliteral = new au.csiro.ontology.model.DateLiteral(e.getValue());
-                    concepts.add(new au.csiro.ontology.model.Datatype(new Feature(feature), e.getOp(), iliteral));
+                    Literal iliteral = new au.csiro.ontology.model.DateLiteral(e.getValue());
+                    concepts.add(new au.csiro.ontology.model.Datatype(new NamedFeature(feature), e.getOp(), iliteral));
                 }
                 return new au.csiro.ontology.model.Conjunction(concepts);
             } else if(literal instanceof DoubleLiteral) {
                 DoubleLiteral il = (DoubleLiteral) literal;
-                List<IConcept> concepts = new ArrayList<IConcept>();
+                List<Concept> concepts = new ArrayList<Concept>();
                 for(au.csiro.snorocket.core.model.DoubleLiteral.Entry e : il.getEntries()) {
-                    ILiteral iliteral = new au.csiro.ontology.model.DoubleLiteral(e.getValue());
-                    concepts.add(new au.csiro.ontology.model.Datatype(new Feature(feature), e.getOp(), iliteral));
+                    Literal iliteral = new au.csiro.ontology.model.DoubleLiteral(e.getValue());
+                    concepts.add(new au.csiro.ontology.model.Datatype(new NamedFeature(feature), e.getOp(), iliteral));
                 }
                 return new au.csiro.ontology.model.Conjunction(concepts);
             } else if(literal instanceof FloatLiteral) {
                 FloatLiteral il = (FloatLiteral) literal;
-                List<IConcept> concepts = new ArrayList<IConcept>();
+                List<Concept> concepts = new ArrayList<Concept>();
                 for(au.csiro.snorocket.core.model.FloatLiteral.Entry e : il.getEntries()) {
-                    ILiteral iliteral = new au.csiro.ontology.model.FloatLiteral(e.getValue());
-                    concepts.add(new au.csiro.ontology.model.Datatype(new Feature(feature), e.getOp(), iliteral));
+                    Literal iliteral = new au.csiro.ontology.model.FloatLiteral(e.getValue());
+                    concepts.add(new au.csiro.ontology.model.Datatype(new NamedFeature(feature), e.getOp(), iliteral));
                 }
                 return new au.csiro.ontology.model.Conjunction(concepts);
             } else if(literal instanceof IntegerLiteral) {
                 IntegerLiteral il = (IntegerLiteral) literal;
-                List<IConcept> concepts = new ArrayList<IConcept>();
+                List<Concept> concepts = new ArrayList<Concept>();
                 for(Entry e : il.getEntries()) {
-                    ILiteral iliteral = new au.csiro.ontology.model.IntegerLiteral(e.getValue());
-                    concepts.add(new au.csiro.ontology.model.Datatype(new Feature(feature), e.getOp(), iliteral));
+                    Literal iliteral = new au.csiro.ontology.model.IntegerLiteral(e.getValue());
+                    concepts.add(new au.csiro.ontology.model.Datatype(new NamedFeature(feature), e.getOp(), iliteral));
                 }
                 return new au.csiro.ontology.model.Conjunction(concepts);
             } else if(literal instanceof LongLiteral) {
                 LongLiteral il = (LongLiteral) literal;
-                List<IConcept> concepts = new ArrayList<IConcept>();
+                List<Concept> concepts = new ArrayList<Concept>();
                 for(au.csiro.snorocket.core.model.LongLiteral.Entry e : il.getEntries()) {
-                    ILiteral iliteral = new au.csiro.ontology.model.LongLiteral(e.getValue());
-                    concepts.add(new au.csiro.ontology.model.Datatype(new Feature(feature), e.getOp(), iliteral));
+                    Literal iliteral = new au.csiro.ontology.model.LongLiteral(e.getValue());
+                    concepts.add(new au.csiro.ontology.model.Datatype(new NamedFeature(feature), e.getOp(), iliteral));
                 }
                 return new au.csiro.ontology.model.Conjunction(concepts);
             } else if(literal instanceof StringLiteral) {
-                ILiteral iliteral = new au.csiro.ontology.model.BooleanLiteral(((BooleanLiteral)literal).getValue());
-                return new au.csiro.ontology.model.Datatype(new Feature(feature), Operator.EQUALS, iliteral);
+                Literal iliteral = new au.csiro.ontology.model.BooleanLiteral(((BooleanLiteral)literal).getValue());
+                return new au.csiro.ontology.model.Datatype(new NamedFeature(feature), Operator.EQUALS, iliteral);
             } else {
                 throw new RuntimeException("Unexpected literal " + literal.getClass().getName());
             }
@@ -1788,7 +1788,7 @@ public class NormalisedOntology implements Serializable {
             Object obj = factory.lookupConceptId(((Concept)o).hashCode());
             return transform(obj);
         } else if(o instanceof String) {
-            return new au.csiro.ontology.model.Concept((String) o);
+            return new au.csiro.ontology.model.NamedConcept((String) o);
         } else {
             throw new RuntimeException("Unexpected object with class "+o.getClass().getName());
         }
@@ -1878,14 +1878,12 @@ public class NormalisedOntology implements Serializable {
             
         if(top == null) {
             top = new Node();
-            top.getEquivalentConcepts().add(
-                    au.csiro.ontology.model.Concept.TOP);
+            top.getEquivalentConcepts().add(au.csiro.ontology.model.NamedConcept.TOP);
         }
         
         if(bottom == null) {
             bottom = new Node();
-            bottom.getEquivalentConcepts().add(
-                    au.csiro.ontology.model.Concept.BOTTOM);
+            bottom.getEquivalentConcepts().add(au.csiro.ontology.model.NamedConcept.BOTTOM);
         }
         
         Statistics.INSTANCE.setTime("taxonomy 2",
@@ -1929,8 +1927,8 @@ public class NormalisedOntology implements Serializable {
         
         // Connect top
         for (String key : conceptNodeIndex.keySet()) {
-            if (key.equals(au.csiro.ontology.model.Concept.TOP) || 
-                    key.equals(au.csiro.ontology.model.Concept.BOTTOM))
+            if (key.equals(au.csiro.ontology.model.NamedConcept.TOP) || 
+                    key.equals(au.csiro.ontology.model.NamedConcept.BOTTOM))
                 continue;
             Node node = conceptNodeIndex.get(key);
             if (node.getParents().isEmpty()) {
@@ -2033,10 +2031,10 @@ public class NormalisedOntology implements Serializable {
         conceptNodeIndex = new HashMap<String, Node>();
         
         Node top = new Node();
-        top.getEquivalentConcepts().add(au.csiro.ontology.model.Concept.TOP);
+        top.getEquivalentConcepts().add(au.csiro.ontology.model.NamedConcept.TOP);
         
         Node bottom = new Node();
-        bottom.getEquivalentConcepts().add(au.csiro.ontology.model.Concept.BOTTOM);
+        bottom.getEquivalentConcepts().add(au.csiro.ontology.model.NamedConcept.BOTTOM);
 
         for (IntIterator it = equiv.keyIterator(); it.hasNext();) {
             int key = it.next();
@@ -2097,15 +2095,15 @@ public class NormalisedOntology implements Serializable {
         // Add bottom
         if (bottom == null) {
             bottom = new Node();
-            bottom.getEquivalentConcepts().add(au.csiro.ontology.model.Concept.BOTTOM);
-            conceptNodeIndex.put(au.csiro.ontology.model.Concept.BOTTOM, bottom);
+            bottom.getEquivalentConcepts().add(au.csiro.ontology.model.NamedConcept.BOTTOM);
+            conceptNodeIndex.put(au.csiro.ontology.model.NamedConcept.BOTTOM, bottom);
         }
 
         for (String key : conceptNodeIndex.keySet()) {
-            if (key == au.csiro.ontology.model.Concept.TOP || key == au.csiro.ontology.model.Concept.BOTTOM)
+            if (key == au.csiro.ontology.model.NamedConcept.TOP || key == au.csiro.ontology.model.NamedConcept.BOTTOM)
                 continue;
             Node node = conceptNodeIndex.get(key);
-            if (node.getEquivalentConcepts().contains(au.csiro.ontology.model.Concept.BOTTOM))
+            if (node.getEquivalentConcepts().contains(au.csiro.ontology.model.NamedConcept.BOTTOM))
                 continue;
             if (node.getChildren().isEmpty()) {
                 bottom.getParents().add(node);
@@ -2116,13 +2114,13 @@ public class NormalisedOntology implements Serializable {
         // Add top
         if (top == null) {
             top = new Node();
-            top.getEquivalentConcepts().add(au.csiro.ontology.model.Concept.TOP);
-            conceptNodeIndex.put(au.csiro.ontology.model.Concept.TOP, top);
+            top.getEquivalentConcepts().add(au.csiro.ontology.model.NamedConcept.TOP);
+            conceptNodeIndex.put(au.csiro.ontology.model.NamedConcept.TOP, top);
         }
 
         for (String key : conceptNodeIndex.keySet()) {
-            if (key == au.csiro.ontology.model.Concept.TOP || 
-                    key == au.csiro.ontology.model.Concept.BOTTOM)
+            if (key == au.csiro.ontology.model.NamedConcept.TOP || 
+                    key == au.csiro.ontology.model.NamedConcept.BOTTOM)
                 continue;
             Node node = conceptNodeIndex.get(key);
             if (node.getParents().isEmpty()) {
@@ -2195,7 +2193,7 @@ public class NormalisedOntology implements Serializable {
             }
 
             // b. Now connect the nodes disregarding redundant connections
-            Node bottomNode = conceptNodeIndex.get(au.csiro.ontology.model.Concept.BOTTOM);
+            Node bottomNode = conceptNodeIndex.get(au.csiro.ontology.model.NamedConcept.BOTTOM);
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
                 int id = itr.next();
                 final String key = factory.lookupConceptId(id).toString();
@@ -2274,7 +2272,7 @@ public class NormalisedOntology implements Serializable {
             }
 
             // 3. Connect new nodes without parents to TOP
-            Node topNode = conceptNodeIndex.get(au.csiro.ontology.model.Concept.TOP);
+            Node topNode = conceptNodeIndex.get(au.csiro.ontology.model.NamedConcept.TOP);
 
             for (IntIterator itr = allNew.keyIterator(); itr.hasNext();) {
                 final String key = factory.lookupConceptId(itr.next()).toString();
@@ -2602,11 +2600,11 @@ public class NormalisedOntology implements Serializable {
     }
     
     public Node getBottomNode() {
-        return conceptNodeIndex.get(au.csiro.ontology.model.Concept.BOTTOM);
+        return conceptNodeIndex.get(au.csiro.ontology.model.NamedConcept.BOTTOM);
     }
     
     public Node getTopNode() {
-        return conceptNodeIndex.get(au.csiro.ontology.model.Concept.TOP);
+        return conceptNodeIndex.get(au.csiro.ontology.model.NamedConcept.TOP);
     }
     
     public Node getEquivalents(String cid) {
