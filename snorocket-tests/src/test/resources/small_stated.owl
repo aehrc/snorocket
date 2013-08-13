@@ -1,0 +1,26 @@
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)
+Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+Prefix(:=<>)
+
+
+Ontology(<http://www.semanticweb.org/ontologies/2012/4/test01_stated.owl>
+
+Declaration(Class(:A))
+Declaration(Class(:B))
+Declaration(Class(:C))
+Declaration(Class(:D))
+Declaration(Class(:E))
+Declaration(Class(:F))
+Declaration(Class(:G))
+Declaration(Class(:H))
+Declaration(ObjectProperty(:r))
+SubClassOf(:A ObjectIntersectionOf(:B ObjectSomeValuesFrom(:r :C)))
+SubClassOf(:C ObjectIntersectionOf(:D :E))
+SubClassOf(:D :F)
+EquivalentClasses(:G ObjectIntersectionOf(:H ObjectSomeValuesFrom(:r :F)))
+SubClassOf(:B :H)
+)
+

@@ -26,7 +26,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.model.NamedConcept;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.RoleSet;
 import au.csiro.snorocket.core.util.SparseConceptSet;
@@ -85,8 +85,8 @@ final public class CoreFactory implements IFactory {
     public CoreFactory() {
         this(0, 0, 0);
 
-        final int topId = getConcept(Concept.TOP);
-        final int bottomId = getConcept(Concept.BOTTOM);
+        final int topId = getConcept(NamedConcept.TOP);
+        final int bottomId = getConcept(NamedConcept.BOTTOM);
 
         assert TOP_CONCEPT == topId;
         assert BOTTOM_CONCEPT == bottomId;

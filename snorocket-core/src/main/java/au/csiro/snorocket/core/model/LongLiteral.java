@@ -19,21 +19,42 @@ import au.csiro.ontology.model.Operator;
 public class LongLiteral extends AbstractLiteral {
 
     private long lb = Long.MIN_VALUE;
+    private boolean lbInc = true;
     private long ub = Long.MAX_VALUE;
+    private boolean ubInc = true;
     private boolean empty;
     
     private final List<Entry> entries = new ArrayList<Entry>();
 
+    /**
+     * Constructor.
+     * 
+     * @param type
+     */
     public LongLiteral(Operator op, long value) {
         entries.add(new Entry(op, value));
+        evaluate();
     }
-    
+
+    /**
+     * @return the lowerBound
+     */
     public long getLowerBound() {
         return lb;
     }
-    
+
+    /**
+     * @return the upperBound
+     */
     public long getUpperBound() {
         return ub;
+    }
+
+    /**
+     * @return the empty
+     */
+    public boolean isEmpty() {
+        return empty;
     }
 
     /**
@@ -42,29 +63,32 @@ public class LongLiteral extends AbstractLiteral {
     public List<Entry> getEntries() {
         return entries;
     }
-
+    
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         if(empty) {
             builder.append("[empty]");
         } else {
-            builder.append("[");
+            if(lbInc) builder.append("["); else builder.append("(");
             if(lb != Long.MIN_VALUE) builder.append(lb); else builder.append("-\u221E") ;
             builder.append(", ");
             if(ub != Long.MAX_VALUE) builder.append(ub); else builder.append('\u221E') ;
-            builder.append("]");
+            if(ubInc) builder.append("]"); else builder.append(")");
         }
         return builder.toString();
     }
-
+    
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + (empty ? 1231 : 1237);
+        result = prime * result + ((entries == null) ? 0 : entries.hashCode());
         result = prime * result + (int) (lb ^ (lb >>> 32));
+        result = prime * result + (lbInc ? 1231 : 1237);
         result = prime * result + (int) (ub ^ (ub >>> 32));
+        result = prime * result + (ubInc ? 1231 : 1237);
         return result;
     }
 
@@ -79,14 +103,48 @@ public class LongLiteral extends AbstractLiteral {
         LongLiteral other = (LongLiteral) obj;
         if (empty != other.empty)
             return false;
+        if (entries == null) {
+            if (other.entries != null)
+                return false;
+        } else if (!entries.equals(other.entries))
+            return false;
         if (lb != other.lb)
             return false;
+        if (lbInc != other.lbInc)
+            return false;
         if (ub != other.ub)
+            return false;
+        if (ubInc != other.ubInc)
             return false;
         return true;
     }
 
+    @Override
+    public boolean covers(AbstractLiteral other) {
+        if(empty) return false;
+        
+        LongLiteral ol = (LongLiteral) other;
+        
+        long thisLb = lbInc ? lb : lb + 1;
+        long otherLb = ol.lbInc ? ol.lb : ol.lb + 1;
+        long thisUb = ubInc ? ub : ub - 1;
+        long otherUb = ol.ubInc ? ol.ub : ol.ub - 1;
+        
+        if(thisLb <= otherLb  && thisUb >= otherUb) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean intersects(AbstractLiteral other) {
+        // Not needed for now
+        throw new UnsupportedOperationException();
+    }
+    
     public static class Entry {
+        
         private Operator op;
         private long value;
         
@@ -113,90 +171,112 @@ public class LongLiteral extends AbstractLiteral {
         }
 
     }
-
-    @Override
-    public boolean equals(AbstractLiteral other) {
-        LongLiteral ol = (LongLiteral) other;
-        if(empty && !ol.empty || !empty && ol.empty) return false;
-        
-        if(lb == ol.lb && ub == ol.ub) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public boolean covers(AbstractLiteral other) {
-        if(empty) return false;
-        
-        LongLiteral ol = (LongLiteral) other;
-        if(lb <= ol.lb && ub >= ol.ub) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public boolean intersects(AbstractLiteral other) {
-        // Not needed for now
-        throw new UnsupportedOperationException();
-    }
-
+    
     @Override
     public void evaluate() {
-        empty = false;
         lb = Long.MIN_VALUE;
         ub = Long.MAX_VALUE;
-        long exact = Long.MIN_VALUE;
-        boolean hasOtherThanEq = false;
+        empty = false;
+        
+        List<Long> exacts = new ArrayList<Long>();
+        boolean rangeConstraintsExist = false;
         
         for(Entry entry : entries) {
             long val = entry.value;
             switch(entry.op) {
                 case EQUALS:
-                    if(exact == Long.MIN_VALUE) {
-                        // Exact value not set
-                        exact = val;
-                    } else if(exact != val) {
-                        // If two exact different values are set then this literal is empty
-                        empty = true;
-                        return;
-                    }
+                    exacts.add(val);
                     break;
                 case GREATER_THAN:
-                    hasOtherThanEq = true;
-                    lb = Math.max(val + 1, lb);
+                    rangeConstraintsExist = true;
+                    
+                    if(lb == val && lbInc) {
+                        lbInc = false;
+                    } else if(lb != val && val > lb) {
+                        lbInc = false;
+                        lb = val;
+                    }
+                    
                     break;
                 case GREATER_THAN_EQUALS:
-                    hasOtherThanEq = true;
-                    lb = Math.max(val, lb);
+                    rangeConstraintsExist = true;
+                    
+                    if(lb != val && val > lb) {
+                        lbInc = true;
+                        lb = val;
+                    }
+                    
                     break;
                 case LESS_THAN:
-                    hasOtherThanEq = true;
-                    ub = Math.min(val - 1, ub);
+                    rangeConstraintsExist = true;
+                    
+                    if(ub == val && ubInc) {
+                        ubInc = false;
+                    } else if(ub != val && val < ub) {
+                        ubInc = false;
+                        ub = val;
+                    }
+                    
                     break;
                 case LESS_THAN_EQUALS:
-                    hasOtherThanEq = true;
-                    ub = Math.min(val, ub);
+                    rangeConstraintsExist = true;
+                    
+                    if(ub != val && val < ub) {
+                        ubInc = true;
+                        ub = val;
+                    }
+                    
                     break;
                 default:
                     break;
             }
         }
-        if(lb > ub || (exact != Long.MIN_VALUE && (hasOtherThanEq && (lb != exact || ub != exact)))) empty = true; 
+        if(lb != ub && lb > ub)  {
+            // If the lower bound is greater than the upper bound then this literal is empty
+            empty = true;
+        } else {
+            if(exacts.isEmpty()) {
+                return;
+            } else {
+                // If there are exact values then all of these must be equal and must also equal the range if range 
+                // constraints were specified
+                if(rangeConstraintsExist) {
+                    if(lb != ub) {
+                        // Range constraints don't specify a single value and there are exact values - must be empty
+                        empty = true;
+                    } else {
+                        // Compare all exacts with lb
+                        for(Long exact : exacts) {
+                            if(lb != exact.longValue()) {
+                                empty = true;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    // Compare just the exacts
+                    lb = exacts.get(0).longValue();
+                    ub = lb;
+                    for(Long exact : exacts) {
+                        if(lb != exact.longValue()) {
+                            empty = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
-
+    
     @Override
     public void merge(AbstractLiteral other) {
         LongLiteral ol = (LongLiteral) other;
         entries.addAll(ol.entries);
     }
-
+    
     @Override
-    public boolean isEmpty() {
-        return empty;
+    public boolean equals(AbstractLiteral other) {
+        return equals(other);
     }
 
 }

@@ -36,23 +36,17 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import au.csiro.ontology.IOntology;
 import au.csiro.ontology.Node;
 import au.csiro.ontology.Ontology;
-import au.csiro.ontology.Taxonomy;
-import au.csiro.ontology.axioms.ConceptInclusion;
-import au.csiro.ontology.axioms.IAxiom;
 import au.csiro.ontology.classification.IReasoner;
+import au.csiro.ontology.model.Axiom;
 import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.model.ConceptInclusion;
 import au.csiro.ontology.model.Conjunction;
+import au.csiro.ontology.model.Datatype;
 import au.csiro.ontology.model.Existential;
-import au.csiro.ontology.model.IConcept;
-import au.csiro.ontology.model.IConjunction;
-import au.csiro.ontology.model.IDatatype;
-import au.csiro.ontology.model.IExistential;
-import au.csiro.ontology.model.INamedConcept;
-import au.csiro.ontology.model.INamedRole;
-import au.csiro.ontology.model.Role;
+import au.csiro.ontology.model.NamedConcept;
+import au.csiro.ontology.model.NamedRole;
 import au.csiro.snorocket.core.concurrent.CR;
 import au.csiro.snorocket.core.concurrent.Context;
 import au.csiro.snorocket.core.model.AbstractConcept;
@@ -69,7 +63,6 @@ import au.csiro.snorocket.core.util.RoleSet;
  * @author Alejandro Metke
  *
  */
-@SuppressWarnings("deprecation")
 final public class SnorocketReasoner implements IReasoner, Serializable {
     
     /**
@@ -123,55 +116,13 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
     }
     
     @Override
-    public IReasoner classify(Set<IAxiom> axioms) {
-        if(!isClassified) {
-            factory = new CoreFactory();
-            no = new NormalisedOntology(factory);
-            no.loadAxioms(axioms);
-            no.classify();
-            isClassified = true;
-        } else {
-            no.loadIncremental(axioms);
-            no.classifyIncremental();
-        }
-        return this;
-    }
-    
-    @Override
-    public IReasoner classify(Iterator<IAxiom> axioms) {
-        IReasoner res = null;
-        Set<IAxiom> axiomSet = new HashSet<IAxiom>();
-        while(axioms.hasNext()) {
-            IAxiom axiom = axioms.next();
-            if(axiom == null) continue;
-            axiomSet.add(axiom);
-            if(axiomSet.size() == BUFFER_SIZE) {
-                res = classify(axiomSet);
-                axiomSet.clear();
-            }
-        }
-        
-        if(!axiomSet.isEmpty()) {
-            res = classify(axiomSet);
-        }
-        
-        return res;
-    }
-    
-    @Override
-    public IReasoner classify(IOntology ont) {
-        IReasoner res = classify(new HashSet<IAxiom>(ont.getStatedAxioms()));
-        return res;
-    }
-    
-    @Override
     public void prune() {
         // TODO: implement
         throw new UnsupportedOperationException();
     }
     
     @Override
-    public IOntology getClassifiedOntology() {
+    public Ontology getClassifiedOntology() {
         // Check ontology is classified
         if(!isClassified) classify();
         
@@ -184,7 +135,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
     }
     
     @Override
-    public IOntology getClassifiedOntology(IOntology ont) {
+    public Ontology getClassifiedOntology(Ontology ont) {
         // Check ontology is classified
         if(!isClassified) classify();
         
@@ -214,8 +165,8 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
      * 
      * @return
      */
-    public Collection<IAxiom> getInferredAxioms() {
-        final Collection<IAxiom> inferred = new HashSet<IAxiom>();
+    public Collection<Axiom> getInferredAxioms() {
+        final Collection<Axiom> inferred = new HashSet<Axiom>();
         
         if(!isClassified) classify();
         
@@ -231,14 +182,14 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             final int key = itr.next();
             final String id = factory.lookupConceptId(key).toString();
             
-            if (factory.isVirtualConcept(key) || Concept.BOTTOM == id) {
+            if (factory.isVirtualConcept(key) || NamedConcept.BOTTOM == id) {
                 continue;
             }
             
-            IConcept rhs = getNecessary(contextIndex, taxonomy, key);
+            Concept rhs = getNecessary(contextIndex, taxonomy, key);
 
-            final Concept lhs = new Concept(factory.lookupConceptId(key).toString());
-            if (!lhs.equals(rhs) && !rhs.equals(Concept.TOP)) { // skip trivial axioms
+            final Concept lhs = new NamedConcept(factory.lookupConceptId(key).toString());
+            if (!lhs.equals(rhs) && !rhs.equals(NamedConcept.TOP)) { // skip trivial axioms
                 inferred.add(new ConceptInclusion(lhs, rhs));
             }
         }
@@ -246,16 +197,16 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         return inferred;
     }
     
-    protected IConcept getNecessary(IConceptMap<Context> contextIndex, Map<String, Node> taxonomy, int key) {
+    protected Concept getNecessary(IConceptMap<Context> contextIndex, Map<String, Node> taxonomy, int key) {
         final Object id = factory.lookupConceptId(key);
-        final List<IConcept> result = new ArrayList<IConcept>();
+        final List<Concept> result = new ArrayList<Concept>();
 
         final Node node = taxonomy.get(id);
         if (node != null) {
             for (final Node parent: node.getParents()) {
                 final String parentId = parent.getEquivalentConcepts().iterator().next();
-                if (!Concept.TOP.equals(parentId)) {      // Top is redundant
-                    result.add(new Concept(parentId));
+                if (!NamedConcept.TOP.equals(parentId)) {      // Top is redundant
+                    result.add(new NamedConcept(parentId));
                 }
             }
         } else if (id instanceof au.csiro.snorocket.core.model.Conjunction) {
@@ -264,7 +215,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
                 if (conjunct instanceof au.csiro.snorocket.core.model.Concept) {
                     final int conjunctInt = ((au.csiro.snorocket.core.model.Concept) conjunct).hashCode();
                     final String conjunctId = factory.lookupConceptId(conjunctInt).toString();
-                    result.add(new Concept(conjunctId));
+                    result.add(new NamedConcept(conjunctId));
                 }
             }
         }
@@ -272,16 +223,16 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         final Context ctx = contextIndex.get(key);
         CR succ = ctx.getSucc();
         for (int roleId: succ.getRoles()) {
-            INamedRole role = new Role(factory.lookupRoleId(roleId).toString());
+            NamedRole role = new NamedRole(factory.lookupRoleId(roleId).toString());
             IConceptSet values = getLeaves(succ.lookupConcept(roleId));
             for (IntIterator itr2 = values.iterator(); itr2.hasNext(); ) {
                 int valueInt = itr2.next();
                 if (!factory.isVirtualConcept(valueInt)) {
                     final String valueId = factory.lookupConceptId(valueInt).toString();
-                    final Existential x = new Existential(role, new Concept(valueId));
+                    final Existential x = new Existential(role, new NamedConcept(valueId));
                     result.add(x);
                 } else {
-                    final IConcept valueConcept = getNecessary(contextIndex, taxonomy, valueInt);
+                    final Concept valueConcept = getNecessary(contextIndex, taxonomy, valueInt);
                     final Existential x = new Existential(role, Builder.build(no, valueConcept));
                     result.add(x);
                 }
@@ -290,7 +241,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         //        System.err.println("gN: " + id + "\t" + factory.isVirtualConcept(key) + "\t" + result);
 
         if (result.size() == 0) {
-            return Concept.TOP_CONCEPT;
+            return NamedConcept.TOP_CONCEPT;
         } else if (result.size() == 1) {
             return result.get(0);
         } else {
@@ -329,7 +280,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         final private IFactory factory;
         final private Map<Integer, RoleSet> rc;
 
-        final private Set<IExistential> items = new HashSet<IExistential>();
+        final private Set<Existential> items = new HashSet<Existential>();
 
         private Builder(NormalisedOntology no) {
             this.no = no;
@@ -337,15 +288,15 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             this.rc = no.getRoleClosureCache();
         }
         
-        static IConcept build(NormalisedOntology no, IConcept... concepts) {
-            final List<IConcept> list = new ArrayList<IConcept>();
+        static Concept build(NormalisedOntology no, Concept... concepts) {
+            final List<Concept> list = new ArrayList<Concept>();
             final Builder b = new Builder(no);
             
-            for (final IConcept member: concepts) {
-                if (member instanceof IExistential) {
-                    final IExistential existential = (IExistential) member;
+            for (final Concept member: concepts) {
+                if (member instanceof Existential) {
+                    final Existential existential = (Existential) member;
                     
-                    b.build(existential.getRole(), build(no, existential.getConcept()));
+                    b.build((NamedRole) existential.getRole(), build(no, existential.getConcept()));
                 } else {
                     list.add(buildOne(no, member));
                 }
@@ -360,16 +311,16 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             }
         }
         
-        private static IConcept buildOne(NormalisedOntology no, IConcept concept) {
-            if (concept instanceof IExistential) {
-                final IExistential existential = (IExistential) concept;
+        private static Concept buildOne(NormalisedOntology no, Concept concept) {
+            if (concept instanceof Existential) {
+                final Existential existential = (Existential) concept;
                 
                 return new Existential(existential.getRole(), buildOne(no, existential.getConcept()));
-            } else if (concept instanceof IConjunction) {
-                return build(no, ((IConjunction) concept).getConcepts());
-            } else if (concept instanceof INamedConcept) {
+            } else if (concept instanceof Conjunction) {
+                return build(no, ((Conjunction) concept).getConcepts());
+            } else if (concept instanceof NamedConcept) {
                 return concept;
-            } else if (concept instanceof IDatatype) {
+            } else if (concept instanceof Datatype) {
                 return concept;
             } else {
                 throw new RuntimeException("Unexpected type: " + concept);
@@ -382,32 +333,32 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
          * <li> We are trying to add something that makes an already-added thing redundant
          * </ol>
          */
-        private void build(INamedRole role, IConcept concept) {
-            if (!(concept instanceof INamedConcept)) {
+        private void build(NamedRole role, Concept concept) {
+            if (!(concept instanceof NamedConcept)) {
                 log.info("WARNING: pass through of complex value: " + concept);
                 doAdd(role, concept);
                 return;
             }
             if (log.isTraceEnabled()) log.trace("check for subsumption: " + role + "." + concept);
 
-            final int cInt = factory.getConcept(((INamedConcept) concept).getId());
+            final int cInt = factory.getConcept(((NamedConcept) concept).getId());
             final IConceptSet cAncestorSet = getAncestors(no, cInt);
             final int rInt = factory.getRole(role.getId());
             final RoleSet rSet = rc.get(rInt);
 
-            final List<IExistential> remove = new ArrayList<IExistential>();
+            final List<Existential> remove = new ArrayList<Existential>();
             boolean subsumed = false;
 
-            for (IExistential candidate: items) {
-                final IConcept value = candidate.getConcept();
-                if (!(value instanceof INamedConcept)) {
+            for (Existential candidate: items) {
+                final Concept value = candidate.getConcept();
+                if (!(value instanceof NamedConcept)) {
                     log.warn("WARNING: pass through of nested complex value: " + value);
                     continue;
                 }
                 
-                final int dInt = factory.getConcept(((INamedConcept) value).getId());
+                final int dInt = factory.getConcept(((NamedConcept) value).getId());
                 final IConceptSet dAncestorSet = getAncestors(no, dInt);
-                final int sInt = factory.getRole(candidate.getRole().getId());
+                final int sInt = factory.getRole(((NamedRole) candidate.getRole()).getId());
                 final RoleSet sSet = rc.get(sInt);
                 
                 if (rInt == sInt && cInt == dInt) {
@@ -439,26 +390,14 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             }
         }
         
-        private Collection<IExistential> get() {
+        private Collection<Existential> get() {
             return items;
         }
 
-        private void doAdd(INamedRole role, IConcept concept) {
+        private void doAdd(NamedRole role, Concept concept) {
             items.add(new Existential(role, concept));
         }
 
-    }
-    
-    /**
-     * @deprecated Use {@link SnorocketReasoner#getClassifiedOntology()} 
-     * instead.
-     */
-    public Taxonomy getTaxonomy() {
-        if(no == null)
-            return null;
-        
-        Map<String, Node> res = no.getTaxonomy();
-        return new Taxonomy(res);
     }
 
     public void save(OutputStream out) {
@@ -481,7 +420,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         return isClassified;
     }
 
-    public void loadAxioms(Set<IAxiom> axioms) {
+    public void loadAxioms(Set<Axiom> axioms) {
         if(!isClassified) {
             no.loadAxioms(axioms);
         } else {
@@ -489,10 +428,10 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         }
     }
 
-    public void loadAxioms(Iterator<IAxiom> axioms) {
-        Set<IAxiom> axiomSet = new HashSet<IAxiom>();
+    public void loadAxioms(Iterator<Axiom> axioms) {
+        Set<Axiom> axiomSet = new HashSet<Axiom>();
         while(axioms.hasNext()) {
-            IAxiom axiom = axioms.next();
+            Axiom axiom = axioms.next();
             if(axiom == null) continue;
             axiomSet.add(axiom);
             if(axiomSet.size() == BUFFER_SIZE) {
@@ -506,8 +445,8 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         }
     }
 
-    public void loadAxioms(IOntology ont) {
-        loadAxioms(new HashSet<IAxiom>(ont.getStatedAxioms()));
+    public void loadAxioms(Ontology ont) {
+        loadAxioms(new HashSet<Axiom>(ont.getStatedAxioms()));
     }
 
     public IReasoner classify() {

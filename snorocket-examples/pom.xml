@@ -16,10 +16,11 @@
  -->
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>snorocket-owlapi</artifactId>
+  <artifactId>snorocket-examples</artifactId>
   <packaging>jar</packaging>
-  <name>Snorocket OWL API</name>
-
+  
+  <name>Snorocket Examples and Benchmark</name>
+  
   <parent>
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
@@ -29,39 +30,29 @@
   
   <dependencies>
     <dependency>
-      <groupId>${project.groupId}</groupId>
+	   <groupId>log4j</groupId>
+	   <artifactId>log4j</artifactId>
+	   <version>1.2.16</version>
+	 </dependency>
+    <dependency>
+      <groupId>au.csiro</groupId>
       <artifactId>snorocket-core</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
+	<dependency>
+      <groupId>au.csiro</groupId>
+      <artifactId>snorocket-owlapi</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+	<dependency>
       <groupId>au.csiro</groupId>
       <artifactId>ontology-model</artifactId>
       <version>${ontology-core.version}</version>
     </dependency>
     <dependency>
-      <groupId>au.csiro</groupId>
-      <artifactId>ontology-import</artifactId>
+    	<groupId>au.csiro</groupId>
+    	<artifactId>ontology-import</artifactId>
       <version>${ontology-core.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-api</artifactId>
-      <version>${owl-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-apibinding</artifactId>
-      <version>${owl-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-reasoner</artifactId>
-      <version>${owl-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-mansyntax</artifactId>
-      <version>${owl-api.version}</version>
     </dependency>
   </dependencies>
 

@@ -130,8 +130,7 @@ public class Context implements Serializable {
      * 
      * These terms are of the form A n Ai [ B and are indexed by A.
      */
-    private static IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> 
-        ontologyNF1;
+    private static IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> ontologyNF1;
 
     /**
      * The set of NF2 terms in the ontology.

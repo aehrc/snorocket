@@ -13,19 +13,21 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import au.csiro.ontology.Factory;
 import au.csiro.ontology.Node;
-import au.csiro.ontology.axioms.ConceptInclusion;
-import au.csiro.ontology.axioms.IAxiom;
+import au.csiro.ontology.model.Axiom;
 import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.model.ConceptInclusion;
 import au.csiro.ontology.model.Conjunction;
 import au.csiro.ontology.model.Datatype;
 import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.Feature;
 import au.csiro.ontology.model.FloatLiteral;
-import au.csiro.ontology.model.IConcept;
 import au.csiro.ontology.model.IntegerLiteral;
+import au.csiro.ontology.model.NamedConcept;
+import au.csiro.ontology.model.NamedFeature;
+import au.csiro.ontology.model.NamedRole;
 import au.csiro.ontology.model.Operator;
-import au.csiro.ontology.model.Role;
 import au.csiro.ontology.model.StringLiteral;
 
 /**
@@ -54,50 +56,50 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add roles
-        Role container = new Role("container");
-        Role contains = new Role("contains");
+        NamedRole container = new NamedRole("container");
+        NamedRole contains = new NamedRole("contains");
 
         // Add features
-        Feature mgPerTablet = new Feature("mgPerTablet");
+        NamedFeature mgPerTablet = new NamedFeature("mgPerTablet");
 
         // Add concepts
-        Concept panadol = new Concept("Panadol");
-        Concept panadol_250mg = new Concept("Panadol_250mg");
-        Concept panadol_500mg = new Concept("Panadol_500mg");
-        Concept panadol_pack_250mg = new Concept("Panadol_pack_250mg");
-        Concept paracetamol = new Concept("Paracetamol");
-        Concept bottle = new Concept("Bottle");
+        NamedConcept panadol = new NamedConcept("Panadol");
+        NamedConcept panadol_250mg = new NamedConcept("Panadol_250mg");
+        NamedConcept panadol_500mg = new NamedConcept("Panadol_500mg");
+        NamedConcept panadol_pack_250mg = new NamedConcept("Panadol_pack_250mg");
+        NamedConcept paracetamol = new NamedConcept("Paracetamol");
+        NamedConcept bottle = new NamedConcept("Bottle");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential(contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
-                new Conjunction(new IConcept[] {
+                new Conjunction(new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new IntegerLiteral(250)) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
-                new IConcept[] {
+                new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new IntegerLiteral(250)) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
-                new Conjunction(new IConcept[] {
+                new Conjunction(new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new IntegerLiteral(500)) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
-                new IConcept[] {
+                new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new IntegerLiteral(500)) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
-                new Conjunction(new IConcept[] {
+                new Conjunction(new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new IntegerLiteral(250)),
                         new Existential(container, bottle) }));
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -145,8 +147,7 @@ public class TestConcreteDomains {
     }
 
     /**
-     * Very simple concrete domains test that uses equality and floats. The
-     * expected taxonomy is:
+     * Very simple concrete domains test that uses equality and floats. The expected taxonomy is:
      * 
      * -Thing
      *   -Bottle
@@ -162,50 +163,50 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add roles
-        Role container = new Role("container");
-        Role contains = new Role("contains");
+        NamedRole container = new NamedRole("container");
+        NamedRole contains = new NamedRole("contains");
 
         // Add features
-        Feature mgPerTablet = new Feature("mgPerTablet");
+        NamedFeature mgPerTablet = new NamedFeature("mgPerTablet");
 
         // Add concepts
-        Concept panadol = new Concept("Panadol");
-        Concept panadol_250mg = new Concept("Panadol_250mg");
-        Concept panadol_500mg = new Concept("Panadol_500mg");
-        Concept panadol_pack_250mg = new Concept("Panadol_pack_250mg");
-        Concept paracetamol = new Concept("Paracetamol");
-        Concept bottle = new Concept("Bottle");
+        NamedConcept panadol = new NamedConcept("Panadol");
+        NamedConcept panadol_250mg = new NamedConcept("Panadol_250mg");
+        NamedConcept panadol_500mg = new NamedConcept("Panadol_500mg");
+        NamedConcept panadol_pack_250mg = new NamedConcept("Panadol_pack_250mg");
+        NamedConcept paracetamol = new NamedConcept("Paracetamol");
+        NamedConcept bottle = new NamedConcept("Bottle");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential(contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
-                new Conjunction(new IConcept[] {
+                new Conjunction(new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new FloatLiteral(250.0f)) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
-                new IConcept[] {
+                new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new FloatLiteral(250.0f)) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
-                new Conjunction(new IConcept[] {
+                new Conjunction(new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new FloatLiteral(500.0f)) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
-                new IConcept[] {
+                new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new FloatLiteral(500.0f)) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
-                new Conjunction(new IConcept[] {
+                new Conjunction(new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new FloatLiteral(250.0f)),
                         new Existential(container, bottle) }));
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -215,6 +216,7 @@ public class TestConcreteDomains {
 
         // Classify
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.setNumThreads(1);
         o.classify();
 
         // Build taxonomy
@@ -270,50 +272,50 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add roles
-        Role container = new Role("container");
-        Role contains = new Role("contains");
+        NamedRole container = new NamedRole("container");
+        NamedRole contains = new NamedRole("contains");
 
         // Add features
-        Feature mgPerTablet = new Feature("mgPerTablet");
+        NamedFeature mgPerTablet = new NamedFeature("mgPerTablet");
 
         // Add concepts
-        Concept panadol = new Concept("Panadol");
-        Concept panadol_250mg = new Concept("Panadol_250mg");
-        Concept panadol_500mg = new Concept("Panadol_500mg");
-        Concept panadol_pack_250mg = new Concept("Panadol_pack_250mg");
-        Concept paracetamol = new Concept("Paracetamol");
-        Concept bottle = new Concept("Bottle");
+        NamedConcept panadol = new NamedConcept("Panadol");
+        NamedConcept panadol_250mg = new NamedConcept("Panadol_250mg");
+        NamedConcept panadol_500mg = new NamedConcept("Panadol_500mg");
+        NamedConcept panadol_pack_250mg = new NamedConcept("Panadol_pack_250mg");
+        NamedConcept paracetamol = new NamedConcept("Paracetamol");
+        NamedConcept bottle = new NamedConcept("Bottle");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(panadol, new Existential(contains, paracetamol));
 
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
-                new Conjunction(new IConcept[] {
+                new Conjunction(new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new StringLiteral("250")) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
-                new IConcept[] {
+                new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new StringLiteral("250")) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
-                new Conjunction(new IConcept[] {
+                new Conjunction(new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new StringLiteral("500")) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
-                new IConcept[] {
+                new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new StringLiteral("500")) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
-                new Conjunction(new IConcept[] {
+                new Conjunction(new Concept[] {
                         panadol,
                         new Datatype(mgPerTablet, Operator.EQUALS, new StringLiteral("250")),
                         new Existential(container, bottle) }));
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -370,47 +372,47 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add roles
-        Role contains = new Role("contains");
-        Role hasPrescription = new Role("hasPrescription");
+        NamedRole contains = new NamedRole("contains");
+        NamedRole hasPrescription = new NamedRole("hasPrescription");
 
         // Add features
-        Feature mgPerTablet = new Feature("mgPerTablet");
-        Feature hasAge = new Feature("hasAge");
+        NamedFeature mgPerTablet = new NamedFeature("mgPerTablet");
+        NamedFeature hasAge = new NamedFeature("hasAge");
 
         // Add concepts
-        Concept panadol = new Concept("Panadol");
-        Concept paracetamol = new Concept("Paracetamol");
-        Concept patient = new Concept("Patient");
-        Concept X = new Concept("X");
+        NamedConcept panadol = new NamedConcept("Panadol");
+        NamedConcept paracetamol = new NamedConcept("Paracetamol");
+        NamedConcept patient = new NamedConcept("Patient");
+        NamedConcept X = new NamedConcept("X");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(panadol, 
                 new Existential(contains, 
-                        new Conjunction(new IConcept[] {
+                        new Conjunction(new Concept[] {
                         paracetamol,
                         new Datatype(mgPerTablet, Operator.EQUALS,
                                 new IntegerLiteral(500)) })));
 
         ConceptInclusion a2 = new ConceptInclusion(
-                new Conjunction(new IConcept[] {
+                new Conjunction(new Concept[] {
                         patient,
                         new Datatype(hasAge, Operator.LESS_THAN, new IntegerLiteral(6)),
                         new Existential(hasPrescription, 
                                 new Existential(contains,
-                                new Conjunction(new IConcept[] {
+                                new Conjunction(new Concept[] {
                                         paracetamol,
                                         new Datatype(mgPerTablet,
                                                 Operator.GREATER_THAN,
                                                 new IntegerLiteral(250)) }))) }),
-                Concept.BOTTOM_CONCEPT);
+                NamedConcept.BOTTOM_CONCEPT);
 
         ConceptInclusion a3 = new ConceptInclusion(X, new Conjunction(
-                new IConcept[] {
+                new Concept[] {
                         patient,
                         new Datatype(hasAge, Operator.EQUALS, new IntegerLiteral(3)),
                         new Existential(hasPrescription, panadol) }));
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -453,11 +455,11 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add features
-        Feature strength = new Feature("strength");
+        NamedFeature strength = new NamedFeature("strength");
 
         // Add concepts
-        Concept cat10 = new Concept("CAT10");
-        Concept catLt10 = new Concept("CAT_LT10");
+        NamedConcept cat10 = new NamedConcept("CAT10");
+        NamedConcept catLt10 = new NamedConcept("CAT_LT10");
 
         // Add axioms
         ConceptInclusion ax1 = new ConceptInclusion(cat10, new Datatype(strength, Operator.EQUALS, 
@@ -472,7 +474,7 @@ public class TestConcreteDomains {
         ConceptInclusion ax2b = new ConceptInclusion(new Datatype(strength, Operator.LESS_THAN, new FloatLiteral(10)), 
                 catLt10);
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(ax1);
         axioms.add(ax1b);
         axioms.add(ax2);
@@ -480,6 +482,7 @@ public class TestConcreteDomains {
 
         // Classify
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.setNumThreads(1);
         o.classify();
         
         // Build taxonomy
@@ -504,17 +507,17 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add features
-        Feature count = new Feature("count");
+        NamedFeature count = new NamedFeature("count");
         
         // Add roles
-        Role prop = new Role("prop");
+        NamedRole prop = new NamedRole("prop");
 
         // Add concepts
-        Concept bar1 = new Concept("Bar1");
-        Concept bar2 = new Concept("Bar2");
-        Concept baz1 = new Concept("Baz1");
-        Concept baz2 = new Concept("Baz2");
-        Concept other = new Concept("other");
+        NamedConcept bar1 = new NamedConcept("Bar1");
+        NamedConcept bar2 = new NamedConcept("Bar2");
+        NamedConcept baz1 = new NamedConcept("Baz1");
+        NamedConcept baz2 = new NamedConcept("Baz2");
+        NamedConcept other = new NamedConcept("other");
 
         // Add axioms
         ConceptInclusion ax1 = new ConceptInclusion(
@@ -534,25 +537,25 @@ public class TestConcreteDomains {
         
         ConceptInclusion ax3 = new ConceptInclusion(
                 baz1, 
-                new Conjunction(new IConcept[] { new Existential(prop, other), bar1})
+                new Conjunction(new Concept[] { new Existential(prop, other), bar1})
         );
         
         ConceptInclusion ax3b = new ConceptInclusion(
-                new Conjunction(new IConcept[] { new Existential(prop, other), bar1}),
+                new Conjunction(new Concept[] { new Existential(prop, other), bar1}),
                 baz1
         );
         
         ConceptInclusion ax4 = new ConceptInclusion(
                 baz2, 
-                new Conjunction(new IConcept[] { new Existential(prop, other), bar2})
+                new Conjunction(new Concept[] { new Existential(prop, other), bar2})
         );
         
         ConceptInclusion ax4b = new ConceptInclusion(
-                new Conjunction(new IConcept[] { new Existential(prop, other), bar2}),
+                new Conjunction(new Concept[] { new Existential(prop, other), bar2}),
                 baz2
         );
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(ax1);
         axioms.add(ax1b);
         axioms.add(ax2);
@@ -587,56 +590,56 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add features
-        Feature count = new Feature("count");
+        NamedFeature count = new NamedFeature("count");
         
         // Add roles
-        Role prop = new Role("prop");
+        NamedRole prop = new NamedRole("prop");
 
         // Add concepts
-        Concept foo = new Concept("Foo");
-        Concept bar1 = new Concept("Bar1");
-        Concept bar2 = new Concept("Bar2");
-        Concept baz1 = new Concept("Baz1");
-        Concept baz2 = new Concept("Baz2");
-        Concept other = new Concept("other");
+        NamedConcept foo = new NamedConcept("Foo");
+        NamedConcept bar1 = new NamedConcept("Bar1");
+        NamedConcept bar2 = new NamedConcept("Bar2");
+        NamedConcept baz1 = new NamedConcept("Baz1");
+        NamedConcept baz2 = new NamedConcept("Baz2");
+        NamedConcept other = new NamedConcept("other");
 
         // Add axioms
         ConceptInclusion ax1 = new ConceptInclusion(
                 bar1, 
-                new Conjunction(new IConcept[] { new Datatype(count, Operator.EQUALS, new IntegerLiteral(100)), foo})
+                new Conjunction(new Concept[] { new Datatype(count, Operator.EQUALS, new IntegerLiteral(100)), foo})
         );
         
         ConceptInclusion ax1b = new ConceptInclusion( 
-                new Conjunction(new IConcept[] { new Datatype(count, Operator.EQUALS, new IntegerLiteral(100)), foo}),
+                new Conjunction(new Concept[] { new Datatype(count, Operator.EQUALS, new IntegerLiteral(100)), foo}),
                 bar1
         );
         
         ConceptInclusion ax2 = new ConceptInclusion(
                 bar2, 
-                new Conjunction(new IConcept[] { new Datatype(count, Operator.EQUALS, new IntegerLiteral(100)), foo})
+                new Conjunction(new Concept[] { new Datatype(count, Operator.EQUALS, new IntegerLiteral(100)), foo})
         );
         
         ConceptInclusion ax3 = new ConceptInclusion(
                 baz1, 
-                new Conjunction(new IConcept[] { new Existential(prop, other), bar1})
+                new Conjunction(new Concept[] { new Existential(prop, other), bar1})
         );
         
         ConceptInclusion ax3b = new ConceptInclusion(
-                new Conjunction(new IConcept[] { new Existential(prop, other), bar1}),
+                new Conjunction(new Concept[] { new Existential(prop, other), bar1}),
                 baz1
         );
         
         ConceptInclusion ax4 = new ConceptInclusion(
                 baz2, 
-                new Conjunction(new IConcept[] { new Existential(prop, other), bar2})
+                new Conjunction(new Concept[] { new Existential(prop, other), bar2})
         );
         
         ConceptInclusion ax4b = new ConceptInclusion(
-                new Conjunction(new IConcept[] { new Existential(prop, other), bar2}),
+                new Conjunction(new Concept[] { new Existential(prop, other), bar2}),
                 baz2
         );
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(ax1);
         axioms.add(ax1b);
         axioms.add(ax2);
@@ -675,15 +678,15 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add features
-        Feature f = new Feature("f");
+        NamedFeature f = new NamedFeature("f");
 
         // Add concepts
-        Concept a = new Concept("A");
-        Concept b = new Concept("B");
+        NamedConcept a = new NamedConcept("A");
+        NamedConcept b = new NamedConcept("B");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(a, 
-                new Conjunction(new IConcept[] { 
+                new Conjunction(new Concept[] { 
                         new Datatype(f, Operator.LESS_THAN, new IntegerLiteral(2)), 
                         new Datatype(f, Operator.GREATER_THAN, new IntegerLiteral(0)) 
                     }
@@ -694,12 +697,13 @@ public class TestConcreteDomains {
                 b
         );
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
         axioms.add(a2);
 
         // Classify
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.setNumThreads(1);
         o.classify();
         
         // Build taxonomy
@@ -731,15 +735,15 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add features
-        Feature f = new Feature("f");
+        NamedFeature f = new NamedFeature("f");
 
         // Add concepts
-        Concept a = new Concept("A");
-        Concept b = new Concept("B");
+        NamedConcept a = new NamedConcept("A");
+        NamedConcept b = new NamedConcept("B");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(a, 
-                new Conjunction(new IConcept[] { 
+                new Conjunction(new Concept[] { 
                         new Datatype(f, Operator.LESS_THAN, new IntegerLiteral(2)), 
                         new Datatype(f, Operator.GREATER_THAN, new IntegerLiteral(0)) 
                     }
@@ -750,7 +754,7 @@ public class TestConcreteDomains {
                 b
         );
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
 
         // Classify
@@ -793,15 +797,15 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add features
-        Feature f = new Feature("f");
+        NamedFeature f = new NamedFeature("f");
 
         // Add concepts
-        Concept a = new Concept("A");
-        Concept b = new Concept("B");
+        NamedConcept a = new NamedConcept("A");
+        NamedConcept b = new NamedConcept("B");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(a, 
-                new Conjunction(new IConcept[] { 
+                new Conjunction(new Concept[] { 
                         new Datatype(f, Operator.LESS_THAN, new IntegerLiteral(2)), 
                         new Datatype(f, Operator.GREATER_THAN, new IntegerLiteral(0)) 
                     }
@@ -811,7 +815,7 @@ public class TestConcreteDomains {
         ConceptInclusion a2 = new ConceptInclusion(new Datatype(f, Operator.EQUALS, new IntegerLiteral(1)), b);
         ConceptInclusion a3 = new ConceptInclusion(a, new Datatype(f, Operator.EQUALS, new IntegerLiteral(2)));
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
@@ -845,15 +849,15 @@ public class TestConcreteDomains {
         IFactory factory = new CoreFactory();
 
         // Add features
-        Feature f = new Feature("f");
+        NamedFeature f = new NamedFeature("f");
 
         // Add concepts
-        Concept a = new Concept("A");
-        Concept b = new Concept("B");
+        NamedConcept a = new NamedConcept("A");
+        NamedConcept b = new NamedConcept("B");
 
         // Add axioms
         ConceptInclusion a1 = new ConceptInclusion(a, 
-                new Conjunction(new IConcept[] { 
+                new Conjunction(new Concept[] { 
                         new Datatype(f, Operator.LESS_THAN, new IntegerLiteral(2)), 
                         new Datatype(f, Operator.GREATER_THAN, new IntegerLiteral(0)) 
                     }
@@ -863,7 +867,7 @@ public class TestConcreteDomains {
         ConceptInclusion a2 = new ConceptInclusion(new Datatype(f, Operator.EQUALS, new IntegerLiteral(1)), b);
         ConceptInclusion a3 = new ConceptInclusion(a, new Datatype(f, Operator.EQUALS, new IntegerLiteral(2)));
 
-        Set<IAxiom> axioms = new HashSet<IAxiom>();
+        Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
         axioms.add(a2);
 
@@ -893,6 +897,48 @@ public class TestConcreteDomains {
         Set<Node> bottomParents = bottomNode.getParents();
         assertTrue(bottomParents.size() == 1);
         assertTrue(bottomParents.contains(o.getEquivalents(b.getId())));
+    }
+    
+    @Test
+    public void testConcreteDomiansBugAMT() {
+        Factory ft = new Factory();
+        IFactory factory = new CoreFactory();
+        Feature f = ft.createNamedFeature("f");
+        
+        Concept fiveMgTablet = ft.createNamedConcept("5MgTablet");
+        Datatype rhs1 = new Datatype(f, Operator.EQUALS, new FloatLiteral(5.0f));
+
+        Concept twoMgTablet = ft.createNamedConcept("2MgTablet");
+        Datatype rhs2 = new Datatype(f, Operator.EQUALS, new FloatLiteral(2.0f));
+        
+        Axiom a1 = new ConceptInclusion(fiveMgTablet, rhs1);
+        Axiom a2 = new ConceptInclusion(rhs1, fiveMgTablet);
+        
+        Axiom a3 = new ConceptInclusion(twoMgTablet, rhs2);
+        Axiom a4 = new ConceptInclusion(rhs2, twoMgTablet);
+        
+        Concept twoMgCoatedTablet = ft.createNamedConcept("2MgCoatedTablet");
+        
+        Axiom a5 = new ConceptInclusion(twoMgCoatedTablet, twoMgTablet);
+        
+        Set<Axiom> axioms = new HashSet<Axiom>();
+        axioms.add(a1);
+        axioms.add(a2);
+        axioms.add(a3);
+        axioms.add(a4);
+        axioms.add(a5);
+        
+        // Classify
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.classify();
+        
+        // Build taxonomy
+        o.buildTaxonomy();
+
+        // Test results
+        Node ctNode = o.getEquivalents(((NamedConcept) twoMgCoatedTablet).getId());
+        Assert.assertEquals(1, ctNode.getParents().size());
+        Assert.assertTrue(ctNode.getParents().iterator().next().getEquivalentConcepts().contains("2MgTablet")); 
     }
 
 }
