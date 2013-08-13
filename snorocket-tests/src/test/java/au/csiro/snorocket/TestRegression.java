@@ -82,7 +82,6 @@ public class TestRegression {
     /**
      * Small ontology test, mainly used to test the OWL test infrastructure.
      */
-    @Ignore
     @Test
     public void testSmall() {
         System.out.println("Running testSmall");
@@ -92,8 +91,9 @@ public class TestRegression {
     }
     
     /**
-     * Tests an anatomy ontology that uncovered a bug in the original Snorocket
-     * implementation.
+     * Tests an anatomy ontology that uncovered a bug in the original Snorocket implementation.
+     * 
+     * TODO: move these files to external projects and add dependency.
      */
     @Ignore
     @Test
@@ -105,28 +105,22 @@ public class TestRegression {
     }
     
     /**
-     * Tests the classification process using the 2011 version of SNOMED-CT and
-     * the RF1 loader. The original SNOMED distribution files are used as input.
+     * Tests the classification process using the 2011 version of SNOMED-CT and the RF1 loader. The original SNOMED 
+     * distribution files are used as input.
      */
-    @Ignore
     @Test
     public void testSnomed_20110731_RF1() {
         System.out.println("Running testSnomed_20110731_RF1");      
         InputStream concepts = this.getClass().getResourceAsStream(
-                "/snomed_int_rf1/Terminology/Content/" +
-                "sct1_Concepts_Core_INT_20110731.txt");
+                "/snomed_int_rf1/Terminology/Content/sct1_Concepts_Core_INT_20110731.txt");
         InputStream descriptions = this.getClass().getResourceAsStream(
-                "/snomed_int_rf1/Terminology/Content/" +
-                "sct1_Descriptions_en_INT_20110731.txt");
+                "/snomed_int_rf1/Terminology/Content/sct1_Descriptions_en_INT_20110731.txt");
         InputStream relations = this.getClass().getResourceAsStream(
-                "/snomed_int_rf1/OtherResources/StatedRelationships/" +
-                "res1_StatedRelationships_Core_INT_20110731.txt");
+                "/snomed_int_rf1/OtherResources/StatedRelationships/res1_StatedRelationships_Core_INT_20110731.txt");
         InputStream canonical = this.getClass().getResourceAsStream(
-                "/snomed_int_rf1/Terminology/Content/" +
-                "sct1_Relationships_Core_INT_20110731.txt");
+                "/snomed_int_rf1/Terminology/Content/sct1_Relationships_Core_INT_20110731.txt");
         
-        testRF1Ontology(concepts, descriptions, relations, canonical, 
-                "20110731");
+        testRF1Ontology(concepts, descriptions, relations, canonical, "20110731");
     }
     
     /**
@@ -134,13 +128,11 @@ public class TestRegression {
      * loader. The original SNOMED distribution files are used as input.
      * @throws ImportException 
      */
-    @Ignore
     @Test
     public void testSnomed_20130131_RF2() throws ImportException {
         System.out.println("Running testSnomed_20130131_RF2"); 
         try {
-            testRF2Ontology(this.getClass().getResourceAsStream(
-                    "/config-snomed.xml"), "20130131");
+            testRF2Ontology(this.getClass().getResourceAsStream("/config-snomed.xml"), "20130131");
         } catch (JAXBException e) {
             e.printStackTrace();
             Assert.assertTrue(false);
@@ -180,6 +172,8 @@ public class TestRegression {
      * ObjectSomeValuesFrom(:RoleGroup ObjectIntersectionOf(
      * ObjectSomeValuesFrom(:SCT_116676008 :SCT_56381008)
      * ObjectSomeValuesFrom(:SCT_363698007 :SCT_66754008) ) ) ) )
+     * 
+     * TODO: move these files to external projects and add dependency.
      */
     @Ignore
     @Test
@@ -324,6 +318,8 @@ public class TestRegression {
      * ObjectSomeValuesFrom(:RoleGroup ObjectSomeValuesFrom(:SCT_363698007
      * :SCT_66754008) ) ) ) SubClassOf(:SCT_422989001
      * ObjectIntersectionOf(:SCT_300307005 :SCT_395557000) )
+     * 
+     * TODO: move these files to external projects and add dependency.
      */
     @Ignore
     @Test
@@ -500,6 +496,8 @@ public class TestRegression {
      * Similar to testIncremental2() but only one concept (:SCT_24764000) is
      * removed from the original ontology. This means that redundant axioms are
      * added programmatically.
+     * 
+     * TODO: move these files to external projects and add dependency.
      */
     @Ignore
     @Test
@@ -662,9 +660,8 @@ public class TestRegression {
     }
     
     /**
-     * Classifies the stated version of an ontology in RF2 format and compares
-     * it to a correctly classified version (available in the canonical table).
-     * This method assumes that only a single ontology is defined in the input
+     * Classifies the stated version of an ontology in RF2 format and compares it to a correctly classified version 
+     * (available in the canonical table). This method assumes that only a single ontology is defined in the input
      * configuration file.
      * 
      * @param config The input object.
@@ -979,8 +976,8 @@ public class TestRegression {
     }
     
     /**
-     * Classifies the stated version of an ontology in RF1 format and compares
-     * it to a correctly classified version (available in the canonical table).
+     * Classifies the stated version of an ontology in RF1 format and compares it to a correctly classified version 
+     * (available in the canonical table).
      * 
      * @param concepts
      * @param relations
@@ -1072,21 +1069,18 @@ public class TestRegression {
     }
     
     /**
-     * Classifies the stated version of an ontology and compares it to a
-     * correctly classified version. All the classes of the ontologies are
-     * traversed and their direct parents are compared.
+     * Classifies the stated version of an ontology and compares it to a correctly classified version. All the classes 
+     * of the ontologies are traversed and their direct parents are compared.
      * 
      * @param stated
      *            The {@link InputStream} of the stated ontology.
      * @param inferred
      *            The {@link InputStream} of the classified ontology.
      * @param ignoreBottom
-     *            Indicates if the bottom node should be ignored in the
-     *            comparison (some generated inferred files do not connect
-     *            bottom).
+     *            Indicates if the bottom node should be ignored in the comparison (some generated inferred files do not
+     *            connect bottom).
      */
-    private void testOWLOntology(InputStream stated, InputStream inferred, 
-            boolean ignoreBottom) {
+    private void testOWLOntology(InputStream stated, InputStream inferred, boolean ignoreBottom) {
         try {
             OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
             OWLOntology ont = manager.loadOntologyFromOntologyDocument(stated);
@@ -1099,8 +1093,7 @@ public class TestRegression {
             // Load ontology from inferred form
             System.out.println("Loading inferred ontology");
             OWLOntologyManager manager2 = OWLManager.createOWLOntologyManager();
-            OWLOntology ont2 = manager2.loadOntologyFromOntologyDocument(
-                    inferred);
+            OWLOntology ont2 = manager2.loadOntologyFromOntologyDocument(inferred);
 
             System.out.println("Testing parent equality");
             int numOk = 0;
@@ -1109,9 +1102,7 @@ public class TestRegression {
 
                 // Ignore owl:nothing - some generated inferred files do not
                 // connect childless nodes to owl:nothing
-                if (ignoreBottom
-                        && cl.toStringID().equals(
-                                "http://www.w3.org/2002/07/owl#Nothing"))
+                if (ignoreBottom && cl.toStringID().equals("http://www.w3.org/2002/07/owl#Nothing"))
                     continue;
 
                 Set<OWLClass> truth = new HashSet<OWLClass>();
@@ -1133,8 +1124,7 @@ public class TestRegression {
                     System.out.println(cl.toStringID() + "("
                             + DebugUtils.getLabel(cl, ont) + ")");
                     System.out.println("Truth: " + formatClassSet(truth, ont));
-                    System.out.println("Classified: "
-                            + formatClassSet(classified, ont));
+                    System.out.println("Classified: " + formatClassSet(classified, ont));
                 } else {
                     truth.removeAll(classified);
 
@@ -1142,17 +1132,13 @@ public class TestRegression {
                         numOk++;
                     } else {
                         numWrong++;
-                        System.out.println(cl.toStringID() + "("
-                                + DebugUtils.getLabel(cl, ont) + ")");
-                        System.out.println("Truth: "
-                                + formatClassSet(truth, ont));
-                        System.out.println("Classified: "
-                                + formatClassSet(classified, ont));
+                        System.out.println(cl.toStringID() + "(" + DebugUtils.getLabel(cl, ont) + ")");
+                        System.out.println("Truth: " + formatClassSet(truth, ont));
+                        System.out.println("Classified: " + formatClassSet(classified, ont));
                     }
                 }
             }
-            assertTrue("Num OK: " + numOk + " Num wrong: " + numWrong,
-                    numWrong == 0);
+            assertTrue("Num OK: " + numOk + " Num wrong: " + numWrong, numWrong == 0);
         } catch (OWLOntologyCreationException e) {
             e.printStackTrace();
             assertTrue("Error loading ontologies", false);
