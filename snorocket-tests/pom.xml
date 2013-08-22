@@ -143,12 +143,34 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-	  <argLine> 
-	    -server -Xmx8G
-	  </argLine>
+			  <argLine>-server -Xmx8G</argLine>
+			  <skipTests>true</skipTests>
         </configuration>
       </plugin>
     </plugins>
   </build>
+  
+  	<profiles>
+	  <profile>
+        <id>extended-tests</id>
+        <activation>
+          <property>
+              <name>runAllTests</name>
+          </property>
+        </activation>
+		<build>
+		  <plugins>
+		    <plugin>
+			   <groupId>org.apache.maven.plugins</groupId>
+			   <artifactId>maven-surefire-plugin</artifactId>
+			   <configuration>
+				  <argLine>-server -Xmx8G</argLine>
+				  <skipTests>false</skipTests>
+			   </configuration>
+		    </plugin>
+		  </plugins>
+	   </build>
+      </profile>
+	</profiles>
 
 </project>

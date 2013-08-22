@@ -34,6 +34,7 @@
         <module>snorocket-owlapi</module>
         <module>snorocket-protege</module>
 		 <module>snorocket-examples</module>
+		 <module>snorocket-tests</module>
     </modules>
     
     <dependencies>
@@ -49,20 +50,6 @@
           <version>1.2.16</version>
         </dependency>
     </dependencies>
-	
-	<profiles>
-	  <profile>
-        <id>extended-tests</id>
-        <activation>
-          <property>
-              <name>runAllTests</name>
-          </property>
-        </activation>
-        <modules>
-		    <module>snorocket-tests</module>
-	    </modules>
-      </profile>
-	</profiles>
     
     <distributionManagement>
     <repository>
@@ -108,15 +95,6 @@
 		    <!--<pushChanges>false</pushChanges>-->
 		  </configuration>
 	  </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <argLine> 
-            -server -Xmx3G
-          </argLine>
-        </configuration>
-     </plugin>
     </plugins>
   </build>
   
