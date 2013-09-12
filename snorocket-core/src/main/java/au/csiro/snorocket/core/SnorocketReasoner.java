@@ -223,20 +223,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
                 if (factory.isVirtualConcept(anc)) {
                     Object c = factory.lookupConceptId(anc);
                     if (c instanceof au.csiro.snorocket.core.model.Datatype) {
-                        au.csiro.snorocket.core.model.Datatype d = (au.csiro.snorocket.core.model.Datatype) c;
-                        Feature feature = new NamedFeature(factory.lookupFeatureId(d.getFeature()));
-                        Operator operator = Operator.EQUALS;
-                        Literal literal;
-                        if (d.getLiteral() instanceof FloatLiteral) {
-                            literal = new au.csiro.ontology.model.FloatLiteral(((FloatLiteral) d.getLiteral()).getLowerBound());
-                        } else if (d.getLiteral() instanceof IntegerLiteral) {
-                            literal = new au.csiro.ontology.model.IntegerLiteral(((IntegerLiteral) d.getLiteral()).getLowerBound());
-                        } else if (d.getLiteral() instanceof StringLiteral) {
-                            literal = new au.csiro.ontology.model.StringLiteral(((StringLiteral) d.getLiteral()).getValue());
-                        } else {
-                            throw new UnsupportedOperationException("Literals of type " + d.getLiteral().getClass().getName() + " not yet supported");
-                        }
-                        result.add(new Datatype(feature, operator, literal));
+                        addDatatype(result, (au.csiro.snorocket.core.model.Datatype) c);
                     }
                 }
             }
@@ -247,11 +234,12 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
                     final int conjunctInt = ((au.csiro.snorocket.core.model.Concept) conjunct).hashCode();
                     final String conjunctId = factory.lookupConceptId(conjunctInt).toString();
                     result.add(new NamedConcept(conjunctId));
+                } else if (conjunct instanceof au.csiro.snorocket.core.model.Datatype) {
+                    addDatatype(result, (au.csiro.snorocket.core.model.Datatype) conjunct);
                 }
             }
-            throw new IllegalStateException("This else should never be reached since we've already filtered virtual concepts");
         } else {
-            throw new IllegalStateException("This else should never be reached since every key should have a node");
+            // Ignore
         }
 
         final Context ctx = contextIndex.get(key);
@@ -281,6 +269,22 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         } else {
             return new Conjunction(result);
         }
+    }
+
+    protected void addDatatype(final List<Concept> result, au.csiro.snorocket.core.model.Datatype datatype) {
+        Feature feature = new NamedFeature(factory.lookupFeatureId(datatype.getFeature()));
+        Operator operator = Operator.EQUALS;
+        Literal literal;
+        if (datatype.getLiteral() instanceof FloatLiteral) {
+            literal = new au.csiro.ontology.model.FloatLiteral(((FloatLiteral) datatype.getLiteral()).getLowerBound());
+        } else if (datatype.getLiteral() instanceof IntegerLiteral) {
+            literal = new au.csiro.ontology.model.IntegerLiteral(((IntegerLiteral) datatype.getLiteral()).getLowerBound());
+        } else if (datatype.getLiteral() instanceof StringLiteral) {
+            literal = new au.csiro.ontology.model.StringLiteral(((StringLiteral) datatype.getLiteral()).getValue());
+        } else {
+            throw new UnsupportedOperationException("Literals of type " + datatype.getLiteral().getClass().getName() + " not yet supported");
+        }
+        result.add(new Datatype(feature, operator, literal));
     }
 
     /**
@@ -346,7 +350,6 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         }
 
         private static Concept buildOne(NormalisedOntology no, Concept concept) {
-System.err.println("buildOne: " + concept);
             if (concept instanceof Existential) {
                 final Existential existential = (Existential) concept;
 
@@ -354,10 +357,8 @@ System.err.println("buildOne: " + concept);
             } else if (concept instanceof Conjunction) {
                 return build(no, ((Conjunction) concept).getConcepts());
             } else if (concept instanceof NamedConcept) {
-System.err.println("NC: " + concept);
                 return concept;
             } else if (concept instanceof Datatype) {
-System.err.println("DT: " + concept);
                 return concept;
             } else {
                 throw new RuntimeException("Unexpected type: " + concept);
@@ -371,9 +372,8 @@ System.err.println("DT: " + concept);
          * </ol>
          */
         private void build(NamedRole role, Concept concept) {
-System.err.println("build: " + concept);
             if (!(concept instanceof NamedConcept)) {
-                log.info("WARNING: pass through of complex value: " + concept);
+                log.debug("WARNING: pass through of complex value: " + concept);
                 doAdd(role, concept);
                 return;
             }
