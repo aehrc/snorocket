@@ -33,8 +33,8 @@
         <module>snorocket-core</module>
         <module>snorocket-owlapi</module>
         <module>snorocket-protege</module>
-		 <module>snorocket-examples</module>
-		 <module>snorocket-tests</module>
+         <module>snorocket-examples</module>
+         <module>snorocket-tests</module>
     </modules>
     
     <dependencies>
@@ -88,13 +88,14 @@
         </configuration>
       </plugin>
       <plugin>
-		  <groupId>com.atlassian.maven.plugins</groupId>
-		  <artifactId>maven-jgitflow-plugin</artifactId>
-		  <version>1.0-alpha8</version>
-		  <configuration>
-		    <!--<pushChanges>false</pushChanges>-->
-		  </configuration>
-	  </plugin>
+          <groupId>com.atlassian.maven.plugins</groupId>
+          <artifactId>maven-jgitflow-plugin</artifactId>
+          <version>1.0-alpha20</version>
+          <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <!--<pushChanges>false</pushChanges>-->
+          </configuration>
+      </plugin>
     </plugins>
   </build>
   
