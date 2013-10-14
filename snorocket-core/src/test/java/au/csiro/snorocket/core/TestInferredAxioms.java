@@ -47,7 +47,6 @@ public class TestInferredAxioms {
      */
     @Test
     public void testInferredAxioms() {
-        IFactory factory = new CoreFactory();
 
         // Add roles
         NamedRole container = new NamedRole("container");

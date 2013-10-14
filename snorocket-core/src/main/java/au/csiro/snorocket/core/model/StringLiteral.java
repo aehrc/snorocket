@@ -7,8 +7,6 @@ package au.csiro.snorocket.core.model;
 /**
  * Represents a literal that is best stored as a Java string.
  * 
- * TODO: how do we deal with operators other than =?
- * 
  * @author Alejandro Metke
  * 
  */
@@ -61,38 +59,6 @@ public class StringLiteral extends AbstractLiteral {
         StringLiteral sl = (StringLiteral) o;
         String otherValue = sl.value;
         return value.compareTo(otherValue);
-    }
-
-    @Override
-    public boolean equals(AbstractLiteral other) {
-        StringLiteral ol = (StringLiteral) other;
-        return value.equals(ol.getValue());
-    }
-
-    @Override
-    public boolean covers(AbstractLiteral other) {
-        return equals(other);
-    }
-
-    @Override
-    public boolean intersects(AbstractLiteral other) {
-        // Not needed for now
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void evaluate() {
-        // Nothing to do!
-    }
-
-    @Override
-    public void merge(AbstractLiteral other) {
-        // Nothing to do - StringLiterals cannot be merged!
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return false;
     }
 
 }

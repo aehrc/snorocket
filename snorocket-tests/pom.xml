@@ -73,6 +73,12 @@
     </dependency>
     <dependency>
       <groupId>au.csiro</groupId>
+      <artifactId>ore-el</artifactId>
+      <version>2013</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>au.csiro</groupId>
       <artifactId>snorocket-core</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>

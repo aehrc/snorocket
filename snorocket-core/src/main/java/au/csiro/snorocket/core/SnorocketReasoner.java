@@ -54,7 +54,7 @@ import au.csiro.ontology.model.Operator;
 import au.csiro.snorocket.core.concurrent.CR;
 import au.csiro.snorocket.core.concurrent.Context;
 import au.csiro.snorocket.core.model.AbstractConcept;
-import au.csiro.snorocket.core.model.FloatLiteral;
+import au.csiro.snorocket.core.model.DecimalLiteral;
 import au.csiro.snorocket.core.model.IntegerLiteral;
 import au.csiro.snorocket.core.model.StringLiteral;
 import au.csiro.snorocket.core.util.IConceptMap;
@@ -275,14 +275,15 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         Feature feature = new NamedFeature(factory.lookupFeatureId(datatype.getFeature()));
         Operator operator = Operator.EQUALS;
         Literal literal;
-        if (datatype.getLiteral() instanceof FloatLiteral) {
-            literal = new au.csiro.ontology.model.FloatLiteral(((FloatLiteral) datatype.getLiteral()).getLowerBound());
+        if (datatype.getLiteral() instanceof DecimalLiteral) {
+            literal = new au.csiro.ontology.model.DecimalLiteral(((DecimalLiteral) datatype.getLiteral()).getValue());
         } else if (datatype.getLiteral() instanceof IntegerLiteral) {
-            literal = new au.csiro.ontology.model.IntegerLiteral(((IntegerLiteral) datatype.getLiteral()).getLowerBound());
+            literal = new au.csiro.ontology.model.IntegerLiteral(((IntegerLiteral) datatype.getLiteral()).getValue());
         } else if (datatype.getLiteral() instanceof StringLiteral) {
             literal = new au.csiro.ontology.model.StringLiteral(((StringLiteral) datatype.getLiteral()).getValue());
         } else {
-            throw new UnsupportedOperationException("Literals of type " + datatype.getLiteral().getClass().getName() + " not yet supported");
+            throw new UnsupportedOperationException("Literals of type " + datatype.getLiteral().getClass().getName() + 
+                    " not yet supported");
         }
         result.add(new Datatype(feature, operator, literal));
     }

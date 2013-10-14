@@ -279,6 +279,17 @@ public class SnorocketOWLReasoner implements OWLReasoner {
                 Ontology o = it.next();
                 canAxioms.addAll(o.getStatedAxioms());
             }
+            List<String> problems = oi.getProblems();
+            if(!problems.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Some warnings were detected while importing the ontology: ");
+                for(String problem : oi.getProblems()) {
+                    sb.append("\n");
+                    sb.append(problem);
+                }
+                
+                log.warn(sb.toString());
+            }
         } catch(RuntimeException e) {
             StringBuilder sb = new StringBuilder();
             sb.append("Could not import ontology. The following problems were identified:");

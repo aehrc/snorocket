@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import au.csiro.ontology.model.Operator;
 import au.csiro.snorocket.core.CoreFactory;
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.IQueue;
@@ -536,7 +537,125 @@ public class Context implements Serializable {
         AbstractLiteral lhsLit = d1.getLiteral();
         AbstractLiteral rhsLit = d2.getLiteral();
         
-        if(rhsLit.covers(lhsLit)) return true; else return false;
+        Operator lhsOp = d1.getOperator();
+        Operator rhsOp = d2.getOperator();
+
+        if (rhsOp == Operator.EQUALS) {
+            // If the rhs operator is =, then the expression will only match
+            // if the lhs operator is also = and the literal values are the
+            // same.
+            if(lhsOp != Operator.EQUALS) {
+                return false;
+            } else {
+                return d1.getLiteral().equals(d2.getLiteral());
+            }
+        } else if (rhsOp == Operator.GREATER_THAN) {
+            if (lhsOp == Operator.LESS_THAN
+                    || lhsOp == Operator.LESS_THAN_EQUALS) {
+                return false;
+            } else if (lhsOp == Operator.EQUALS) {
+                if (compareLiterals(lhsLit, rhsLit) > 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (lhsOp == Operator.GREATER_THAN) {
+                if (compareLiterals(lhsLit, rhsLit) >= 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (lhsOp == Operator.GREATER_THAN_EQUALS) {
+                if (compareLiterals(lhsLit, rhsLit) > 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } else if (rhsOp == Operator.GREATER_THAN_EQUALS) {
+            if (lhsOp == Operator.LESS_THAN
+                    || lhsOp == Operator.LESS_THAN_EQUALS) {
+                return false;
+            } else if (lhsOp == Operator.EQUALS) {
+                if (compareLiterals(lhsLit, rhsLit) >= 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (lhsOp == Operator.GREATER_THAN) {
+                if (compareLiterals(lhsLit, rhsLit) >= -1) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (lhsOp == Operator.GREATER_THAN_EQUALS) {
+                if (compareLiterals(lhsLit, rhsLit) >= 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } else if (rhsOp == Operator.LESS_THAN) {
+            if (lhsOp == Operator.GREATER_THAN
+                    || lhsOp == Operator.GREATER_THAN_EQUALS) {
+                return false;
+            } else if (lhsOp == Operator.EQUALS) {
+                if (compareLiterals(lhsLit, rhsLit) < 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (lhsOp == Operator.LESS_THAN) {
+                if (compareLiterals(lhsLit, rhsLit) <= 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (lhsOp == Operator.LESS_THAN_EQUALS) {
+                if (compareLiterals(lhsLit, rhsLit) < 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } else if (rhsOp == Operator.LESS_THAN_EQUALS) {
+            if (lhsOp == Operator.GREATER_THAN
+                    || lhsOp == Operator.GREATER_THAN_EQUALS) {
+                return false;
+            } else if (lhsOp == Operator.EQUALS) {
+                if (compareLiterals(lhsLit, rhsLit) <= 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (lhsOp == Operator.LESS_THAN) {
+                if (compareLiterals(lhsLit, rhsLit) <= 1) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (lhsOp == Operator.LESS_THAN_EQUALS) {
+                if (compareLiterals(lhsLit, rhsLit) <= 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        return d1.getLiteral().equals(d2.getLiteral());
+    }
+    
+    /**
+     * Return 0 if both literals are equals. Returns an int > 0 if l1 is greater than l2 and an int < 0 if l1 is less 
+     * than l2.
+     * 
+     * @param l1
+     * @param l2
+     * @return
+     */
+    private int compareLiterals(AbstractLiteral l1, AbstractLiteral l2) {
+        return l1.compareTo(l2);
     }
 
     /**

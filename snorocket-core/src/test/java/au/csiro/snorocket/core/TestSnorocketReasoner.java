@@ -452,20 +452,19 @@ public class TestSnorocketReasoner {
     @Test
     public void testIncrementalTaxonomy() {
     	
-    	Factory fac = new Factory();
-    	Concept a = fac.createNamedConcept("A");
-    	Concept b = fac.createNamedConcept("B");
-    	Concept c = fac.createNamedConcept("C");
-    	Concept d = fac.createNamedConcept("D");
-    	Concept e = fac.createNamedConcept("E");
-    	Concept f = fac.createNamedConcept("F");
-    	Concept g = fac.createNamedConcept("G");
+    	Concept a = Factory.createNamedConcept("A");
+    	Concept b = Factory.createNamedConcept("B");
+    	Concept c = Factory.createNamedConcept("C");
+    	Concept d = Factory.createNamedConcept("D");
+    	Concept e = Factory.createNamedConcept("E");
+    	Concept f = Factory.createNamedConcept("F");
+    	Concept g = Factory.createNamedConcept("G");
     	
-    	Axiom a1 = fac.createConceptInclusion(b, a);
-    	Axiom a2 = fac.createConceptInclusion(c, b);
-    	Axiom a3 = fac.createConceptInclusion(d, c);
-    	Axiom a4 = fac.createConceptInclusion(e, a);
-    	Axiom a5 = fac.createConceptInclusion(f, e);
+    	Axiom a1 = Factory.createConceptInclusion(b, a);
+    	Axiom a2 = Factory.createConceptInclusion(c, b);
+    	Axiom a3 = Factory.createConceptInclusion(d, c);
+    	Axiom a4 = Factory.createConceptInclusion(e, a);
+    	Axiom a5 = Factory.createConceptInclusion(f, e);
     	
     	Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
@@ -481,8 +480,8 @@ public class TestSnorocketReasoner {
         Ontology ont = sr.getClassifiedOntology();
         Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
         
-        Axiom a6 = fac.createConceptInclusion(g, e);
-        Axiom a7 = fac.createConceptInclusion(f, g);
+        Axiom a6 = Factory.createConceptInclusion(g, e);
+        Axiom a7 = Factory.createConceptInclusion(f, g);
         
         axioms.clear();
         axioms.add(a6);
