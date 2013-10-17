@@ -1813,34 +1813,23 @@ public class NormalisedOntology implements Serializable {
         set.add(val);
     }
     
-    protected void buildTaxonomySequential() {
+    public void getFullTaxonomy(IConceptMap<IConceptSet> equiv, IConceptMap<IConceptSet> direc) {
         long start = System.currentTimeMillis();
         
         final IConceptMap<IConceptSet> subsumptions = getSubsumptions();
 
         // Keep only the subsumptions that involve real atomic concepts
-        IConceptMap<IConceptSet> cis = new SparseConceptMap<IConceptSet>(
-                factory.getTotalConcepts());
+        IConceptMap<IConceptSet> cis = new SparseConceptMap<IConceptSet>(factory.getTotalConcepts());
 
         for (IntIterator itr = subsumptions.keyIterator(); itr.hasNext();) {
             final int X = itr.next();
-            if (!factory.isVirtualConcept(X)) {
-                IConceptSet set = new SparseConceptHashSet();
-                cis.put(X, set);
-                for (IntIterator it = subsumptions.get(X).iterator(); it
-                        .hasNext();) {
-                    int next = it.next();
-                    if (!factory.isVirtualConcept(next)) {
-                        set.add(next);
-                    }
-                }
+            IConceptSet set = new SparseConceptHashSet();
+            cis.put(X, set);
+            for (IntIterator it = subsumptions.get(X).iterator(); it.hasNext();) {
+                int next = it.next();
+                set.add(next);
             }
         }
-
-        IConceptMap<IConceptSet> equiv = new SparseConceptMap<IConceptSet>(
-                factory.getTotalConcepts());
-        IConceptMap<IConceptSet> direc = new SparseConceptMap<IConceptSet>(
-                factory.getTotalConcepts());
 
         // Build equivalent and direct concept sets
         for (IntIterator itr = cis.keyIterator(); itr.hasNext();) {
@@ -1878,124 +1867,6 @@ public class NormalisedOntology implements Serializable {
                 };
             }
         }
-
-        int bottomConcept = CoreFactory.BOTTOM_CONCEPT;
-        if (!equiv.containsKey(bottomConcept)) {
-            addToSet(equiv, bottomConcept, bottomConcept);
-        }
-
-        int topConcept = CoreFactory.TOP_CONCEPT;
-        if (!equiv.containsKey(topConcept)) {
-            addToSet(equiv, topConcept, topConcept);
-        }
-
-        // Introduce one taxonomy node for each distinct class of equivalent
-        // concepts
-        conceptNodeIndex = new HashMap<String, Node>();
-        
-        Node top = new Node();
-        top.getEquivalentConcepts().add(au.csiro.ontology.model.NamedConcept.TOP);
-        
-        Node bottom = new Node();
-        bottom.getEquivalentConcepts().add(au.csiro.ontology.model.NamedConcept.BOTTOM);
-
-        for (IntIterator it = equiv.keyIterator(); it.hasNext();) {
-            int key = it.next();
-            IConceptSet equivs = equiv.get(key);
-            // Check if any of the equivalent classes is already part of an
-            // equivalent node
-            Node n = null;
-            for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
-                String e = factory.lookupConceptId(it2.next()).toString();
-                if (conceptNodeIndex.containsKey(e)) {
-                    n = conceptNodeIndex.get(e);
-                    break;
-                }
-            }
-
-            if (n == null) {
-                n = new Node();
-            }
-            n.getEquivalentConcepts().add(factory.lookupConceptId(key).toString());
-            for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
-                n.getEquivalentConcepts().add(factory.lookupConceptId(it2.next()).toString());
-            }
-            
-            for (IntIterator it2 = equivs.iterator(); it2.hasNext();) {
-                int e = it2.next();
-                if (e == CoreFactory.TOP_CONCEPT)
-                    top = n;
-                if (e == CoreFactory.BOTTOM_CONCEPT)
-                    bottom = n;
-                conceptNodeIndex.put(factory.lookupConceptId(e).toString(), n);
-            }
-        }
-
-        // Connect the nodes according to the direct super-concept relationships
-        Set<Node> processed = new HashSet<Node>();
-        for (String key : conceptNodeIndex.keySet()) {
-            Node node = conceptNodeIndex.get(key);
-            if (processed.contains(node) || node == top || node == bottom)
-                continue;
-            processed.add(node);
-            for (String c : node.getEquivalentConcepts()) {
-                // Get direct super-concepts
-                IConceptSet dc = direc.get(factory.getConcept(c));
-                if (dc != null) {
-                    for (IntIterator it3 = dc.iterator(); it3.hasNext();) {
-                        int d = it3.next();
-                        Node parent = conceptNodeIndex.get(factory.lookupConceptId(d));
-                        if (parent != null) {
-                            node.getParents().add(parent);
-                            parent.getChildren().add(node);
-                        }
-                    }
-                }
-            }
-        }
-        processed = null;
-
-        // Add bottom
-        if (bottom == null) {
-            bottom = new Node();
-            bottom.getEquivalentConcepts().add(au.csiro.ontology.model.NamedConcept.BOTTOM);
-            conceptNodeIndex.put(au.csiro.ontology.model.NamedConcept.BOTTOM, bottom);
-        }
-
-        for (String key : conceptNodeIndex.keySet()) {
-            if (key == au.csiro.ontology.model.NamedConcept.TOP || key == au.csiro.ontology.model.NamedConcept.BOTTOM)
-                continue;
-            Node node = conceptNodeIndex.get(key);
-            if (node.getEquivalentConcepts().contains(au.csiro.ontology.model.NamedConcept.BOTTOM))
-                continue;
-            if (node.getChildren().isEmpty()) {
-                bottom.getParents().add(node);
-                node.getChildren().add(bottom);
-            }
-        }
-
-        // Add top
-        if (top == null) {
-            top = new Node();
-            top.getEquivalentConcepts().add(au.csiro.ontology.model.NamedConcept.TOP);
-            conceptNodeIndex.put(au.csiro.ontology.model.NamedConcept.TOP, top);
-        }
-
-        for (String key : conceptNodeIndex.keySet()) {
-            if (key == au.csiro.ontology.model.NamedConcept.TOP || 
-                    key == au.csiro.ontology.model.NamedConcept.BOTTOM)
-                continue;
-            Node node = conceptNodeIndex.get(key);
-            if (node.getParents().isEmpty()) {
-                node.getParents().add(top);
-                top.getChildren().add(node);
-            }
-        }
-
-        equiv = null;
-        direc = null;
-
-        // TODO: deal with special case where only top and bottom are present.
         Statistics.INSTANCE.setTime("taxonomy construction", System.currentTimeMillis() - start);
     }
     
@@ -2009,6 +1880,7 @@ public class NormalisedOntology implements Serializable {
         // Determine if a full or incremental calculation is required
         if(!hasBeenIncrementallyClassified) {
             buildTaxonomyConcurrent();
+            //buildTaxonomySequential();
         } else {
             final IConceptMap<IConceptSet> newConceptSubs = getNewSubsumptions();
             final IConceptMap<IConceptSet> affectedConceptSubs = getAffectedSubsumptions();

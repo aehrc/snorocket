@@ -61,6 +61,7 @@ import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
 import au.csiro.snorocket.core.util.RoleSet;
+import au.csiro.snorocket.core.util.SparseConceptMap;
 
 /**
  * This class represents an instance of the reasoner. It uses the internal
@@ -176,7 +177,27 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         final Collection<Axiom> inferred = new HashSet<Axiom>();
 
         if(!isClassified) classify();
-
+        
+        IConceptMap<IConceptSet> equiv = new SparseConceptMap<IConceptSet>(factory.getTotalConcepts());
+        IConceptMap<IConceptSet> direc = new SparseConceptMap<IConceptSet>(factory.getTotalConcepts());
+        no.getFullTaxonomy(equiv, direc);
+        
+        for (IntIterator itr = direc.keyIterator(); itr.hasNext();) {
+            int id = itr.next();
+            Object obj = factory.lookupConceptId(id);
+            if(!(obj instanceof Concept)) continue; // discard LHSs that are not a named concept
+            Concept concept = (Concept) obj;
+            
+            IConceptSet cs = direc.get(id);
+            for(IntIterator itr2 = cs.iterator(); itr2.hasNext();) {
+                int parentId = itr2.next();
+                Object parent = factory.lookupConceptId(parentId);
+            }
+            
+            // TODO: finish this: assemble axioms!
+        }
+        
+        /*
         if (!no.isTaxonomyComputed()) {
             log.info("Building taxonomy");
             no.buildTaxonomy();
@@ -200,6 +221,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
                 inferred.add(new ConceptInclusion(lhs, rhs));
             }
         }
+        */
 
         return inferred;
     }
