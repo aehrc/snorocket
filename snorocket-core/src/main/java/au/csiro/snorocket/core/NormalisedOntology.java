@@ -22,10 +22,10 @@
 package au.csiro.snorocket.core;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -206,11 +206,6 @@ public class NormalisedOntology implements Serializable {
     
     private transient Map<String, Node> conceptNodeIndex;
     
-    /**
-     * A map used to store NF7 terms and collapse them before saturation. First key is lhs and second key is feature.
-     */
-    private Map<Integer, Map<Integer, List<NF7>>> tempNf7Map = new HashMap<Integer, Map<Integer, List<NF7>>>();
-    
     private static class ContextComparator implements Comparator<Context>, Serializable {
         /**
          * Serialisation version.
@@ -373,6 +368,62 @@ public class NormalisedOntology implements Serializable {
     }
     
     /**
+     * EXPERIMENTAL
+     * 
+     * TODO deal with missing NF1bs axioms!
+     * 
+     * TODO: inspect NF1bs and hierarchy to derive missing axioms!
+     */
+    public void prapareForInferred() {
+        
+        for(final IntIterator itr = ontologyNF2.keyIterator(); itr.hasNext();) {
+            MonotonicCollection<NF2> nf2s = ontologyNF2.get(itr.next());
+            for(final Iterator<NF2> itr2 = nf2s.iterator(); itr2.hasNext();) {
+                NF2 nf2 = itr2.next();
+
+                if(!containsExistentialInNF3s(nf2.rhsR, nf2.rhsB)) {
+                    NF3 nnf = NF3.getInstance(nf2.rhsR, nf2.rhsB, factory.getConcept(new Existential(nf2.rhsR, 
+                            new au.csiro.snorocket.core.model.Concept(nf2.rhsB))));
+                    as.addAxiom(nnf); // Needed for incremental
+                    addTerm(nnf);
+                }
+            }
+        }
+        
+        for(final IntIterator itr = ontologyNF7.keyIterator(); itr.hasNext();) {
+            MonotonicCollection<NF7> nf7s = ontologyNF7.get(itr.next());
+            for(final Iterator<NF7> itr2 = nf7s.iterator(); itr2.hasNext();) {
+                NF7 nf7 = itr2.next();
+                
+                Datatype rhs = nf7.getD();
+                if(!containsDatatypeInNF8s(rhs)) {
+                    NF8 nnf = NF8.getInstance(rhs, factory.getConcept(rhs));
+                    as.addAxiom(nnf); // Needed for incremental
+                    addTerm(nnf);
+                }
+            }
+        }
+        
+        classifyIncremental();
+    }
+    
+    private boolean containsExistentialInNF3s(int r, int a) {
+        ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> nf3s = ontologyNF3.get(a);
+        if(nf3s == null) return false;
+        return nf3s.get(r) == null ? false : true;
+    }
+    
+    private boolean containsDatatypeInNF8s(Datatype d) {
+        MonotonicCollection<NF8> nf8s = ontologyNF8.get(d.getFeature());
+        for(final Iterator<NF8> itr = nf8s.iterator(); itr.hasNext();) {
+            if(itr.next().lhsD.equals(d)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
      * Transforms a {@link Set} of {@link AbstractAxiom}s into a {@link Set} of {@link Inclusion}s.
      * 
      * @param axioms The axioms in the ontology model format.
@@ -456,6 +507,8 @@ public class NormalisedOntology implements Serializable {
             return new IntegerLiteral(((au.csiro.ontology.model.IntegerLiteral) l).getValue());
         } else if(l instanceof au.csiro.ontology.model.StringLiteral) {
             return new StringLiteral(((au.csiro.ontology.model.StringLiteral) l).getValue());
+        } else if(l instanceof au.csiro.ontology.model.FloatLiteral) {
+            return new DecimalLiteral(new BigDecimal(((au.csiro.ontology.model.FloatLiteral) l).getValue()));
         } else {
             throw new RuntimeException("Unexpected AbstractLiteral "+l.getClass().getName());
         }
@@ -724,54 +777,10 @@ public class NormalisedOntology implements Serializable {
         // Normalise
         Set<Inclusion> norm = normalise(incAxioms);
         
-        // Prepare temp structure for NF7 collapse - reload existing axioms affected by new ones based on added axioms
-        for (Inclusion i : norm) {
-            NormalFormGCI nf = i.getNormalForm();
-            if(nf instanceof NF7) {
-                NF7 nf7 = (NF7) nf;
-                int a = nf7.lhsA;
-                int f = nf7.rhsD.getFeature();
-                
-                Map<Integer, List<NF7>> m = tempNf7Map.get(a);
-                if(m == null) {
-                    m = new HashMap<Integer, List<NF7>>();
-                    tempNf7Map.put(a,  m);
-                }
-                
-                List<NF7> nf7s = m.get(f);
-                if(nf7s == null) {
-                    nf7s = new ArrayList<NF7>();
-                    m.put(f, nf7s);
-                }
-                nf7s.add(nf7);
-            }
-        }
-        
-        for(IntIterator it = ontologyNF7.keyIterator(); it.hasNext(); ) {
-            int a = it.next();
-            if(!tempNf7Map.containsKey(a)) continue;
-            Map<Integer, List<NF7>> fs = tempNf7Map.get(a);
-            MonotonicCollection<NF7> mc = ontologyNF7.get(a);
-            for(Iterator<NF7> it2 = mc.iterator(); it2.hasNext(); ) {
-                NF7 nf7 = it2.next();
-                int f = nf7.rhsD.getFeature();
-                if(fs.containsKey(f)) {
-                    List<NF7> l = fs.get(f);
-                    l.add(nf7);
-                }
-            }
-        }
-        
         for(Inclusion inc : norm) {
             NormalFormGCI nf = inc.getNormalForm();
-            // Exclude NF7s - already collapsed
-            if(!(nf instanceof NF7)) {
-                as.addAxiom(nf);
-                
-                // Will work because there are no NF7s
-                // TODO: fix how this works to make it more understandable
-                addTerm(nf);
-            }
+            as.addAxiom(nf);
+            addTerm(nf);
         }
     }
 
@@ -1814,11 +1823,8 @@ public class NormalisedOntology implements Serializable {
     }
     
     public void getFullTaxonomy(IConceptMap<IConceptSet> equiv, IConceptMap<IConceptSet> direc) {
-        long start = System.currentTimeMillis();
-        
         final IConceptMap<IConceptSet> subsumptions = getSubsumptions();
 
-        // Keep only the subsumptions that involve real atomic concepts
         IConceptMap<IConceptSet> cis = new SparseConceptMap<IConceptSet>(factory.getTotalConcepts());
 
         for (IntIterator itr = subsumptions.keyIterator(); itr.hasNext();) {
@@ -1867,7 +1873,6 @@ public class NormalisedOntology implements Serializable {
                 };
             }
         }
-        Statistics.INSTANCE.setTime("taxonomy construction", System.currentTimeMillis() - start);
     }
     
     /**
