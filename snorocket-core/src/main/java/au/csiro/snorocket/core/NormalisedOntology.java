@@ -375,20 +375,49 @@ public class NormalisedOntology implements Serializable {
      * TODO: inspect NF1bs and hierarchy to derive missing axioms!
      */
     public void prapareForInferred() {
+        log.info("Adding additional axioms to calculate inferred axioms");
+        int key = 0;
         
+        int numNf3 = 0;
+        int numNf8 = 0;
         for(final IntIterator itr = ontologyNF2.keyIterator(); itr.hasNext();) {
             MonotonicCollection<NF2> nf2s = ontologyNF2.get(itr.next());
             for(final Iterator<NF2> itr2 = nf2s.iterator(); itr2.hasNext();) {
                 NF2 nf2 = itr2.next();
-
-                if(!containsExistentialInNF3s(nf2.rhsR, nf2.rhsB)) {
+                
+                // TODO remove
+                if(factory.lookupConceptId(nf2.lhsA).equals("287402001")) {
+                    System.err.println(nf2);
+                    
+                    key = nf2.rhsB;
+                    
+                }
+                // TODO remove
+                
+                // The problem is likely to be in this method call!
+                if(!containsExistentialInNF3s(nf2.rhsR, nf2.rhsB, nf2.lhsA)) {
                     NF3 nnf = NF3.getInstance(nf2.rhsR, nf2.rhsB, factory.getConcept(new Existential(nf2.rhsR, 
                             new au.csiro.snorocket.core.model.Concept(nf2.rhsB))));
-                    as.addAxiom(nnf); // Needed for incremental
+                    //as.addAxiom(nnf); // Needed for incremental
                     addTerm(nnf);
+                    numNf3++;
+                    
+                    
+                    if(factory.lookupConceptId(nf2.lhsA).equals("287402001")) {
+                        System.err.println("Added "+nnf);
+                    }
+                    
+                    
                 }
             }
         }
+        
+        System.out.println(key);
+        // TODO remove
+        for(NF2 nn : ontologyNF2.get(key)) {
+            System.err.println(nn);
+        }
+        // TODO remove
         
         for(final IntIterator itr = ontologyNF7.keyIterator(); itr.hasNext();) {
             MonotonicCollection<NF7> nf7s = ontologyNF7.get(itr.next());
@@ -398,19 +427,79 @@ public class NormalisedOntology implements Serializable {
                 Datatype rhs = nf7.getD();
                 if(!containsDatatypeInNF8s(rhs)) {
                     NF8 nnf = NF8.getInstance(rhs, factory.getConcept(rhs));
-                    as.addAxiom(nnf); // Needed for incremental
+                    //as.addAxiom(nnf); // Needed for incremental
                     addTerm(nnf);
+                    numNf8++;
                 }
             }
         }
         
-        classifyIncremental();
+        log.info("Added "+numNf3+" NF3 axioms and "+numNf8+" NF8 axioms.");
+        
+        // FIXME: there seems to be an issue with incremental classification and these axioms. For now these will be
+        // excluded because there is no need for these for SNOMED CT and AMT.    
+        
+        /*
+        // try introducing a new axiom for each NF1b new concept [ A1 + A2 - add the conjunction object as key
+        for(NF1b nf1b : getNF1bs()) {
+            Object a1 = factory.lookupConceptId(nf1b.lhsA1());
+            Object a2 = factory.lookupConceptId(nf1b.lhsA2());
+            
+            AbstractConcept ac1 = null;
+            AbstractConcept ac2 = null;
+            
+            // We assume these are either Strings or Existentials
+            if(a1 instanceof String) {
+                ac1 = new au.csiro.snorocket.core.model.Concept(nf1b.lhsA1());
+            } else {
+                // This will throw a ClassCastException if an object outside of the internal model is found
+                ac1 = (AbstractConcept) a1;
+            }
+            
+            if(a2 instanceof String) {
+                ac2 = new au.csiro.snorocket.core.model.Concept(nf1b.lhsA2());
+            } else {
+                // This will throw a ClassCastException if an object outside of the internal model is found
+                ac2 = (AbstractConcept) a2;
+            }
+            
+            Conjunction con = new Conjunction(new AbstractConcept[] { ac1, ac2 });
+            int nid = factory.getConcept(con);
+            NF1a nf1a1 = NF1a.getInstance(nid, nf1b.lhsA1());
+            NF1a nf1a2 = NF1a.getInstance(nid, nf1b.lhsA2());
+            addTerm(nf1a1);
+            addTerm(nf1a2);
+        }
+        */
     }
     
-    private boolean containsExistentialInNF3s(int r, int a) {
-        ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> nf3s = ontologyNF3.get(a);
+    public Collection<NF1b> getNF1bs() {
+        Collection<NF1b> res = new HashSet<NF1b>();
+        for(IntIterator it = ontologyNF1.keyIterator(); it.hasNext(); ) {
+            int a = it.next();
+            MonotonicCollection<IConjunctionQueueEntry> mc = ontologyNF1.get(a);
+            for(Iterator<IConjunctionQueueEntry> it2 = mc.iterator(); it2.hasNext(); ) {
+                IConjunctionQueueEntry entry = it2.next();
+                if(entry instanceof NF1b) {
+                    res.add((NF1b) entry);
+                }
+            }
+        }
+        
+        return res;
+    }
+    
+    private boolean containsExistentialInNF3s(int r, int a, int b) {
+        ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> nf3Map = ontologyNF3.get(a);
+        if(nf3Map == null) return false;
+        Collection<IConjunctionQueueEntry> nf3s = nf3Map.get(r);
         if(nf3s == null) return false;
-        return nf3s.get(r) == null ? false : true;
+        
+        for(IConjunctionQueueEntry nf3 : nf3s) {
+            if(b == nf3.getB()) return true;
+        }
+        
+        return false;
     }
     
     private boolean containsDatatypeInNF8s(Datatype d) {
