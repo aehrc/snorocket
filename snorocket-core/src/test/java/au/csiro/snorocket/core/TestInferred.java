@@ -50,11 +50,10 @@ public class TestInferred {
         
         SnorocketReasoner sr = new SnorocketReasoner();
         sr.loadAxioms(axioms);
-        sr.prepareForInferred();
         sr.classify();
         
         // Retrieve inferred axioms
-        Collection<Axiom> inferredAxioms = sr.getAllInferredAxioms();
+        Collection<Axiom> inferredAxioms = sr.getInferredAxioms();
         
         System.out.println("Inferred axioms:\n");
         for(Axiom ax : inferredAxioms) {

@@ -120,7 +120,7 @@ public class TestInferredAxioms {
         assertEquals(6, inferred.size());
 
         ConceptInclusion probe = a2;
-        //System.err.println(probe);
+        System.err.println(probe);
 
         for (Axiom a: inferred) {
             if (a instanceof ConceptInclusion) {

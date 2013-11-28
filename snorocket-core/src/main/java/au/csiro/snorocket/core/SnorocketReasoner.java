@@ -65,7 +65,6 @@ import au.csiro.snorocket.core.util.IConceptMap;
 import au.csiro.snorocket.core.util.IConceptSet;
 import au.csiro.snorocket.core.util.IntIterator;
 import au.csiro.snorocket.core.util.RoleSet;
-import au.csiro.snorocket.core.util.SparseConceptMap;
 
 /**
  * This class represents an instance of the reasoner. It uses the internal
@@ -307,68 +306,12 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             if (factory.isVirtualConcept(key) || NamedConcept.BOTTOM == id) {
                 continue;
             }
-
+            
             Concept rhs = getNecessary(contextIndex, taxonomy, key);
 
-            final Concept lhs = new NamedConcept(factory.lookupConceptId(key).toString());
-            if (!lhs.equals(rhs) && !rhs.equals(NamedConcept.TOP)) { // skip trivial axioms
+            final Concept lhs = new NamedConcept(id);
+            if (!lhs.equals(rhs) && !rhs.equals(NamedConcept.TOP_CONCEPT)) { // skip trivial axioms
                 inferred.add(new ConceptInclusion(lhs, rhs));
-            }
-        }
-
-        return inferred;
-    }
-    
-    public void prepareForInferred() {
-        log.info("Preparing to create inferred axioms");
-        no.prapareForInferred();
-    }
-
-    /**
-     * <p>
-     * Alejandro's opinion - we return the inferred axioms in the normal forms used before classification. For now we
-     * will deal with concept inclusions only. The unfiltered taxonomy already contains the parents for named concepts,
-     * existentials, and datatypes that appear in normal forms NF1a, NF3 and NF8. To get the missing axioms for normal 
-     * forms NF2 and NF7 it is possible to add new named concepts (NF3s from NF2s and NF8s from NF7s) and then run an 
-     * incremental classification. To get the inferred axioms for normal form NF1b it is possible to add new axioms of
-     * the form concept [ A1 + A2, where the concept's key is the conjunction object.
-     * 
-     * There is currently an issue with incremental classification and the axioms derived from the NF1b objects.
-     * </p>
-     *
-     * @return
-     */
-    public Collection<Axiom> getAllInferredAxioms() {
-        log.info("Retrieving inferred axioms");
-        final Collection<Axiom> inferred = new HashSet<Axiom>();
-        
-        if(!isClassified) classify();
-
-        // FIXME there is an issue with incremental classification and axioms derived from NF1bs - for now these are
-        // not being used but this needs to be fixed in the future.
-        //no.classify();
-        
-        IConceptMap<IConceptSet> equiv = new SparseConceptMap<IConceptSet>(factory.getTotalConcepts());
-        IConceptMap<IConceptSet> direc = new SparseConceptMap<IConceptSet>(factory.getTotalConcepts());
-        no.getFullTaxonomy(equiv, direc);
-        
-        for (IntIterator itr = direc.keyIterator(); itr.hasNext();) {
-            int id = itr.next();
-            Object obj = factory.lookupConceptId(id);
-            
-            Concept lhs = transformToModel(obj);
-            
-            // Build right hand side
-            IConceptSet parents = direc.get(id);
-            if(parents.isEmpty()) {
-                log.warn("Found empty rhs for " + lhs);
-            } else {
-                for(IntIterator itr2 = parents.iterator(); itr2.hasNext();) {
-                    int cid = itr2.next();
-                    if(cid == 0) continue; // exclude x [ TOP axioms
-                    Concept rhs = transformToModel(factory.lookupConceptId(cid));
-                    inferred.add(new ConceptInclusion(lhs, rhs));
-                }
             }
         }
 
@@ -412,18 +355,18 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         } else {
             // Ignore
         }
-
+        
         final Context ctx = contextIndex.get(key);
         CR succ = ctx.getSucc();
-        for (int roleId: succ.getRoles()) {
+        
+        for(int roleId : succ.getRoles()) {
             NamedRole role = new NamedRole(factory.lookupRoleId(roleId).toString());
             IConceptSet values = getLeaves(succ.lookupConcept(roleId));
             for (IntIterator itr2 = values.iterator(); itr2.hasNext(); ) {
                 int valueInt = itr2.next();
                 if (!factory.isVirtualConcept(valueInt)) {
                     final String valueId = factory.lookupConceptId(valueInt).toString();
-                    final Existential x = new Existential(role, new NamedConcept(valueId));
-                    result.add(x);
+                    result.add(new Existential(role, new NamedConcept(valueId)));
                 } else {
                     final Concept valueConcept = getNecessary(contextIndex, taxonomy, valueInt);
                     final Existential x = new Existential(role, Builder.build(no, valueConcept));
@@ -431,7 +374,6 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
                 }
             }
         }
-        //        System.err.println("gN: " + id + "\t" + factory.isVirtualConcept(key) + "\t" + result);
 
         if (result.size() == 0) {
             return NamedConcept.TOP_CONCEPT;
@@ -479,6 +421,61 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             leafBs.removeAll(ancestors);
         }
         return leafBs;
+    }
+    
+    /**
+     * Prints a concept given its internal id. Useful for debugging.
+     * 
+     * @param id
+     * @return
+     */
+    protected String printConcept(int id) {
+        Object oid = factory.lookupConceptId(id);
+        if(factory.isVirtualConcept(id)) {
+            if(oid instanceof AbstractConcept) {
+                return printAbstractConcept((AbstractConcept) oid);
+            } else {
+                return oid.toString();
+            }
+        } else {
+            return (String) oid;
+        }
+    }
+    
+    /**
+     * Prints an abstract concept. Useful for debugging.
+     * 
+     * @param ac
+     * @return
+     */
+    private String printAbstractConcept(AbstractConcept ac) {
+        if(ac instanceof au.csiro.snorocket.core.model.Concept) {
+            au.csiro.snorocket.core.model.Concept c = (au.csiro.snorocket.core.model.Concept) ac;
+            Object o = factory.lookupConceptId(c.hashCode());
+            if(o instanceof String) {
+                return (String) o; 
+            } else {
+                return printAbstractConcept((AbstractConcept) o);
+            }
+        } else if(ac instanceof au.csiro.snorocket.core.model.Conjunction) {
+            au.csiro.snorocket.core.model.Conjunction c = (au.csiro.snorocket.core.model.Conjunction) ac;
+            AbstractConcept[] acs = c.getConcepts();
+            StringBuilder sb = new StringBuilder();
+            sb.append(printAbstractConcept(acs[0]));
+            for(int i = 1; i < acs.length; i++) {
+                sb.append(" + ");
+                sb.append(printAbstractConcept(acs[i]));
+            }
+            return sb.toString();
+        } else if(ac instanceof au.csiro.snorocket.core.model.Existential) {
+            au.csiro.snorocket.core.model.Existential e = (au.csiro.snorocket.core.model.Existential) ac;
+            return "E"+factory.lookupRoleId(e.getRole()).toString()+"."+printAbstractConcept(e.getConcept());
+        } else if(ac instanceof au.csiro.snorocket.core.model.Datatype) {
+            au.csiro.snorocket.core.model.Datatype d = (au.csiro.snorocket.core.model.Datatype) ac;
+            return "F"+factory.lookupFeatureId(d.getFeature())+".("+d.getOperator()+", "+d.getLiteral()+")";
+        } else {
+            throw new RuntimeException("Unexpected concept: " + ac);
+        }
     }
 
     private static IConceptSet getAncestors(NormalisedOntology no, int conceptInt) {
