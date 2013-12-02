@@ -117,7 +117,7 @@ public class TestInferredAxioms {
         Collection<Axiom> inferred = reasoner.getInferredAxioms();
 
         assertEquals(6, stated.size());
-        assertEquals(6, inferred.size());
+        assertEquals(4, inferred.size());
 
         ConceptInclusion probe = a2;
         System.err.println(probe);
