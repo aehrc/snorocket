@@ -559,7 +559,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             for (Existential candidate: items) {
                 final Concept value = candidate.getConcept();
                 if (!(value instanceof NamedConcept)) {
-                    log.warn("WARNING: pass through of nested complex value: " + value);
+                    log.debug("WARNING: pass through of nested complex value: " + value);
                     continue;
                 }
 
