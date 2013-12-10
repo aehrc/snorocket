@@ -54,6 +54,10 @@ import au.csiro.ontology.model.Operator;
 import au.csiro.snorocket.core.concurrent.CR;
 import au.csiro.snorocket.core.concurrent.Context;
 import au.csiro.snorocket.core.model.AbstractConcept;
+import au.csiro.snorocket.core.model.AbstractLiteral;
+import au.csiro.snorocket.core.model.BigIntegerLiteral;
+import au.csiro.snorocket.core.model.DateLiteral;
+import au.csiro.snorocket.core.model.DecimalLiteral;
 import au.csiro.snorocket.core.model.FloatLiteral;
 import au.csiro.snorocket.core.model.IntegerLiteral;
 import au.csiro.snorocket.core.model.StringLiteral;
@@ -156,7 +160,117 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
 
         return ont;
     }
-
+    
+    /**
+     * The {@link CoreFactory} can currently hold very different types of objects. These include:
+     * 
+     * <ul>
+     *   <li>NamedConcept: for TOP and BOTTOM</li>
+     *   <li>Strings: for named concepts</li>
+     *   <li>au.csiro.snorocket.core.model.Conjunction</li>
+     *   <li>au.csiro.snorocket.core.model.Datatype</li>
+     *   <li>au.csiro.snorocket.core.model.Existential</li>
+     * </ul>
+     * 
+     * @param obj
+     * @return
+     */
+    protected Concept transformToModel(Object obj) {
+        if(obj instanceof NamedConcept) {
+            return (NamedConcept) obj;
+        } else if(obj instanceof String) {
+            return new NamedConcept((String) obj);
+        } else if(obj instanceof au.csiro.snorocket.core.model.Conjunction) {
+            au.csiro.snorocket.core.model.Conjunction conj = (au.csiro.snorocket.core.model.Conjunction) obj;
+            List<Concept> conjs = new ArrayList<Concept>();
+            for(AbstractConcept ac : conj.getConcepts()) {
+                conjs.add(transformToModel(ac));
+            }
+            return new Conjunction(conjs.toArray(new Concept[conjs.size()]));
+        } else if(obj instanceof au.csiro.snorocket.core.model.Existential) {
+            au.csiro.snorocket.core.model.Existential ex = (au.csiro.snorocket.core.model.Existential) obj;
+            String roleId = (String) factory.lookupRoleId(ex.getRole());
+            Concept con = transformToModel(ex.getConcept());
+            return new Existential(new NamedRole(roleId), con);
+        } else if(obj instanceof au.csiro.snorocket.core.model.Datatype) {
+            au.csiro.snorocket.core.model.Datatype dt = (au.csiro.snorocket.core.model.Datatype) obj;
+            String featureId = factory.lookupFeatureId(dt.getFeature());
+            Literal l = transformLiteralToModel(dt.getLiteral());
+            return new Datatype(new NamedFeature(featureId), dt.getOperator(), l);
+        } else if(obj instanceof au.csiro.snorocket.core.model.Concept) {
+            au.csiro.snorocket.core.model.Concept c = (au.csiro.snorocket.core.model.Concept) obj;
+            Object id = factory.lookupConceptId(c.hashCode());
+            if(id instanceof String) {
+                return new NamedConcept((String) id);
+            } else if(id instanceof NamedConcept) {
+                // If TOP or BOTTOM
+                return (NamedConcept) id;
+            } else {
+                return transformToModel(id);
+            }
+        } else {
+            throw new RuntimeException("Unexpected abstract concept " + obj.getClass());
+        }
+    }
+    
+    /*
+    protected String getName(Object obj) {
+        if(obj instanceof NamedConcept) {
+            return ((NamedConcept) obj).getId();
+        } else if(obj instanceof String) {
+            return (String) obj;
+        } else if(obj instanceof au.csiro.snorocket.core.model.Conjunction) {
+            au.csiro.snorocket.core.model.Conjunction conj = (au.csiro.snorocket.core.model.Conjunction) obj;
+            StringBuilder sb = new StringBuilder();
+            AbstractConcept[] cs = conj.getConcepts();
+            sb.append("(");
+            sb.append(getName(cs[0]));
+            for(int i = 1; i < cs.length; i++) {
+                sb.append(" + ");
+                sb.append(getName(cs[i]));
+            }
+            sb.append(")");
+            return sb.toString();
+        } else if(obj instanceof au.csiro.snorocket.core.model.Existential) {
+            au.csiro.snorocket.core.model.Existential ex = (au.csiro.snorocket.core.model.Existential) obj;
+            String roleId = (String) factory.lookupRoleId(ex.getRole());
+            String conceptId = getName(ex.getConcept());
+            return "(E" + roleId + "." + conceptId+")";
+        } else if(obj instanceof au.csiro.snorocket.core.model.Datatype) {
+            // TODO: implement
+            return "MISSING";
+        } else if(obj instanceof au.csiro.snorocket.core.model.Concept) {
+            au.csiro.snorocket.core.model.Concept c = (au.csiro.snorocket.core.model.Concept) obj;
+            return getName(factory.lookupConceptId(c.hashCode()));
+        } else {
+            throw new RuntimeException("Unknown type: "+obj.getClass());
+        }
+    }*/
+    
+    /**
+     * Transforms literal from the internal representation to the canonical representation.
+     * 
+     * @param al
+     * @return
+     */
+    protected Literal transformLiteralToModel(AbstractLiteral al) {
+        if(al instanceof BigIntegerLiteral) {
+            return new au.csiro.ontology.model.BigIntegerLiteral(((BigIntegerLiteral) al).getValue());
+        } else if(al instanceof DateLiteral) {
+            return new au.csiro.ontology.model.DateLiteral(((DateLiteral) al).getValue());
+        } else if(al instanceof DecimalLiteral) {
+            return new au.csiro.ontology.model.DecimalLiteral(((DecimalLiteral) al).getValue());
+        } else if(al instanceof FloatLiteral) {
+            return new au.csiro.ontology.model.FloatLiteral(((FloatLiteral) al).getValue());
+        } else if(al instanceof IntegerLiteral) {
+            return new au.csiro.ontology.model.IntegerLiteral(((IntegerLiteral) al).getValue());
+        } else if(al instanceof StringLiteral) {
+            return new au.csiro.ontology.model.StringLiteral(((StringLiteral) al).getValue());
+        } else {
+            throw new RuntimeException("Unexpected abstract literal "+al);
+        }
+    }
+    
     /**
      * Ideally we'd return some kind of normal form axioms here.  However, in
      * the presence of GCIs this is not well defined (as far as I know -
@@ -192,11 +306,11 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             if (factory.isVirtualConcept(key) || NamedConcept.BOTTOM == id) {
                 continue;
             }
-
+            
             Concept rhs = getNecessary(contextIndex, taxonomy, key);
 
-            final Concept lhs = new NamedConcept(factory.lookupConceptId(key).toString());
-            if (!lhs.equals(rhs) && !rhs.equals(NamedConcept.TOP)) { // skip trivial axioms
+            final Concept lhs = new NamedConcept(id);
+            if (!lhs.equals(rhs) && !rhs.equals(NamedConcept.TOP_CONCEPT)) { // skip trivial axioms
                 inferred.add(new ConceptInclusion(lhs, rhs));
             }
         }
@@ -241,18 +355,18 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         } else {
             // Ignore
         }
-
+        
         final Context ctx = contextIndex.get(key);
         CR succ = ctx.getSucc();
-        for (int roleId: succ.getRoles()) {
+        
+        for(int roleId : succ.getRoles()) {
             NamedRole role = new NamedRole(factory.lookupRoleId(roleId).toString());
             IConceptSet values = getLeaves(succ.lookupConcept(roleId));
             for (IntIterator itr2 = values.iterator(); itr2.hasNext(); ) {
                 int valueInt = itr2.next();
                 if (!factory.isVirtualConcept(valueInt)) {
                     final String valueId = factory.lookupConceptId(valueInt).toString();
-                    final Existential x = new Existential(role, new NamedConcept(valueId));
-                    result.add(x);
+                    result.add(new Existential(role, new NamedConcept(valueId)));
                 } else {
                     final Concept valueConcept = getNecessary(contextIndex, taxonomy, valueInt);
                     final Existential x = new Existential(role, Builder.build(no, valueConcept));
@@ -260,7 +374,6 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
                 }
             }
         }
-        //        System.err.println("gN: " + id + "\t" + factory.isVirtualConcept(key) + "\t" + result);
 
         if (result.size() == 0) {
             return NamedConcept.TOP_CONCEPT;
@@ -275,14 +388,15 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         Feature feature = new NamedFeature(factory.lookupFeatureId(datatype.getFeature()));
         Operator operator = Operator.EQUALS;
         Literal literal;
-        if (datatype.getLiteral() instanceof FloatLiteral) {
-            literal = new au.csiro.ontology.model.FloatLiteral(((FloatLiteral) datatype.getLiteral()).getLowerBound());
+        if (datatype.getLiteral() instanceof DecimalLiteral) {
+            literal = new au.csiro.ontology.model.DecimalLiteral(((DecimalLiteral) datatype.getLiteral()).getValue());
         } else if (datatype.getLiteral() instanceof IntegerLiteral) {
-            literal = new au.csiro.ontology.model.IntegerLiteral(((IntegerLiteral) datatype.getLiteral()).getLowerBound());
+            literal = new au.csiro.ontology.model.IntegerLiteral(((IntegerLiteral) datatype.getLiteral()).getValue());
         } else if (datatype.getLiteral() instanceof StringLiteral) {
             literal = new au.csiro.ontology.model.StringLiteral(((StringLiteral) datatype.getLiteral()).getValue());
         } else {
-            throw new UnsupportedOperationException("Literals of type " + datatype.getLiteral().getClass().getName() + " not yet supported");
+            throw new UnsupportedOperationException("Literals of type " + datatype.getLiteral().getClass().getName() + 
+                    " not yet supported");
         }
         result.add(new Datatype(feature, operator, literal));
     }
@@ -307,6 +421,61 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             leafBs.removeAll(ancestors);
         }
         return leafBs;
+    }
+    
+    /**
+     * Prints a concept given its internal id. Useful for debugging.
+     * 
+     * @param id
+     * @return
+     */
+    protected String printConcept(int id) {
+        Object oid = factory.lookupConceptId(id);
+        if(factory.isVirtualConcept(id)) {
+            if(oid instanceof AbstractConcept) {
+                return printAbstractConcept((AbstractConcept) oid);
+            } else {
+                return oid.toString();
+            }
+        } else {
+            return (String) oid;
+        }
+    }
+    
+    /**
+     * Prints an abstract concept. Useful for debugging.
+     * 
+     * @param ac
+     * @return
+     */
+    private String printAbstractConcept(AbstractConcept ac) {
+        if(ac instanceof au.csiro.snorocket.core.model.Concept) {
+            au.csiro.snorocket.core.model.Concept c = (au.csiro.snorocket.core.model.Concept) ac;
+            Object o = factory.lookupConceptId(c.hashCode());
+            if(o instanceof String) {
+                return (String) o; 
+            } else {
+                return printAbstractConcept((AbstractConcept) o);
+            }
+        } else if(ac instanceof au.csiro.snorocket.core.model.Conjunction) {
+            au.csiro.snorocket.core.model.Conjunction c = (au.csiro.snorocket.core.model.Conjunction) ac;
+            AbstractConcept[] acs = c.getConcepts();
+            StringBuilder sb = new StringBuilder();
+            sb.append(printAbstractConcept(acs[0]));
+            for(int i = 1; i < acs.length; i++) {
+                sb.append(" + ");
+                sb.append(printAbstractConcept(acs[i]));
+            }
+            return sb.toString();
+        } else if(ac instanceof au.csiro.snorocket.core.model.Existential) {
+            au.csiro.snorocket.core.model.Existential e = (au.csiro.snorocket.core.model.Existential) ac;
+            return "E"+factory.lookupRoleId(e.getRole()).toString()+"."+printAbstractConcept(e.getConcept());
+        } else if(ac instanceof au.csiro.snorocket.core.model.Datatype) {
+            au.csiro.snorocket.core.model.Datatype d = (au.csiro.snorocket.core.model.Datatype) ac;
+            return "F"+factory.lookupFeatureId(d.getFeature())+".("+d.getOperator()+", "+d.getLiteral()+")";
+        } else {
+            throw new RuntimeException("Unexpected concept: " + ac);
+        }
     }
 
     private static IConceptSet getAncestors(NormalisedOntology no, int conceptInt) {
@@ -390,7 +559,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             for (Existential candidate: items) {
                 final Concept value = candidate.getConcept();
                 if (!(value instanceof NamedConcept)) {
-                    log.warn("WARNING: pass through of nested complex value: " + value);
+                    log.debug("WARNING: pass through of nested complex value: " + value);
                     continue;
                 }
 

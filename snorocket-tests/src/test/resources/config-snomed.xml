@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <inputs>
-  <rf2Inputs>
+  <inputs xsi:type="rf2Input" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <inputType>CLASSPATH</inputType>
     <associationRefsetFiles>/snomed_int_full_rf2/Refset/Content/der2_cRefset_AssociationReferenceFull_INT_20130131.txt</associationRefsetFiles>
     <attributeValueRefsetFiles>/snomed_int_full_rf2/Refset/Content/der2_cRefset_AttributeValueFull_INT_20130131.txt</attributeValueRefsetFiles>
@@ -78,5 +78,5 @@
     <simpleRefsetFiles>/snomed_int_full_rf2/Refset/Content/der2_Refset_SimpleFull_INT_20130131.txt</simpleRefsetFiles>
     <statedRelationshipsFile>/snomed_int_full_rf2/Terminology/sct2_StatedRelationship_Full_INT_20130131.txt</statedRelationshipsFile>
     <textDefinitionsFiles>/snomed_int_full_rf2/Terminology/sct2_TextDefinition_Full_INT_20130131.txt</textDefinitionsFiles>
-  </rf2Inputs>
+  </inputs>
 </inputs>

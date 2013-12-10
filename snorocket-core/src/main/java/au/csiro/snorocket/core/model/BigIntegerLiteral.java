@@ -1,33 +1,31 @@
 /**
  * Copyright CSIRO Australian e-Health Research Centre (http://aehrc.com).
- * All rights reserved. Use is subject to license terms and conditions. 
+ * All rights reserved. Use is subject to license terms and conditions.
  */
 package au.csiro.snorocket.core.model;
 
+import java.math.BigInteger;
 
 /**
- * An integer literal.
- * 
  * @author Alejandro Metke
- * 
+ *
  */
-public class IntegerLiteral extends AbstractLiteral {
-
-    private final int value;
+public class BigIntegerLiteral extends AbstractLiteral {
+    private final BigInteger value;
 
     /**
      * Constructor.
      * 
      * @param type
      */
-    public IntegerLiteral(int value) {
+    public BigIntegerLiteral(BigInteger value) {
         this.value = value;
     }
 
     /**
      * @return the value
      */
-    public int getValue() {
+    public BigInteger getValue() {
         return value;
     }
 
@@ -35,10 +33,10 @@ public class IntegerLiteral extends AbstractLiteral {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + value;
+        result = prime * result + ((value == null) ? 0 : value.hashCode());
         return result;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -47,8 +45,11 @@ public class IntegerLiteral extends AbstractLiteral {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        IntegerLiteral other = (IntegerLiteral) obj;
-        if (value != other.value)
+        BigIntegerLiteral other = (BigIntegerLiteral) obj;
+        if (value == null) {
+            if (other.value != null)
+                return false;
+        } else if (!value.equals(other.value))
             return false;
         return true;
     }
@@ -59,9 +60,6 @@ public class IntegerLiteral extends AbstractLiteral {
     }
 
     public int compareTo(AbstractLiteral o) {
-        int thisVal = this.value;
-        int anotherVal = ((IntegerLiteral) o).value;
-        return (thisVal<anotherVal ? -1 : (thisVal==anotherVal ? 0 : 1));
+        return value.compareTo(((BigIntegerLiteral) o).value);
     }
-
 }

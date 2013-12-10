@@ -22,7 +22,7 @@ import au.csiro.ontology.model.Conjunction;
 import au.csiro.ontology.model.Datatype;
 import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.Feature;
-import au.csiro.ontology.model.FloatLiteral;
+import au.csiro.ontology.model.DecimalLiteral;
 import au.csiro.ontology.model.IntegerLiteral;
 import au.csiro.ontology.model.NamedConcept;
 import au.csiro.ontology.model.NamedFeature;
@@ -183,27 +183,27 @@ public class TestConcreteDomains {
         ConceptInclusion a2 = new ConceptInclusion(panadol_250mg,
                 new Conjunction(new Concept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Operator.EQUALS, new FloatLiteral(250.0f)) }));
+                        new Datatype(mgPerTablet, Operator.EQUALS, new DecimalLiteral(250.0f)) }));
 
         ConceptInclusion a3 = new ConceptInclusion(new Conjunction(
                 new Concept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Operator.EQUALS, new FloatLiteral(250.0f)) }), panadol_250mg);
+                        new Datatype(mgPerTablet, Operator.EQUALS, new DecimalLiteral(250.0f)) }), panadol_250mg);
 
         ConceptInclusion a4 = new ConceptInclusion(panadol_500mg,
                 new Conjunction(new Concept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Operator.EQUALS, new FloatLiteral(500.0f)) }));
+                        new Datatype(mgPerTablet, Operator.EQUALS, new DecimalLiteral(500.0f)) }));
 
         ConceptInclusion a5 = new ConceptInclusion(new Conjunction(
                 new Concept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Operator.EQUALS, new FloatLiteral(500.0f)) }), panadol_500mg);
+                        new Datatype(mgPerTablet, Operator.EQUALS, new DecimalLiteral(500.0f)) }), panadol_500mg);
 
         ConceptInclusion a6 = new ConceptInclusion(panadol_pack_250mg,
                 new Conjunction(new Concept[] {
                         panadol,
-                        new Datatype(mgPerTablet, Operator.EQUALS, new FloatLiteral(250.0f)),
+                        new Datatype(mgPerTablet, Operator.EQUALS, new DecimalLiteral(250.0f)),
                         new Existential(container, bottle) }));
 
         Set<Axiom> axioms = new HashSet<Axiom>();
@@ -463,15 +463,15 @@ public class TestConcreteDomains {
 
         // Add axioms
         ConceptInclusion ax1 = new ConceptInclusion(cat10, new Datatype(strength, Operator.EQUALS, 
-                new FloatLiteral(10)));
+                new DecimalLiteral(10)));
         
-        ConceptInclusion ax1b = new ConceptInclusion(new Datatype(strength, Operator.EQUALS, new FloatLiteral(10)), 
+        ConceptInclusion ax1b = new ConceptInclusion(new Datatype(strength, Operator.EQUALS, new DecimalLiteral(10)), 
                 cat10);
         
         ConceptInclusion ax2 = new ConceptInclusion(catLt10, new Datatype(strength, Operator.LESS_THAN, 
-                new FloatLiteral(10)));
+                new DecimalLiteral(10)));
         
-        ConceptInclusion ax2b = new ConceptInclusion(new Datatype(strength, Operator.LESS_THAN, new FloatLiteral(10)), 
+        ConceptInclusion ax2b = new ConceptInclusion(new Datatype(strength, Operator.LESS_THAN, new DecimalLiteral(10)), 
                 catLt10);
 
         Set<Axiom> axioms = new HashSet<Axiom>();
@@ -667,249 +667,18 @@ public class TestConcreteDomains {
         Node baz2Node = baz1Children.iterator().next();
         Assert.assertEquals(1, baz2Node.getEquivalentConcepts().size());
         Assert.assertEquals(baz2.getId(), baz2Node.getEquivalentConcepts().iterator().next());
-    }   
-    
-    /**
-     * Simple test of feature collapsing to provide completeness. Based on the comments from one of the ORE reviewers
-     * for the submission of the Snorocket paper to ORE 2013.
-     */
-    @Test
-    public void testConcreteDomainsOperatorsCompleteness() {
-        IFactory factory = new CoreFactory();
-
-        // Add features
-        NamedFeature f = new NamedFeature("f");
-
-        // Add concepts
-        NamedConcept a = new NamedConcept("A");
-        NamedConcept b = new NamedConcept("B");
-
-        // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(a, 
-                new Conjunction(new Concept[] { 
-                        new Datatype(f, Operator.LESS_THAN, new IntegerLiteral(2)), 
-                        new Datatype(f, Operator.GREATER_THAN, new IntegerLiteral(0)) 
-                    }
-                )
-        );
-        
-        ConceptInclusion a2 = new ConceptInclusion(new Datatype(f, Operator.EQUALS, new IntegerLiteral(1)), 
-                b
-        );
-
-        Set<Axiom> axioms = new HashSet<Axiom>();
-        axioms.add(a1);
-        axioms.add(a2);
-
-        // Classify
-        NormalisedOntology o = new NormalisedOntology(factory, axioms);
-        o.setNumThreads(1);
-        o.classify();
-        
-        // Build taxonomy
-        o.buildTaxonomy();
-
-        // Test results
-        Node aNode = o.getEquivalents(a.getId());
-        Set<Node> aParents = aNode.getParents();
-        assertTrue(aParents.size() == 1);
-        assertTrue(aParents.iterator().next().getEquivalentConcepts().contains(b.getId()));
-
-        Node bNode = o.getEquivalents(b.getId());
-        Set<Node> bParents = bNode.getParents();
-        assertTrue(bParents.size() == 1);
-        assertTrue(bParents.contains(o.getTopNode()));
-
-        Node bottomNode = o.getBottomNode();
-        assertTrue(bottomNode.getEquivalentConcepts().size() == 1);
-        Set<Node> bottomParents = bottomNode.getParents();
-        assertTrue(bottomParents.size() == 1);
-        assertTrue(bottomParents.contains(o.getEquivalents(a.getId())));
-    }
-    
-    /**
-     * Completeness test with incremental classification.
-     */
-    @Test
-    public void testConcreteDomainsOperatorsCompletenessIncremental() {
-        IFactory factory = new CoreFactory();
-
-        // Add features
-        NamedFeature f = new NamedFeature("f");
-
-        // Add concepts
-        NamedConcept a = new NamedConcept("A");
-        NamedConcept b = new NamedConcept("B");
-
-        // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(a, 
-                new Conjunction(new Concept[] { 
-                        new Datatype(f, Operator.LESS_THAN, new IntegerLiteral(2)), 
-                        new Datatype(f, Operator.GREATER_THAN, new IntegerLiteral(0)) 
-                    }
-                )
-        );
-        
-        ConceptInclusion a2 = new ConceptInclusion(new Datatype(f, Operator.EQUALS, new IntegerLiteral(1)), 
-                b
-        );
-
-        Set<Axiom> axioms = new HashSet<Axiom>();
-        axioms.add(a1);
-
-        // Classify
-        NormalisedOntology o = new NormalisedOntology(factory, axioms);
-        o.classify();
-        
-        // Build taxonomy
-        o.buildTaxonomy();
-        
-        axioms.clear();
-        axioms.add(a2);
-        
-        o.loadIncremental(axioms);
-        o.classifyIncremental();
-        o.buildTaxonomy();
-
-        // Test results
-        Node aNode = o.getEquivalents(a.getId());
-        Set<Node> aParents = aNode.getParents();
-        assertTrue(aParents.size() == 1);
-        assertTrue(aParents.iterator().next().getEquivalentConcepts().contains(b.getId()));
-
-        Node bNode = o.getEquivalents(b.getId());
-        Set<Node> bParents = bNode.getParents();
-        assertTrue(bParents.size() == 1);
-        assertTrue(bParents.contains(o.getTopNode()));
-
-        Node bottomNode = o.getBottomNode();
-        assertTrue(bottomNode.getEquivalentConcepts().size() == 1);
-        Set<Node> bottomParents = bottomNode.getParents();
-        assertTrue(bottomParents.size() == 1);
-        assertTrue(bottomParents.contains(o.getEquivalents(a.getId())));
-    }
-    
-    /**
-     * Tests classification when a combination of NF7 axioms makes a concept equivalent to bottom.
-     */
-    @Test
-    public void testConcreteDomainsOperatorsCompleteness2() {
-        IFactory factory = new CoreFactory();
-
-        // Add features
-        NamedFeature f = new NamedFeature("f");
-
-        // Add concepts
-        NamedConcept a = new NamedConcept("A");
-        NamedConcept b = new NamedConcept("B");
-
-        // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(a, 
-                new Conjunction(new Concept[] { 
-                        new Datatype(f, Operator.LESS_THAN, new IntegerLiteral(2)), 
-                        new Datatype(f, Operator.GREATER_THAN, new IntegerLiteral(0)) 
-                    }
-                )
-        );
-        
-        ConceptInclusion a2 = new ConceptInclusion(new Datatype(f, Operator.EQUALS, new IntegerLiteral(1)), b);
-        ConceptInclusion a3 = new ConceptInclusion(a, new Datatype(f, Operator.EQUALS, new IntegerLiteral(2)));
-
-        Set<Axiom> axioms = new HashSet<Axiom>();
-        axioms.add(a1);
-        axioms.add(a2);
-        axioms.add(a3);
-
-        // Classify
-        NormalisedOntology o = new NormalisedOntology(factory, axioms);
-        o.classify();
-        
-        // Build taxonomy
-        o.buildTaxonomy();
-
-        // Test results
-        Node bNode = o.getEquivalents(b.getId());
-        Set<Node> bParents = bNode.getParents();
-        assertTrue(bParents.size() == 1);
-        assertTrue(bParents.contains(o.getTopNode()));
-
-        Node bottomNode = o.getBottomNode();
-        assertTrue(bottomNode.getEquivalentConcepts().size() == 2);
-        bottomNode.getEquivalentConcepts().contains(a.getId());
-        Set<Node> bottomParents = bottomNode.getParents();
-        assertTrue(bottomParents.size() == 1);
-        assertTrue(bottomParents.contains(o.getEquivalents(b.getId())));
-    }
-    
-    /**
-     * Another completeness test with incremental classification.
-     */
-    @Test
-    public void testConcreteDomainsOperatorsCompletenessIncremental2() {
-        IFactory factory = new CoreFactory();
-
-        // Add features
-        NamedFeature f = new NamedFeature("f");
-
-        // Add concepts
-        NamedConcept a = new NamedConcept("A");
-        NamedConcept b = new NamedConcept("B");
-
-        // Add axioms
-        ConceptInclusion a1 = new ConceptInclusion(a, 
-                new Conjunction(new Concept[] { 
-                        new Datatype(f, Operator.LESS_THAN, new IntegerLiteral(2)), 
-                        new Datatype(f, Operator.GREATER_THAN, new IntegerLiteral(0)) 
-                    }
-                )
-        );
-        
-        ConceptInclusion a2 = new ConceptInclusion(new Datatype(f, Operator.EQUALS, new IntegerLiteral(1)), b);
-        ConceptInclusion a3 = new ConceptInclusion(a, new Datatype(f, Operator.EQUALS, new IntegerLiteral(2)));
-
-        Set<Axiom> axioms = new HashSet<Axiom>();
-        axioms.add(a1);
-        axioms.add(a2);
-
-        // Classify
-        NormalisedOntology o = new NormalisedOntology(factory, axioms);
-        o.classify();
-        
-        // Build taxonomy
-        o.buildTaxonomy();
-        
-        axioms.clear();
-        axioms.add(a3);
-        
-        o.loadIncremental(axioms);
-        o.classifyIncremental();
-        o.buildTaxonomy();
-
-        // Test results
-        Node bNode = o.getEquivalents(b.getId());
-        Set<Node> bParents = bNode.getParents();
-        assertTrue(bParents.size() == 1);
-        assertTrue(bParents.contains(o.getTopNode()));
-
-        Node bottomNode = o.getBottomNode();
-        assertTrue(bottomNode.getEquivalentConcepts().size() == 2);
-        bottomNode.getEquivalentConcepts().contains(a.getId());
-        Set<Node> bottomParents = bottomNode.getParents();
-        assertTrue(bottomParents.size() == 1);
-        assertTrue(bottomParents.contains(o.getEquivalents(b.getId())));
     }
     
     @Test
     public void testConcreteDomiansBugAMT() {
-        Factory ft = new Factory();
         IFactory factory = new CoreFactory();
-        Feature f = ft.createNamedFeature("f");
+        Feature f = Factory.createNamedFeature("f");
         
-        Concept fiveMgTablet = ft.createNamedConcept("5MgTablet");
-        Datatype rhs1 = new Datatype(f, Operator.EQUALS, new FloatLiteral(5.0f));
+        Concept fiveMgTablet = Factory.createNamedConcept("5MgTablet");
+        Datatype rhs1 = new Datatype(f, Operator.EQUALS, new DecimalLiteral(5.0f));
 
-        Concept twoMgTablet = ft.createNamedConcept("2MgTablet");
-        Datatype rhs2 = new Datatype(f, Operator.EQUALS, new FloatLiteral(2.0f));
+        Concept twoMgTablet = Factory.createNamedConcept("2MgTablet");
+        Datatype rhs2 = new Datatype(f, Operator.EQUALS, new DecimalLiteral(2.0f));
         
         Axiom a1 = new ConceptInclusion(fiveMgTablet, rhs1);
         Axiom a2 = new ConceptInclusion(rhs1, fiveMgTablet);
@@ -917,7 +686,7 @@ public class TestConcreteDomains {
         Axiom a3 = new ConceptInclusion(twoMgTablet, rhs2);
         Axiom a4 = new ConceptInclusion(rhs2, twoMgTablet);
         
-        Concept twoMgCoatedTablet = ft.createNamedConcept("2MgCoatedTablet");
+        Concept twoMgCoatedTablet = Factory.createNamedConcept("2MgCoatedTablet");
         
         Axiom a5 = new ConceptInclusion(twoMgCoatedTablet, twoMgTablet);
         
