@@ -24,7 +24,7 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>2.4.0-nehta-export-SNAPSHOT</ontology-core.version>
+        <ontology-core.version>2.4.0</ontology-core.version>
         <owl-api.version>3.3</owl-api.version>
         <protege.version>4.1.0</protege.version>
     </properties>
@@ -90,7 +90,7 @@
       <plugin>
           <groupId>com.atlassian.maven.plugins</groupId>
           <artifactId>maven-jgitflow-plugin</artifactId>
-          <version>1.0-alpha20</version>
+          <version>1.0-alpha21.1</version>
           <configuration>
             <autoVersionSubmodules>true</autoVersionSubmodules>
             <!--<pushChanges>false</pushChanges>-->
