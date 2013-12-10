@@ -77,8 +77,7 @@ public abstract class AbstractTest {
         NormalisedOntology no = new NormalisedOntology(factory);
         System.out.println("Importing axioms");
         
-        RF2Importer imp = new RF2Importer(in);
-        
+        RF2Importer imp = new RF2Importer(in.getInputs());
         Iterator<Ontology> it = imp.getOntologyVersions(new NullProgressMonitor());
         
         while(it.hasNext()) {
@@ -94,7 +93,7 @@ public abstract class AbstractTest {
                 
                 System.gc();
                 
-                RF2Input rf2In = in.getRf2Inputs().get(0);
+                RF2Input rf2In = (RF2Input) in.getInputs().get(0);
                 ModuleInfo modInfo = rf2In.getModules().get(0);
                 Version ver = modInfo.getVersions().get(0);
                 InputStream canonical = this.getClass().getResourceAsStream(
