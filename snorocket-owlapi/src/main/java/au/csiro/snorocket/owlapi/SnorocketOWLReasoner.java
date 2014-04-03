@@ -303,7 +303,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
             
             log.error(sb.toString());
             monitor.taskEnded();
-            throw new ReasonerInternalException(sb.toString());
+            throw new ReasonerInternalException(sb.toString(), e);
         }
         
         return canAxioms;
