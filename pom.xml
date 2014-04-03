@@ -19,12 +19,12 @@
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
     <packaging>pom</packaging>
-    <version>2.4.2</version>
+    <version>2.4.3</version>
     <name>SIM Classifier Parent</name>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>2.5.1</ontology-core.version>
+        <ontology-core.version>2.5.2</ontology-core.version>
         <owl-api.version>3.3</owl-api.version>
         <protege.version>4.1.0</protege.version>
     </properties>
