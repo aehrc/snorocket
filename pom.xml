@@ -24,7 +24,7 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>2.5.2</ontology-core.version>
+        <ontology-core.version>2.5.3</ontology-core.version>
         <owl-api.version>3.3</owl-api.version>
         <protege.version>4.1.0</protege.version>
     </properties>
