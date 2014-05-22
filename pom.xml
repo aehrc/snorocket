@@ -1,30 +1,62 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-<!-- 
- !  Copyright (c) 2009 International Health Terminology Standards Development Organisation
- !
- !  Licensed under the Apache License, Version 2.0 (the "License");
- !  you may not use this file except in compliance with the License.
- !  You may obtain a copy of the License at
- ! 
- !      http://www.apache.org/licenses/LICENSE-2.0
- !
- !  Unless required by applicable law or agreed to in writing, software
- !  distributed under the License is distributed on an "AS IS" BASIS,
- !  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- !  See the License for the specific language governing permissions and
- !  limitations under the License.
- -->
-
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
-    <packaging>pom</packaging>
-    <version>2.4.4</version>
-    <name>SIM Classifier Parent</name>
+    <version>2.5.0</version>
+	 <packaging>pom</packaging>
     
+	<name>Snorocket</name>
+	<description>The Snorocket classifier.</description>
+   <url>https://github.com/aehrc/snorocket</url>
+   
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+   </licenses>
+   
+    <scm>
+        <url>git@github.com:aehrc/snorocket.git</url>
+        <connection>scm:git:git@github.com:aehrc/snorocket.git</connection>
+        <developerConnection>scm:git:git@github.com:aehrc/snorocket.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+   
+    <organization>
+        <name>Australian e-Health Research Centre</name>
+        <url>http://www.aehrc.com</url>
+    </organization>
+   
+    <developers>
+        <developer>
+            <id>ametke</id>
+            <name>Alejandro Metke</name>
+            <email>alejandro.metke@csiro.au</email>
+            <organization>Australian e-Health Research Centre, CSIRO</organization>
+            <organizationUrl>http://www.aehrc.com</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>10</timezone>
+        </developer>
+        <developer>
+            <id>lawley</id>
+            <name>Michael Lawley</name>
+            <email>michael.lawley@csiro.au</email>
+            <organization>Australian e-Health Research Centre, CSIRO</organization>
+            <organizationUrl>http://www.aehrc.com</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>10</timezone>
+        </developer>
+    </developers>
+	
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>2.5.3</ontology-core.version>
+        <ontology-core.version>2.6.0</ontology-core.version>
         <owl-api.version>3.3</owl-api.version>
         <protege.version>4.1.0</protege.version>
     </properties>
@@ -34,7 +66,6 @@
         <module>snorocket-owlapi</module>
         <module>snorocket-protege</module>
          <module>snorocket-examples</module>
-         <module>snorocket-tests</module>
     </modules>
     
     <dependencies>
@@ -52,22 +83,15 @@
     </dependencies>
     
     <distributionManagement>
-    <repository>
-      <id>aehrc-repository</id>
-      <url>scp://ict-ehrclf-cbr.vm.csiro.au/srv/aehrc.com/maven2</url>
-    </repository>
-  </distributionManagement>
-
-    <repositories>
-      <repository>
-        <id>ehrc-public-repo</id>
-        <name>AeHRC Public</name>
-        <url>http://aehrc.com/maven2</url>
-        <releases>
-          <enabled>true</enabled>
-        </releases>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+	     <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
-    </repositories>
+    </distributionManagement>
     
     <build>
     <extensions>
@@ -93,16 +117,68 @@
           <version>1.0-alpha21.1</version>
           <configuration>
             <autoVersionSubmodules>true</autoVersionSubmodules>
-            <!--<pushChanges>false</pushChanges>-->
           </configuration>
       </plugin>
     </plugins>
   </build>
   
-  <scm>
-    <connection>scm:git:ssh://git@stash.csiro.au:7999/sno/snorocket.git</connection>
-    <developerConnection>scm:git:ssh://git@stash.csiro.au:7999/sno/snorocket.git</developerConnection>
-    <url>https://stash.csiro.au/scm/sno/snorocket.git</url>
-    <tag>HEAD</tag>
-  </scm>
+  <profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+        <activation>
+          <property>
+            <name>performRelease</name>
+            <value>true</value>
+          </property>
+        </activation>
+        <build>
+          <plugins>
+		      <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                  <execution>
+                   <id>attach-sources</id>
+                   <goals>
+                    <goal>jar-no-fork</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-gpg-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>sign-artifacts</id>
+                  <phase>verify</phase>
+                  <goals>
+                    <goal>sign</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>2.8.1</version>
+              <executions>
+                <execution>
+                  <id>attach-javadocs</id>
+                  <goals>
+                    <goal>jar</goal>
+                  </goals>
+                  <configuration>
+                    <maxmemory>512m</maxmemory>
+                    <minmemory>128m</minmemory>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </build>
+      </profile>
+    </profiles>
+  
 </project>
