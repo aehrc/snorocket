@@ -111,7 +111,6 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             }
         }
 
-        Context.init(res.no);
         res.no.buildTaxonomy();
         return res;
     }
