@@ -982,7 +982,7 @@ public class NormalisedOntology implements Serializable {
         for (int j = 0; j < cids.length; j++) {
             int cid = cids[j];
             if (!contextIndex.containsKey(cid)) {
-                Context c = new Context(cid);
+                Context c = new Context(cid, this);
                 contextIndex.put(cid, c);
                 if (c.activate()) {
                     todo.add(c);
@@ -1394,12 +1394,10 @@ public class NormalisedOntology implements Serializable {
         if(log.isInfoEnabled())
             log.info("Classifying with " + numThreads + " threads");
 
-        Context.init(NormalisedOntology.this);
-
         // Create contexts for init concepts in the ontology
         int numConcepts = factory.getTotalConcepts();
         for (int i = 0; i < numConcepts; i++) {
-            Context c = new Context(i);
+            Context c = new Context(i, this);
             contextIndex.put(i, c);
             if (c.activate()) {
                 todo.add(c);

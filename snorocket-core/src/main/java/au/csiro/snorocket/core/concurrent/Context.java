@@ -109,59 +109,59 @@ public class Context implements Serializable {
     /**
      * Reference to the parent context queue. Used to add this context back to the queue when reactivated.
      */
-    private static Queue<Context> parentTodo;
+    private Queue<Context> parentTodo;
 
     /**
      * Reference to the parent context index. Used to add queue entries to other contexts.
      */
-    private static IConceptMap<Context> contextIndex;
+    private IConceptMap<Context> contextIndex;
 
     /**
      * Reference to the global role closure cache.
      */
-    private static Map<Integer, RoleSet> roleClosureCache;
+    private Map<Integer, RoleSet> roleClosureCache;
 
     /**
      * Reference to the global factory.
      */
-    private static IFactory factory;
+    private IFactory factory;
 
     /**
      * The set of NF1 terms in the ontology.
      * 
      * These terms are of the form A n Ai [ B and are indexed by A.
      */
-    private static IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> ontologyNF1;
+    private IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> ontologyNF1;
 
     /**
      * The set of NF2 terms in the ontology.
      * 
      * These terms are of the form A [ r.B and are indexed by A.
      */
-    private static IConceptMap<MonotonicCollection<NF2>> ontologyNF2;
+    private IConceptMap<MonotonicCollection<NF2>> ontologyNF2;
 
     /**
      * The set of NF3 terms in the ontology.
      * 
      * These terms are of the form r.A [ b and indexed by A.
      */
-    private static IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>>
+    private IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>>
         ontologyNF3;
 
     /**
      * The set of NF4 terms in the ontology
      */
-    private static IMonotonicCollection<NF4> ontologyNF4;
+    private IMonotonicCollection<NF4> ontologyNF4;
 
     /**
      * The set of NF5 terms in the ontology
      */
-    private static IMonotonicCollection<NF5> ontologyNF5;
+    private IMonotonicCollection<NF5> ontologyNF5;
 
     /**
      * The set of reflexive roles in the ontology
      */
-    private static IConceptSet reflexiveRoles = new SparseConceptSet();
+    private IConceptSet reflexiveRoles = new SparseConceptSet();
 
     /**
      * The set of NF7 terms in the ontology.
@@ -187,7 +187,7 @@ public class Context implements Serializable {
      * 
      * @param ont
      */
-    public static void init(NormalisedOntology ont) {
+    private void init(NormalisedOntology ont) {
         parentTodo = ont.getTodo();
         contextIndex = ont.getContextIndex();
         ontologyNF1 = ont.getOntologyNF1();
@@ -208,7 +208,8 @@ public class Context implements Serializable {
      * 
      * @param concept
      */
-    public Context(int concept) {
+    public Context(int concept, NormalisedOntology ont) {
+        init(ont);
         this.concept = concept;
         s = new SparseConceptSet();
         s.add(concept);
