@@ -145,8 +145,7 @@ public class Context implements Serializable {
      * 
      * These terms are of the form r.A [ b and indexed by A.
      */
-    private IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>>
-        ontologyNF3;
+    private IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>> ontologyNF3;
 
     /**
      * The set of NF4 terms in the ontology
@@ -168,22 +167,22 @@ public class Context implements Serializable {
      * 
      * These terms are of the form A [ f.(o, v) and are indexed by A.
      */
-    private static IConceptMap<MonotonicCollection<NF7>> ontologyNF7;
+    private IConceptMap<MonotonicCollection<NF7>> ontologyNF7;
 
     /**
      * The set of NF8 terms in the ontology.
      * 
      * These terms are of the form f.(o, v) [ A. These are indexed by f.
      */
-    private static FeatureMap<MonotonicCollection<NF8>> ontologyNF8;
+    private FeatureMap<MonotonicCollection<NF8>> ontologyNF8;
 
     /**
      * The map of global affected contexts used in incremental classification.
      */
-    private static Set<Context> affectedContexts;
+    private Set<Context> affectedContexts;
 
     /**
-     * Initialises the static variables.
+     * Initialises the shared variables.
      * 
      * @param ont
      */
