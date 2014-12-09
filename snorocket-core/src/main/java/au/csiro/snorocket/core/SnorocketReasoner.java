@@ -159,10 +159,10 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
 
         return ont;
     }
-    
+
     /**
      * The {@link CoreFactory} can currently hold very different types of objects. These include:
-     * 
+     *
      * <ul>
      *   <li>NamedConcept: for TOP and BOTTOM</li>
      *   <li>Strings: for named concepts</li>
@@ -170,7 +170,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
      *   <li>au.csiro.snorocket.core.model.Datatype</li>
      *   <li>au.csiro.snorocket.core.model.Existential</li>
      * </ul>
-     * 
+     *
      * @param obj
      * @return
      */
@@ -211,7 +211,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             throw new RuntimeException("Unexpected abstract concept " + obj.getClass());
         }
     }
-    
+
     /*
     protected String getName(Object obj) {
         if(obj instanceof NamedConcept) {
@@ -245,10 +245,10 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             throw new RuntimeException("Unknown type: "+obj.getClass());
         }
     }*/
-    
+
     /**
      * Transforms literal from the internal representation to the canonical representation.
-     * 
+     *
      * @param al
      * @return
      */
@@ -269,7 +269,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             throw new RuntimeException("Unexpected abstract literal "+al);
         }
     }
-    
+
     /**
      * Ideally we'd return some kind of normal form axioms here.  However, in
      * the presence of GCIs this is not well defined (as far as I know -
@@ -305,7 +305,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             if (factory.isVirtualConcept(key) || NamedConcept.BOTTOM == id) {
                 continue;
             }
-            
+
             Concept rhs = getNecessary(contextIndex, taxonomy, key);
 
             final Concept lhs = new NamedConcept(id);
@@ -354,10 +354,10 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         } else {
             // Ignore
         }
-        
+
         final Context ctx = contextIndex.get(key);
         CR succ = ctx.getSucc();
-        
+
         for(int roleId : succ.getRoles()) {
             NamedRole role = new NamedRole(factory.lookupRoleId(roleId).toString());
             IConceptSet values = getLeaves(succ.lookupConcept(roleId));
@@ -379,7 +379,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         } else if (result.size() == 1) {
             return result.get(0);
         } else {
-            return new Conjunction(result);
+            return Builder.build(no, result.toArray(new Concept[result.size()]));
         }
     }
 
@@ -394,7 +394,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         } else if (datatype.getLiteral() instanceof StringLiteral) {
             literal = new au.csiro.ontology.model.StringLiteral(((StringLiteral) datatype.getLiteral()).getValue());
         } else {
-            throw new UnsupportedOperationException("Literals of type " + datatype.getLiteral().getClass().getName() + 
+            throw new UnsupportedOperationException("Literals of type " + datatype.getLiteral().getClass().getName() +
                     " not yet supported");
         }
         result.add(new Datatype(feature, operator, literal));
@@ -421,10 +421,10 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         }
         return leafBs;
     }
-    
+
     /**
      * Prints a concept given its internal id. Useful for debugging.
-     * 
+     *
      * @param id
      * @return
      */
@@ -440,10 +440,10 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             return (String) oid;
         }
     }
-    
+
     /**
      * Prints an abstract concept. Useful for debugging.
-     * 
+     *
      * @param ac
      * @return
      */
@@ -452,7 +452,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             au.csiro.snorocket.core.model.Concept c = (au.csiro.snorocket.core.model.Concept) ac;
             Object o = factory.lookupConceptId(c.hashCode());
             if(o instanceof String) {
-                return (String) o; 
+                return (String) o;
             } else {
                 return printAbstractConcept((AbstractConcept) o);
             }
