@@ -4,11 +4,13 @@
  */
 package au.csiro.snorocket.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,14 +22,14 @@ import au.csiro.ontology.Factory;
 import au.csiro.ontology.Node;
 import au.csiro.ontology.Ontology;
 import au.csiro.ontology.model.Axiom;
-import au.csiro.ontology.model.ConceptInclusion;
-import au.csiro.ontology.model.NamedConcept;
-import au.csiro.ontology.model.NamedRole;
-import au.csiro.ontology.model.RoleInclusion;
 import au.csiro.ontology.model.Concept;
+import au.csiro.ontology.model.ConceptInclusion;
 import au.csiro.ontology.model.Conjunction;
 import au.csiro.ontology.model.Existential;
+import au.csiro.ontology.model.NamedConcept;
+import au.csiro.ontology.model.NamedRole;
 import au.csiro.ontology.model.Role;
+import au.csiro.ontology.model.RoleInclusion;
 import au.csiro.snorocket.core.util.Utils;
 
 /**
@@ -35,11 +37,11 @@ import au.csiro.snorocket.core.util.Utils;
  *
  */
 public class TestSnorocketReasoner {
-    
+
     /**
-     * 
+     *
      */
-    //@Test
+//    @Test
     public void testSave() {
 
         // Original Endocarditis ontology axioms
@@ -91,17 +93,17 @@ public class TestSnorocketReasoner {
         axioms.add(a9);
         axioms.add(a10);
         axioms.add(a11);
-        
+
         SnorocketReasoner sr = new SnorocketReasoner();
         sr.loadAxioms(axioms);
         sr.classify();
-        
+
         try {
             // Save to temp file
             File temp = File.createTempFile("temp",".ser");
             temp.deleteOnExit();
             sr.save(new FileOutputStream(temp));
-            
+
             sr = null;
             sr = SnorocketReasoner.load(new FileInputStream(temp));
         } catch(Exception ex) {
@@ -124,13 +126,13 @@ public class TestSnorocketReasoner {
         Set<Axiom> incAxioms = new HashSet<Axiom>();
         incAxioms.add(a1);
         incAxioms.add(a4);
-        
+
         sr.loadAxioms(incAxioms);
         sr.classify();
 
         // Test results
         Ontology ont = sr.getClassifiedOntology();
-        
+
         Node bottom = ont.getBottomNode();
         Set<Node> bottomRes = bottom.getParents();
         assertTrue(bottomRes.size() == 5);
@@ -203,14 +205,14 @@ public class TestSnorocketReasoner {
         assertTrue(criticalDiseaseRes.size() == 1);
         assertTrue(criticalDiseaseRes.contains(ont.getTopNode()));
     }
-    
-    //@Test
+
+    @Test
     public void testNesting() {
         NamedRole rg = new NamedRole("RoleGroup");
         NamedRole fs = new NamedRole("site");
         NamedRole am = new NamedRole("morph");
         NamedRole lat = new NamedRole("lat");
-        
+
         NamedConcept finding = new NamedConcept("Finding");
         NamedConcept fracfind = new NamedConcept("FractureFinding");
         NamedConcept limb = new NamedConcept("Limb");
@@ -220,7 +222,7 @@ public class TestSnorocketReasoner {
         NamedConcept burn = new NamedConcept("Burn");
         NamedConcept right = new NamedConcept("Right");
         NamedConcept multi = new NamedConcept("Multiple");
-        
+
         Concept[] larm = {
                 arm, new Existential(lat, left)
         };
@@ -251,7 +253,7 @@ public class TestSnorocketReasoner {
                 new ConceptInclusion(fracfind, new Conjunction(rhs2)),
                 new ConceptInclusion(new Conjunction(rhs2), fracfind),
         };
-        
+
         Set<Axiom> axioms = new HashSet<Axiom>();
         for (Axiom a : inclusions) {
             axioms.add(a);
@@ -261,11 +263,11 @@ public class TestSnorocketReasoner {
         SnorocketReasoner sr = new SnorocketReasoner();
         sr.loadAxioms(axioms);
         sr.classify();
-        
+
         Ontology ont = sr.getClassifiedOntology();
-        
+
         Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
-        
+
         try {
             for (Axiom a: axioms) {
                 System.out.println("Stated: " + a);
@@ -277,10 +279,43 @@ public class TestSnorocketReasoner {
             t.printStackTrace();
         }
     }
-    
+
+    @Test
+    public void testInferredRoleRedunancy() {
+        Set<Axiom> axioms = new HashSet<Axiom>();
+
+        NamedRole pRole = new NamedRole("findSite");
+        NamedRole cRole = new NamedRole("findSite-Direct");
+        axioms.add(new RoleInclusion(cRole, pRole));
+
+        NamedConcept appendicitis = new NamedConcept("appendicitis");
+        NamedConcept appendix = new NamedConcept("appendix");
+
+        axioms.add(new ConceptInclusion(appendicitis, new Existential(cRole, appendix)));
+        axioms.add(new ConceptInclusion(appendicitis, new Existential(pRole, appendix)));
+
+        SnorocketReasoner sr = new SnorocketReasoner();
+        sr.loadAxioms(axioms);
+        sr.classify();
+        Collection<Axiom> inferred = sr.getInferredAxioms();
+
+        for (Axiom a: inferred) {
+            System.err.println(a);
+            if (a instanceof ConceptInclusion) {
+                ConceptInclusion i = (ConceptInclusion) a;
+                if (appendicitis.equals(i.getLhs())) {
+                    assertTrue("Inferred RHS should be a single Existential", i.getRhs() instanceof Existential);
+                    Existential e = (Existential) i.getRhs();
+                    assertEquals(cRole, e.getRole());
+                    assertEquals(appendix, e.getConcept());
+                }
+            }
+        }
+    }
+
     @Test
     public void testEndocarditis() {
-        org.apache.log4j.LogManager.getRootLogger().setLevel((org.apache.log4j.Level)org.apache.log4j.Level.TRACE);
+        org.apache.log4j.LogManager.getRootLogger().setLevel(org.apache.log4j.Level.TRACE);
         // Create roles
         NamedRole contIn = new NamedRole("cont-in");
         NamedRole partOf = new NamedRole("part-of");
@@ -325,7 +360,7 @@ public class TestSnorocketReasoner {
 
         ConceptInclusion a6 = new ConceptInclusion(new Conjunction(
                 new Concept[] { heartdisease,
-                        new Existential(hasLoc, heartValve) }), 
+                        new Existential(hasLoc, heartValve) }),
                         criticalDisease);
 
         ConceptInclusion a7 = new ConceptInclusion(heartdisease,
@@ -334,7 +369,7 @@ public class TestSnorocketReasoner {
 
         ConceptInclusion a8 = new ConceptInclusion(
                 new Conjunction(new Concept[] { disease,
-                        new Existential(hasLoc, heart) }), 
+                        new Existential(hasLoc, heart) }),
                         heartdisease);
 
         RoleInclusion a9 = new RoleInclusion(new Role[] { partOf, partOf }, partOf);
@@ -358,15 +393,15 @@ public class TestSnorocketReasoner {
         SnorocketReasoner sr = new SnorocketReasoner();
         sr.loadAxioms(axioms);
         sr.classify();
-        
+
         Ontology ont = sr.getClassifiedOntology();
-        
+
         Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
-        
+
         // Test taxonomy results
         Node bottomNode = ont.getBottomNode();
         Set<Node> bottomRes = bottomNode.getParents();
-        
+
         assertTrue(bottomRes.size() == 5);
         assertTrue(bottomRes.contains(ont.getNode(endocardium.getId())));
         assertTrue(bottomRes.contains(ont.getNode(endocarditis.getId())));
@@ -444,14 +479,14 @@ public class TestSnorocketReasoner {
             t.printStackTrace();
         }
     }
-    
+
     /**
      * Tests the identification of possibly affected concepts after an
      * incremental taxonomy calculation.
      */
     //@Test
     public void testIncrementalTaxonomy() {
-    	
+
     	Concept a = Factory.createNamedConcept("A");
     	Concept b = Factory.createNamedConcept("B");
     	Concept c = Factory.createNamedConcept("C");
@@ -459,54 +494,54 @@ public class TestSnorocketReasoner {
     	Concept e = Factory.createNamedConcept("E");
     	Concept f = Factory.createNamedConcept("F");
     	Concept g = Factory.createNamedConcept("G");
-    	
+
     	Axiom a1 = Factory.createConceptInclusion(b, a);
     	Axiom a2 = Factory.createConceptInclusion(c, b);
     	Axiom a3 = Factory.createConceptInclusion(d, c);
     	Axiom a4 = Factory.createConceptInclusion(e, a);
     	Axiom a5 = Factory.createConceptInclusion(f, e);
-    	
+
     	Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
         axioms.add(a2);
         axioms.add(a3);
         axioms.add(a4);
         axioms.add(a5);
-    	
+
     	SnorocketReasoner sr = new SnorocketReasoner();
     	sr.loadAxioms(axioms);
         sr.classify();
-        
+
         Ontology ont = sr.getClassifiedOntology();
         Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
-        
+
         Axiom a6 = Factory.createConceptInclusion(g, e);
         Axiom a7 = Factory.createConceptInclusion(f, g);
-        
+
         axioms.clear();
         axioms.add(a6);
         axioms.add(a7);
-        
+
         sr.loadAxioms(axioms);
         sr.classify();
         ont = sr.getClassifiedOntology();
-        
+
         Utils.printTaxonomy(ont.getTopNode(), ont.getBottomNode());
-        
+
         Set<Node> affectedNodes = ont.getAffectedNodes();
         Set<String> affectedIds = new HashSet<String>();
         for(Node affectedNode : affectedNodes) {
         	affectedIds.addAll(affectedNode.getEquivalentConcepts());
         }
-        
+
         System.out.println("Affected node ids: "+affectedIds);
-        
+
         Assert.assertTrue("Node G was not found in affected nodes", affectedIds.contains("G"));
-        
+
         Assert.assertTrue("Node F was not found in affected nodes", affectedIds.contains("F"));
     }
-    
-    //@Test
+
+    @Test
     public void testBottom() {
         IFactory factory = new CoreFactory();
 
@@ -525,7 +560,7 @@ public class TestSnorocketReasoner {
         // Classify
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
         o.classify();
-        
+
         // Build taxonomy
         o.buildTaxonomy();
 
@@ -542,8 +577,8 @@ public class TestSnorocketReasoner {
         assertTrue(bottomParents.size() == 1);
         assertTrue(bottomParents.contains(o.getEquivalents(b.getId())));
     }
-    
-    //@Test
+
+    @Test
     public void testBottom2() {
         IFactory factory = new CoreFactory();
 
@@ -562,7 +597,7 @@ public class TestSnorocketReasoner {
         // Classify
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
         o.classify();
-        
+
         // Build taxonomy
         o.buildTaxonomy();
 
@@ -579,7 +614,7 @@ public class TestSnorocketReasoner {
         assertTrue(bottomParents.size() == 1);
         assertTrue(bottomParents.contains(o.getEquivalents(b.getId())));
     }
-    
+
     //@Test
     public void testBottomIncremental() {
         IFactory factory = new CoreFactory();
@@ -598,10 +633,10 @@ public class TestSnorocketReasoner {
         // Classify
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
         o.classify();
-        
+
         // Build taxonomy
         o.buildTaxonomy();
-        
+
         axioms.clear();
         axioms.add(a2);
         o.loadIncremental(axioms);
@@ -642,10 +677,10 @@ public class TestSnorocketReasoner {
         // Classify
         NormalisedOntology o = new NormalisedOntology(factory, axioms);
         o.classify();
-        
+
         // Build taxonomy
         o.buildTaxonomy();
-        
+
         axioms.clear();
         axioms.add(a2);
         axioms.add(a3);
@@ -661,7 +696,7 @@ public class TestSnorocketReasoner {
         Set<Node> bChildren = bNode.getChildren();
         assertTrue(bChildren.size() == 1);
         assertTrue(bChildren.contains(o.getEquivalents(a.getId())));
-        
+
         Node bottomNode = o.getBottomNode();
         Node aNode = o.getEquivalents(a.getId());
         Set<Node> aParents = aNode.getParents();
@@ -676,5 +711,5 @@ public class TestSnorocketReasoner {
         assertTrue(bottomParents.size() == 1);
         assertTrue(bottomParents.contains(aNode));
     }
-    
+
 }
