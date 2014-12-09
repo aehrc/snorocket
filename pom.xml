@@ -4,7 +4,6 @@
     <artifactId>snorocket-parent</artifactId>
     <version>2.5.7</version>
     <packaging>pom</packaging>
-    
    <name>Snorocket</name>
    <description>The Snorocket classifier.</description>
    <url>https://github.com/aehrc/snorocket</url>
