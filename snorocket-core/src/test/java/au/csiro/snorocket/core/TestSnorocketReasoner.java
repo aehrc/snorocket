@@ -294,6 +294,11 @@ public class TestSnorocketReasoner {
         axioms.add(new ConceptInclusion(appendicitis, new Existential(cRole, appendix)));
         axioms.add(new ConceptInclusion(appendicitis, new Existential(pRole, appendix)));
 
+        NamedConcept complex = new NamedConcept("complex");
+
+        axioms.add(new ConceptInclusion(complex, new Existential(cRole, new Existential(pRole, appendix))));
+        axioms.add(new ConceptInclusion(complex, new Existential(pRole, new Existential(pRole, appendix))));
+
         SnorocketReasoner sr = new SnorocketReasoner();
         sr.loadAxioms(axioms);
         sr.classify();
@@ -308,6 +313,8 @@ public class TestSnorocketReasoner {
                     Existential e = (Existential) i.getRhs();
                     assertEquals(cRole, e.getRole());
                     assertEquals(appendix, e.getConcept());
+                } else if (complex.equals(i.getLhs())) {
+                    assertEquals(new Existential(cRole, new Existential(pRole, appendix)), i.getRhs());
                 }
             }
         }
