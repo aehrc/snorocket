@@ -670,5 +670,14 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         }
         return this;
     }
+    
+    /**
+     * Sets the number of threads to use in the saturation phase.
+     * 
+     * @param numThreads
+     */
+    public void setNumThreads(int numThreads) {
+        no.setNumThreads(numThreads);
+    }
 
 }
