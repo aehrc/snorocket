@@ -3,9 +3,11 @@
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
     <version>2.5.8</version>
+
     <packaging>pom</packaging>
    <name>Snorocket</name>
    <description>The Snorocket classifier.</description>
+
    <url>https://github.com/aehrc/snorocket</url>
    
     <licenses>
