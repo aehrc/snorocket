@@ -401,6 +401,40 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
     }
 
     /**
+     * Identifies any equivalent concepts and retains only one of them.
+     * 
+     * @param concepts
+     * @return
+     */
+    private IConceptSet filterEquivalents(final IConceptSet concepts) {
+        int[] cArray = concepts.toArray();
+        boolean[] toExclude = new boolean[cArray.length];
+        
+        for(int i = 0; i < cArray.length; i++) {
+            if(toExclude[i]) continue;
+            final IConceptSet iAncestors = IConceptSet.FACTORY.createConceptSet(getAncestors(no, cArray[i]));
+            for(int j = i+1; j < cArray.length; j++) {
+                if(iAncestors.contains(cArray[j])) {
+                    final IConceptSet jAncestors = IConceptSet.FACTORY.createConceptSet(getAncestors(no, cArray[j]));
+                    if(jAncestors.contains(cArray[i])) {
+                        // These concepts are equivalent to mark the second concept as excluded
+                        toExclude[j] = true;
+                    }
+                }
+            }
+        }
+        
+        IConceptSet res = IConceptSet.FACTORY.createConceptSet();
+        for(int i = 0; i < cArray.length; i++) {
+            if(!toExclude[i]) {
+                res.add(cArray[i]);
+            }
+        }
+        
+        return res;
+    }
+    
+    /**
      * Given a set of concepts, computes the subset such that no member of the subset is subsumed by another member.
      *
      * result = {c | c in bs and not c' in b such that c' [ c}
@@ -409,7 +443,11 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
      * @return
      */
     private IConceptSet getLeaves(final IConceptSet concepts) {
-        final IConceptSet leafBs = IConceptSet.FACTORY.createConceptSet(concepts);
+        // Deal with any equivalent concepts. If there are equivalent concepts in the set then we only keep one of them.
+        // Otherwise, both will get eliminated from the final set.
+        final IConceptSet filtered = filterEquivalents(concepts);
+        
+        final IConceptSet leafBs = IConceptSet.FACTORY.createConceptSet(filtered);
         final IConceptSet set = IConceptSet.FACTORY.createConceptSet(leafBs);
 
         for (final IntIterator bItr = set.iterator(); bItr.hasNext(); ) {
@@ -421,7 +459,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         }
         return leafBs;
     }
-
+    
     /**
      * Prints a concept given its internal id. Useful for debugging.
      *
