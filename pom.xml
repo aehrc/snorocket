@@ -2,11 +2,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
-    <version>2.5.8</version>
-	 <packaging>pom</packaging>
-    
-	<name>Snorocket</name>
-	<description>The Snorocket classifier.</description>
+    <version>2.6.0</version>
+
+    <packaging>pom</packaging>
+   <name>Snorocket</name>
+   <description>The Snorocket classifier.</description>
+
    <url>https://github.com/aehrc/snorocket</url>
    
     <licenses>
@@ -53,10 +54,10 @@
             <timezone>10</timezone>
         </developer>
     </developers>
-	
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>2.6.0</ontology-core.version>
+        <ontology-core.version>2.7.0</ontology-core.version>
         <owl-api.version>3.3</owl-api.version>
         <protege.version>4.1.0</protege.version>
     </properties>
@@ -87,7 +88,7 @@
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
-	     <repository>
+        <repository>
             <id>ossrh</id>
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
@@ -117,6 +118,7 @@
           <version>1.0-m1</version>
           <configuration>
             <autoVersionSubmodules>true</autoVersionSubmodules>
+            <pushReleases>true</pushReleases>
           </configuration>
       </plugin>
     </plugins>
@@ -133,7 +135,7 @@
         </activation>
         <build>
           <plugins>
-		      <plugin>
+             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>2.2.1</version>

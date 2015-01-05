@@ -368,8 +368,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
                     result.add(new Existential(role, new NamedConcept(valueId)));
                 } else {
                     final Concept valueConcept = getNecessary(contextIndex, taxonomy, valueInt);
-                    final Existential x = new Existential(role, Builder.build(no, valueConcept));
-                    result.add(x);
+                    result.add(new Existential(role, Builder.build(no, valueConcept)));
                 }
             }
         }
@@ -572,53 +571,104 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         }
 
         /**
+         * Incomplete implementation - only handles symmetrically structured expressions
+         * which is (should be) sufficient for SCT & AMT as of 2014
+         *
+         * @param a
+         * @param b
+         * @return
+         */
+        boolean subsumesOrEqual(Concept a, Concept b) {
+            if (a.equals(b)) {  // This handles the (limited) Datatype case
+                return true;
+            } else if (a instanceof NamedConcept && b instanceof NamedConcept) {
+                final int aId = factory.getConcept(((NamedConcept) a).getId());
+                final int bId = factory.getConcept(((NamedConcept) b).getId());
+
+                return getAncestors(no, bId).contains(aId);
+            } else if (a instanceof Existential && b instanceof Existential) {
+                final int arId = factory.getRole(((NamedRole) ((Existential) a).getRole()).getId());
+                final int brId = factory.getRole(((NamedRole) ((Existential) b).getRole()).getId());
+
+                if (rc.get(brId).contains(arId)) {
+                    return subsumesOrEqual(((Existential) a).getConcept(), ((Existential) b).getConcept());
+                }
+            } else if (a instanceof Conjunction && b instanceof Conjunction) {
+                for (Concept ac: ((Conjunction) a).getConcepts()) {
+                    boolean subsumes = false;
+                    for (Concept bc: ((Conjunction) b).getConcepts()) {
+                        subsumes |= subsumesOrEqual(ac, bc);
+                        if (subsumes) {
+                            break;
+                        }
+                    }
+                    if (!subsumes) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /**
          * Two cases to handle:<ol>
          * <li> We are trying to add something that is redundant
          * <li> We are trying to add something that makes an already-added thing redundant
          * </ol>
          */
         private void build(NamedRole role, Concept concept) {
-            if (!(concept instanceof NamedConcept)) {
-                log.debug("WARNING: pass through of complex value: " + concept);
-                doAdd(role, concept);
-                return;
-            }
-            if (log.isTraceEnabled()) log.trace("check for subsumption: " + role + "." + concept);
-
-            final int cInt = factory.getConcept(((NamedConcept) concept).getId());
-            final IConceptSet cAncestorSet = getAncestors(no, cInt);
-            final int rInt = factory.getRole(role.getId());
-            final RoleSet rSet = rc.get(rInt);
-
             final List<Existential> remove = new ArrayList<Existential>();
             boolean subsumed = false;
 
-            for (Existential candidate: items) {
-                final Concept value = candidate.getConcept();
-                if (!(value instanceof NamedConcept)) {
-                    log.debug("WARNING: pass through of nested complex value: " + value);
-                    continue;
+            if (log.isTraceEnabled()) log.trace("check for subsumption: " + role + "." + concept);
+
+            if (!(concept instanceof NamedConcept)) {
+//                log.debug("WARNING: pass through of complex value: " + concept);
+//                doAdd(role, concept);
+                final Existential existential = new Existential(role, concept);
+                for (Existential candidate: items) {
+                    if (subsumesOrEqual(existential, candidate)) {
+                        subsumed = true;
+                    } else if (subsumesOrEqual(candidate, existential)) {
+                        remove.add(candidate);
+                    }
                 }
+            } else {
+                final int cInt = factory.getConcept(((NamedConcept) concept).getId());
+                final IConceptSet cAncestorSet = getAncestors(no, cInt);
+                final int rInt = factory.getRole(role.getId());
+                final RoleSet rSet = rc.get(rInt);
 
-                final int dInt = factory.getConcept(((NamedConcept) value).getId());
-                final IConceptSet dAncestorSet = getAncestors(no, dInt);
-                final int sInt = factory.getRole(((NamedRole) candidate.getRole()).getId());
-                final RoleSet sSet = rc.get(sInt);
-
-                if (rInt == sInt && cInt == dInt) {
-                    subsumed = true;
-                } else {
-                    if (rSet.contains(sInt)) {
-                        if (cAncestorSet.contains(dInt)) {
-                            remove.add(candidate);
-                            if (log.isTraceEnabled()) log.trace("\tremove " + candidate);
-                        }
+                for (Existential candidate: items) {
+                    final Concept value = candidate.getConcept();
+                    if (!(value instanceof NamedConcept)) {
+                        log.debug("WARNING: pass through of nested complex value: " + value);
+                        continue;
                     }
 
-                    if (sSet.contains(rInt)) {
-                        if (dAncestorSet.contains(cInt)) {
-                            subsumed = true;
-                            if (log.isTraceEnabled()) log.trace("\tsubsumed");
+                    final int dInt = factory.getConcept(((NamedConcept) value).getId());
+                    final IConceptSet dAncestorSet = getAncestors(no, dInt);
+                    final int sInt = factory.getRole(((NamedRole) candidate.getRole()).getId());
+                    final RoleSet sSet = rc.get(sInt);
+
+                    if (rInt == sInt && cInt == dInt) {
+                        subsumed = true;
+                    } else {
+                        if (rSet.contains(sInt)) {
+                            if (cAncestorSet.contains(dInt)) {
+                                remove.add(candidate);
+                                if (log.isTraceEnabled()) log.trace("\tremove " + candidate);
+                            }
+                        }
+
+                        if (sSet.contains(rInt)) {
+                            if (dAncestorSet.contains(cInt)) {
+                                subsumed = true;
+                                if (log.isTraceEnabled()) log.trace("\tsubsumed");
+                            }
                         }
                     }
                 }
@@ -708,10 +758,10 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         }
         return this;
     }
-    
+
     /**
      * Sets the number of threads to use in the saturation phase.
-     * 
+     *
      * @param numThreads
      */
     public void setNumThreads(int numThreads) {
