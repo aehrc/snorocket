@@ -36,37 +36,33 @@ public class LegoExample {
         // This set will contain the axioms
         Set<Axiom> axioms = new HashSet<Axiom>();
         
-        // The factory can be used to create axioms using the default 
-        // implementing classes
-        Factory f = new Factory();
-        
         // The factory returns IConcepts - in this case the actual type is
         // INamedConcept<String>
-        Concept nonCardiacChestPain = f.createNamedConcept("274668005");
-        Concept duringExcersice = f.createNamedConcept("309604004");
-        Concept interview = f.createNamedConcept("108217004");
-        Concept present = f.createNamedConcept("52101004");
+        Concept nonCardiacChestPain = Factory.createNamedConcept("274668005");
+        Concept duringExcersice = Factory.createNamedConcept("309604004");
+        Concept interview = Factory.createNamedConcept("108217004");
+        Concept present = Factory.createNamedConcept("52101004");
         
         // The factory can also be used to create roles
-        Role associatedWith = f.createNamedRole("47429007");
+        Role associatedWith = Factory.createNamedRole("47429007");
         
         // We need to define exactly what the identifier for the new concept 
         // will be
-        Concept historyCardioStandardNonAnginalChestPainExertion = f.createNamedConcept("pce_24220");
+        Concept historyCardioStandardNonAnginalChestPainExertion = Factory.createNamedConcept("pce_24220");
         
         // This is the axiom created for the discernable
         axioms.add(
-            f.createConceptInclusion(
+            Factory.createConceptInclusion(
                 historyCardioStandardNonAnginalChestPainExertion, 
-                f.createConjunction(
+                Factory.createConjunction(
                         nonCardiacChestPain,
-                        f.createExistential(associatedWith, duringExcersice)
+                        Factory.createExistential(associatedWith, duringExcersice)
                 )
         ));
         
         // This is the axiom created for the qualifier
         axioms.add(
-            f.createConceptInclusion(
+            Factory.createConceptInclusion(
                 historyCardioStandardNonAnginalChestPainExertion, 
                 interview
             )
@@ -74,7 +70,7 @@ public class LegoExample {
         
         // This is the axiom created for the value
         axioms.add(
-            f.createConceptInclusion(
+            Factory.createConceptInclusion(
                 historyCardioStandardNonAnginalChestPainExertion, 
                 present
             )

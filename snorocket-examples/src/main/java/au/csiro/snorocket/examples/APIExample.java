@@ -39,96 +39,92 @@ public class APIExample {
         // This set will contain the base axioms
         Set<Axiom> baseAxioms = new HashSet<Axiom>();
         
-        // The factory can be used to create axioms using the default 
-        // implementing classes
-        Factory f = new Factory();
-        
         // The factory returns IConcepts - in this case the actual type is
         // INamedConcept<String>
-        Concept endocardium = f.createNamedConcept("Endocardium");
-        Concept tissue = f.createNamedConcept("Tissue");
-        Concept heartWall = f.createNamedConcept("HeartWall");
-        Concept heartValve = f.createNamedConcept("HeartValve");
-        Concept bodyWall = f.createNamedConcept("BodyWall");
-        Concept heart = f.createNamedConcept("Heart");
-        Concept bodyValve = f.createNamedConcept("BodyValve");
-        Concept endocarditis = f.createNamedConcept("Endocarditis");
-        Concept inflammation = f.createNamedConcept("Inflammation");
-        Concept disease = f.createNamedConcept("Disease");
-        Concept heartDisease = f.createNamedConcept("HeartDisease");
-        Concept criticalDisease = f.createNamedConcept("CriticalDisease");
+        Concept endocardium = Factory.createNamedConcept("Endocardium");
+        Concept tissue = Factory.createNamedConcept("Tissue");
+        Concept heartWall = Factory.createNamedConcept("HeartWall");
+        Concept heartValve = Factory.createNamedConcept("HeartValve");
+        Concept bodyWall = Factory.createNamedConcept("BodyWall");
+        Concept heart = Factory.createNamedConcept("Heart");
+        Concept bodyValve = Factory.createNamedConcept("BodyValve");
+        Concept endocarditis = Factory.createNamedConcept("Endocarditis");
+        Concept inflammation = Factory.createNamedConcept("Inflammation");
+        Concept disease = Factory.createNamedConcept("Disease");
+        Concept heartDisease = Factory.createNamedConcept("HeartDisease");
+        Concept criticalDisease = Factory.createNamedConcept("CriticalDisease");
         
         // The factory can also be used to create roles
-        Role actsOn = f.createNamedRole("acts-on");
-        Role partOf = f.createNamedRole("part-of");
-        Role contIn = f.createNamedRole("cont-in");
-        Role hasLoc = f.createNamedRole("has-loc");
+        Role actsOn = Factory.createNamedRole("acts-on");
+        Role partOf = Factory.createNamedRole("part-of");
+        Role contIn = Factory.createNamedRole("cont-in");
+        Role hasLoc = Factory.createNamedRole("has-loc");
         
         // Finally, the factory can be used to create axioms
         Concept lhs = endocardium;
-        Concept rhs = f.createConjunction(
+        Concept rhs = Factory.createConjunction(
                 tissue,
-                f.createExistential((NamedRole) contIn, heartWall),
-                f.createExistential((NamedRole) contIn, heartValve)
+                Factory.createExistential((NamedRole) contIn, heartWall),
+                Factory.createExistential((NamedRole) contIn, heartValve)
         );
-        baseAxioms.add(f.createConceptInclusion(lhs, rhs));
+        baseAxioms.add(Factory.createConceptInclusion(lhs, rhs));
         
         lhs = heartWall;
-        rhs = f.createConjunction(
+        rhs = Factory.createConjunction(
                 bodyWall,
-                f.createExistential((NamedRole) partOf, heart)
+                Factory.createExistential((NamedRole) partOf, heart)
         );
-        baseAxioms.add(f.createConceptInclusion(lhs, rhs));
+        baseAxioms.add(Factory.createConceptInclusion(lhs, rhs));
         
         lhs = heartValve;
-        rhs = f.createConjunction(
+        rhs = Factory.createConjunction(
                 bodyValve,
-                f.createExistential((NamedRole) partOf, heart)
+                Factory.createExistential((NamedRole) partOf, heart)
         );
-        baseAxioms.add(f.createConceptInclusion(lhs, rhs));
+        baseAxioms.add(Factory.createConceptInclusion(lhs, rhs));
         
         lhs = endocarditis;
-        rhs = f.createConjunction(
+        rhs = Factory.createConjunction(
                 inflammation,
-                f.createExistential((NamedRole) hasLoc, endocardium)
+                Factory.createExistential((NamedRole) hasLoc, endocardium)
         );
-        baseAxioms.add(f.createConceptInclusion(lhs, rhs));
+        baseAxioms.add(Factory.createConceptInclusion(lhs, rhs));
 
         lhs = inflammation;
-        rhs = f.createConjunction(
+        rhs = Factory.createConjunction(
                 disease,
-                f.createExistential(actsOn, tissue)
+                Factory.createExistential(actsOn, tissue)
         );
-        baseAxioms.add(f.createConceptInclusion(lhs, rhs));
+        baseAxioms.add(Factory.createConceptInclusion(lhs, rhs));
         
-        lhs = f.createConjunction(
+        lhs = Factory.createConjunction(
                 heartDisease,
-                f.createExistential(hasLoc, heartValve)
+                Factory.createExistential(hasLoc, heartValve)
         );
         rhs = criticalDisease;
-        baseAxioms.add(f.createConceptInclusion(lhs, rhs));
+        baseAxioms.add(Factory.createConceptInclusion(lhs, rhs));
         
         // There is no direct support in the API to create an equivalence axiom
         // so it has to be created using two concept inclusion axioms
         lhs = heartDisease;
-        rhs = f.createConjunction(
+        rhs = Factory.createConjunction(
                 disease,
-                f.createExistential(hasLoc, heart)
+                Factory.createExistential(hasLoc, heart)
         );
-        baseAxioms.add(f.createConceptInclusion(lhs, rhs));
-        baseAxioms.add(f.createConceptInclusion(rhs, lhs));
+        baseAxioms.add(Factory.createConceptInclusion(lhs, rhs));
+        baseAxioms.add(Factory.createConceptInclusion(rhs, lhs));
         
         Role[] rlhs = new Role[]{partOf, partOf};
         Role rrhs = partOf;
-        baseAxioms.add(f.createRoleInclusion(rlhs, rrhs));
+        baseAxioms.add(Factory.createRoleInclusion(rlhs, rrhs));
         
         rlhs = new Role[]{partOf};
         rrhs = contIn;
-        baseAxioms.add(f.createRoleInclusion(rlhs, rrhs));
+        baseAxioms.add(Factory.createRoleInclusion(rlhs, rrhs));
         
         rlhs = new Role[]{hasLoc, contIn};
         rrhs = hasLoc;
-        baseAxioms.add(f.createRoleInclusion(rlhs, rrhs));
+        baseAxioms.add(Factory.createRoleInclusion(rlhs, rrhs));
         
         // The first time the classify method is called it runs a full 
         // classification
@@ -159,18 +155,18 @@ public class APIExample {
         // classification
         Set<Axiom> additionalAxioms = new HashSet<Axiom>();
         
-        Concept heartInflammation = f.createNamedConcept("HeartInflammation");
+        Concept heartInflammation = Factory.createNamedConcept("HeartInflammation");
         
         lhs = heartInflammation;
         rhs = inflammation;
-        additionalAxioms.add(f.createConceptInclusion(lhs, rhs));
+        additionalAxioms.add(Factory.createConceptInclusion(lhs, rhs));
         
         lhs = endocarditis;
-        rhs = f.createConjunction(
+        rhs = Factory.createConjunction(
                 heartInflammation,
-                f.createExistential(hasLoc, endocardium)
+                Factory.createExistential(hasLoc, endocardium)
         );
-        additionalAxioms.add(f.createConceptInclusion(lhs, rhs));
+        additionalAxioms.add(Factory.createConceptInclusion(lhs, rhs));
         
         // Subsequent invocations will trigger an incremental classification
         System.out.println("Running incremental classification:");

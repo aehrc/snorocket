@@ -34,7 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.csiro.ontology.Node;
 import au.csiro.ontology.Ontology;
@@ -81,7 +82,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
      */
     private static final long serialVersionUID = 1L;
 
-    private final static Logger log = Logger.getLogger(SnorocketReasoner.class);
+    private final static Logger log = LoggerFactory.getLogger(SnorocketReasoner.class);
 
     public static final int BUFFER_SIZE = 10;
 

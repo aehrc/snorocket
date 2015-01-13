@@ -21,7 +21,8 @@
 
 package au.csiro.snorocket.core.axioms;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.csiro.snorocket.core.IFactory;
 import au.csiro.snorocket.core.model.AbstractConcept;
@@ -44,7 +45,7 @@ public class GCI extends Inclusion {
     private static final long serialVersionUID = 1L;
 
     // Logger
-    private final static Logger log = Logger.getLogger(GCI.class);
+    private final static Logger log = LoggerFactory.getLogger(GCI.class);
     
     private static final int PRIME = 31;
 

@@ -57,9 +57,10 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>2.7.0</ontology-core.version>
+        <ontology-core.version>2.8.0</ontology-core.version>
         <owl-api.version>3.3</owl-api.version>
         <protege.version>4.1.0</protege.version>
+        <sl4j.version>1.7.10</sl4j.version>
     </properties>
     
     <modules>
@@ -77,9 +78,16 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-          <version>1.2.16</version>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+          <version>${sl4j.version}</version>
+        </dependency>
+        <!-- Declared with scope test so no bindings are included in the library. -->
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+          <version>${sl4j.version}</version>
+          <scope>test</scope>
         </dependency>
     </dependencies>
     

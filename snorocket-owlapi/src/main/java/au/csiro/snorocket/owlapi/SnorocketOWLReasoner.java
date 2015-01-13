@@ -16,7 +16,6 @@ import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -59,6 +58,8 @@ import org.semanticweb.owlapi.reasoner.impl.OWLClassNodeSet;
 import org.semanticweb.owlapi.reasoner.impl.OWLNamedIndividualNodeSet;
 import org.semanticweb.owlapi.reasoner.impl.OWLObjectPropertyNode;
 import org.semanticweb.owlapi.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.csiro.ontology.Ontology;
 import au.csiro.ontology.classification.IReasoner;
@@ -80,7 +81,7 @@ import au.csiro.snorocket.core.SnorocketReasoner;
  */
 public class SnorocketOWLReasoner implements OWLReasoner {
     
-    private static final Logger log = Logger.getLogger(SnorocketOWLReasoner.class);
+    private static final Logger log = LoggerFactory.getLogger(SnorocketOWLReasoner.class);
     
     // SnorocketOWLReasoner name
     static final String REASONER_NAME = "Snorocket";

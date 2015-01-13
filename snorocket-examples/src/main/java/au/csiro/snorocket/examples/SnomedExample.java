@@ -39,25 +39,23 @@ public class SnomedExample {
      * 
      */
     public static void bottlesExample() {
-        // A factory is used to create expressions and axioms
-        Factory f = new Factory();
         
         // Create all the concepts
-        Concept bottle = f.createNamedConcept("bottle");
-        Concept plasticBottle = f.createNamedConcept("plasticBottle");
-        Concept glassBottle = f.createNamedConcept("glassBottle");
-        Concept purplePlasticBottle = f.createNamedConcept("purplePlasticBottle");
-        Concept plastic = f.createNamedConcept("plastic");
-        Concept tallBottle = f.createNamedConcept("tallBottle");
-        Concept wideBottle = f.createNamedConcept("wideBottle");
-        Concept wineBottle = f.createNamedConcept("wineBottle");
+        Concept bottle = Factory.createNamedConcept("bottle");
+        Concept plasticBottle = Factory.createNamedConcept("plasticBottle");
+        Concept glassBottle = Factory.createNamedConcept("glassBottle");
+        Concept purplePlasticBottle = Factory.createNamedConcept("purplePlasticBottle");
+        Concept plastic = Factory.createNamedConcept("plastic");
+        Concept tallBottle = Factory.createNamedConcept("tallBottle");
+        Concept wideBottle = Factory.createNamedConcept("wideBottle");
+        Concept wineBottle = Factory.createNamedConcept("wineBottle");
         
         // Create all the roles
-        Role isMadeOf = f.createNamedRole("isMadeOf");
+        Role isMadeOf = Factory.createNamedRole("isMadeOf");
         
         // Create all the features
-        Feature hasHeight = f.createNamedFeature("hasHeight");
-        Feature hasWidth = f.createNamedFeature("hasWidth");
+        Feature hasHeight = Factory.createNamedFeature("hasHeight");
+        Feature hasWidth = Factory.createNamedFeature("hasWidth");
         
         Set<Axiom> axioms = new HashSet<Axiom>();
         
@@ -70,15 +68,15 @@ public class SnomedExample {
         // equivalence directly.
         Axiom a1 = new ConceptInclusion(
                 plasticBottle, 
-                f.createConjunction(
+                Factory.createConjunction(
                         bottle, 
-                        f.createExistential(isMadeOf, plastic)
+                        Factory.createExistential(isMadeOf, plastic)
                 )
         );
         Axiom a1b = new ConceptInclusion(
-                f.createConjunction(
+                Factory.createConjunction(
                         bottle, 
-                        f.createExistential(isMadeOf, plastic)
+                        Factory.createExistential(isMadeOf, plastic)
                 ),
                 plasticBottle
         );
@@ -95,22 +93,22 @@ public class SnomedExample {
         // This is an example of a fully defined child with a concrete domain
         Axiom a3 = new ConceptInclusion(
                 tallBottle, 
-                f.createConjunction(
+                Factory.createConjunction(
                         bottle,
-                        f.createDatatype(
+                        Factory.createDatatype(
                                 hasHeight, 
                                 Operator.GREATER_THAN, 
-                                f.createIntegerLiteral(5))
+                                Factory.createIntegerLiteral(5))
                 )
         );
         
         Axiom a3b = new ConceptInclusion(
-                f.createConjunction(
+                Factory.createConjunction(
                         bottle,
-                        f.createDatatype(
+                        Factory.createDatatype(
                                 hasHeight, 
                                 Operator.GREATER_THAN, 
-                                f.createIntegerLiteral(5))
+                                Factory.createIntegerLiteral(5))
                 ),
                 tallBottle
         );
@@ -121,22 +119,22 @@ public class SnomedExample {
         // domain
         Axiom a4 = new ConceptInclusion(
                 wideBottle, 
-                f.createConjunction(
+                Factory.createConjunction(
                         bottle,
-                        f.createDatatype(
+                        Factory.createDatatype(
                                 hasWidth, 
                                 Operator.GREATER_THAN, 
-                                f.createIntegerLiteral(5))
+                                Factory.createIntegerLiteral(5))
                 )
         );
         
         Axiom a4b = new ConceptInclusion(
-                f.createConjunction(
+                Factory.createConjunction(
                         bottle,
-                        f.createDatatype(
+                        Factory.createDatatype(
                                 hasWidth, 
                                 Operator.GREATER_THAN, 
-                                f.createIntegerLiteral(5))
+                                Factory.createIntegerLiteral(5))
                 ),
                 wideBottle
         );
@@ -146,29 +144,29 @@ public class SnomedExample {
         // Yet another example of a fully defined child with a concrete domain
         Axiom a5 = new ConceptInclusion(
                 wineBottle, 
-                f.createConjunction(
+                Factory.createConjunction(
                         glassBottle,
-                        f.createDatatype(
+                        Factory.createDatatype(
                                 hasWidth, 
                                 Operator.EQUALS, 
-                                f.createIntegerLiteral(2)),
-                        f.createDatatype(
+                                Factory.createIntegerLiteral(2)),
+                        Factory.createDatatype(
                                 hasHeight, 
                                 Operator.EQUALS, 
-                                f.createIntegerLiteral(6))
+                                Factory.createIntegerLiteral(6))
                 )
         );
         Axiom a5b = new ConceptInclusion(
-                f.createConjunction(
+                Factory.createConjunction(
                         glassBottle,
-                        f.createDatatype(
+                        Factory.createDatatype(
                                 hasWidth, 
                                 Operator.EQUALS, 
-                                f.createIntegerLiteral(2)),
-                        f.createDatatype(
+                                Factory.createIntegerLiteral(2)),
+                        Factory.createDatatype(
                                 hasHeight, 
                                 Operator.EQUALS, 
-                                f.createIntegerLiteral(6))
+                                Factory.createIntegerLiteral(6))
                 ),
                 wineBottle
         );
