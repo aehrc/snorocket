@@ -24,7 +24,8 @@ package au.csiro.snorocket.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.csiro.ontology.model.NamedConcept;
 import au.csiro.snorocket.core.util.IConceptSet;
@@ -41,7 +42,7 @@ final public class CoreFactory implements IFactory {
     /**
      * Logger.
      */
-    private final static Logger log = Logger.getLogger(CoreFactory.class);
+    private final static Logger log = LoggerFactory.getLogger(CoreFactory.class);
     
     private static final int SIZE_ESTIMATE = 3000;
 

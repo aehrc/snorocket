@@ -322,7 +322,6 @@ public class TestSnorocketReasoner {
 
     @Test
     public void testEndocarditis() {
-        org.apache.log4j.LogManager.getRootLogger().setLevel(org.apache.log4j.Level.TRACE);
         // Create roles
         NamedRole contIn = new NamedRole("cont-in");
         NamedRole partOf = new NamedRole("part-of");

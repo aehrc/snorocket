@@ -23,7 +23,8 @@ package au.csiro.snorocket.core.util;
 
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Hm, not strictly monotonic due to inclusion of clear() method...
@@ -40,7 +41,7 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
     private static final long serialVersionUID = 1L;
 
     // Logger
-    private final static Logger log = Logger.getLogger(
+    private final static Logger log = LoggerFactory.getLogger(
             MonotonicCollection.class);
     
     public T[] data;

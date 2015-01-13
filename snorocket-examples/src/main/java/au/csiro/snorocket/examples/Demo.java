@@ -74,14 +74,13 @@ public class Demo {
         
         // 3. Add test axiom
         System.out.println("Adding test axiom");
-        Factory f = new Factory();
         String newId = UUID.randomUUID().toString();
         uuidToDescMap.put(newId, "Special Appendicits");
         
-        Concept specialAppendicitis = f.createNamedConcept(newId);
+        Concept specialAppendicitis = Factory.createNamedConcept(newId);
         String appendicitsUuid = "55450fab-6786-394d-89f9-a0fd44bd7e7e";
-        Concept appendicitis = f.createNamedConcept(appendicitsUuid);
-        Axiom a1 = f.createConceptInclusion(specialAppendicitis, appendicitis);
+        Concept appendicitis = Factory.createNamedConcept(appendicitsUuid);
+        Axiom a1 = Factory.createConceptInclusion(specialAppendicitis, appendicitis);
         Set<Axiom> axioms = new HashSet<Axiom>();
         axioms.add(a1);
         
