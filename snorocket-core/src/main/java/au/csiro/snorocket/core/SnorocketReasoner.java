@@ -498,10 +498,12 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             au.csiro.snorocket.core.model.Conjunction c = (au.csiro.snorocket.core.model.Conjunction) ac;
             AbstractConcept[] acs = c.getConcepts();
             StringBuilder sb = new StringBuilder();
-            sb.append(printAbstractConcept(acs[0]));
-            for(int i = 1; i < acs.length; i++) {
-                sb.append(" + ");
-                sb.append(printAbstractConcept(acs[i]));
+            if(acs != null && acs.length > 0) {
+                sb.append(printAbstractConcept(acs[0]));
+                for(int i = 1; i < acs.length; i++) {
+                    sb.append(" + ");
+                    sb.append(printAbstractConcept(acs[i]));
+                }
             }
             return sb.toString();
         } else if(ac instanceof au.csiro.snorocket.core.model.Existential) {

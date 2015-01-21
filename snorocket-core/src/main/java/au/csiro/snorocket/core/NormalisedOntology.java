@@ -697,10 +697,12 @@ public class NormalisedOntology implements Serializable {
             Conjunction con = (Conjunction)o;
             StringBuilder sb = new StringBuilder();
             AbstractConcept[] cons = con.getConcepts();
-            sb.append(printInternalObject(cons[0]));
-            for(int i = 1; i < cons.length; i++) {
-                sb.append(" + ");
-                sb.append(printInternalObject(cons[i]));
+            if(cons != null && cons.length > 0) {
+                sb.append(printInternalObject(cons[0]));
+                for(int i = 1; i < cons.length; i++) {
+                    sb.append(" + ");
+                    sb.append(printInternalObject(cons[i]));
+                }
             }
             return sb.toString();
         } else if(o instanceof Existential) {
