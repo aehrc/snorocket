@@ -356,7 +356,7 @@ public class GCI extends Inclusion {
             } else {
                 throw new IllegalStateException(
                         "Conjunction should have exactly one or two "
-                                + "Concepts not " + concepts.length + ": "
+                                + "concepts not " + concepts.length + ": "
                                 + conjunction);
             }
         } else if (lhs instanceof Existential) {

@@ -65,10 +65,12 @@ public class Conjunction extends AbstractConcept {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("(");
-        sb.append(concepts[0]);
-        for (int i = 1; i < concepts.length; i++) {
-            sb.append(" + ");
-            sb.append(concepts[i]);
+        if(concepts != null && concepts.length > 0) {
+            sb.append(concepts[0]);
+            for (int i = 1; i < concepts.length; i++) {
+                sb.append(" + ");
+                sb.append(concepts[i]);
+            }   
         }
         sb.append(")");
         return sb.toString();
