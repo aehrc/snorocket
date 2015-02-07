@@ -9,19 +9,14 @@
     <dependencySet>
       <unpack>true</unpack>
       <scope>runtime</scope>
-      <unpackOptions>
-        <excludes>
-           <exclude>uk/</exclude>
-           <exclude>org/</exclude>
-           <exclude>edu/</exclude>
-           <exclude>de/</exclude>
-           <exclude>com/</exclude>
-           <exclude>classes/</exclude>
-        </excludes>
         <includes>
-           <include>**/*.class</include>
+           <include>au.csiro:snorocket-owlapi</include>
+           <include>au.csiro:snorocket-core</include>
+           <include>au.csiro:ontology-import</include>
+           <include>au.csiro:ontology-model</include>
+           <include>org.slf4j:slf4j-api</include>
+           <include>org.slf4j:slf4j-log4j12</include>
         </includes>
-      </unpackOptions>
     </dependencySet>
   </dependencySets>
 
