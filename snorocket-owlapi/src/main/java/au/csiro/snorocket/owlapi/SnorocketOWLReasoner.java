@@ -238,12 +238,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     /**
      * Transforms a {@link ClassNode} into a {@link Node} of {@link OWLClass}es.
      * 
-     * @param n
+     * @param n may be null, in which case an empty Node is returned
      * @return
      */
     private Node<OWLClass> nodeToOwlClassNode(au.csiro.ontology.Node n) {
-        assert n != null;
-        
         Node<OWLClass> node = new OWLClassNode();
         
         if(n == null) return node;
@@ -1056,10 +1054,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         checkNamedClass(ce);
 
         au.csiro.ontology.Node n = getNode(ce.asOWLClass());
-        if(n == null) {
-            throw new ReasonerInternalException("Named class "+ ce +
-                    " not found!");
-        }
         return nodeToOwlClassNode(n);
     }
     
