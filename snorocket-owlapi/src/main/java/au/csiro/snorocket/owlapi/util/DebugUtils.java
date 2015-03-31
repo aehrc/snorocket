@@ -28,6 +28,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
+import org.semanticweb.owlapi.search.EntitySearcher;
 
 /**
  * @author Alejandro Metke
@@ -94,7 +95,7 @@ public class DebugUtils {
     }
 
     public static String getLabel(OWLEntity e, OWLOntology ont) {
-        for (OWLAnnotation an : e.getAnnotations(ont)) {
+        for (OWLAnnotation an : EntitySearcher.getAnnotations(e, ont)) {
             if (an.getProperty().isLabel()) {
                 OWLAnnotationValue val = an.getValue();
 

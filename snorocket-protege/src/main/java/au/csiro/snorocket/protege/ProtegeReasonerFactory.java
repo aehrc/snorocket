@@ -31,13 +31,14 @@ public class ProtegeReasonerFactory extends AbstractProtegeOWLReasonerInfo {
     }
 
     @Override
-    public void initialise() throws Exception {
+    public void initialise() {
         
     }
 
     @Override
-    public void dispose() throws Exception {
-        
+    public void dispose() {
+        factory = null;
     }
+
 
 }
