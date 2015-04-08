@@ -45,22 +45,7 @@
     </dependency>
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-api</artifactId>
-      <version>${owl-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-apibinding</artifactId>
-      <version>${owl-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-reasoner</artifactId>
-      <version>${owl-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-mansyntax</artifactId>
+      <artifactId>owlapi-osgidistribution</artifactId>
       <version>${owl-api.version}</version>
     </dependency>
   </dependencies>
