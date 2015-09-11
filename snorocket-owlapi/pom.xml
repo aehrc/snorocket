@@ -23,7 +23,7 @@
   <parent>
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
-    <version>2.7.4</version>
+    <version>2.7.5</version>
     <relativePath>..</relativePath>
   </parent>
   
@@ -45,22 +45,7 @@
     </dependency>
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-api</artifactId>
-      <version>${owl-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-apibinding</artifactId>
-      <version>${owl-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-reasoner</artifactId>
-      <version>${owl-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi-mansyntax</artifactId>
+      <artifactId>owlapi-osgidistribution</artifactId>
       <version>${owl-api.version}</version>
     </dependency>
   </dependencies>

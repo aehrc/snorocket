@@ -2280,12 +2280,22 @@ public class NormalisedOntology implements Serializable {
         for(IntIterator it = getNewSubsumptions().keyIterator(); 
                         it.hasNext(); ) {
             String key = factory.lookupConceptId(it.next()).toString();
-            res.add(conceptNodeIndex.get(key));
+            Node n = conceptNodeIndex.get(key);
+            if(n != null) {
+                res.add(n);
+            } else {
+                log.debug("Could not find node for key " + key);
+            }
         }
         for(IntIterator it = getAffectedSubsumptions().keyIterator(); 
                         it.hasNext(); ) {
             String key = factory.lookupConceptId(it.next()).toString();
-            res.add(conceptNodeIndex.get(key));
+            Node n = conceptNodeIndex.get(key);
+            if(n != null) {
+                res.add(n);
+            } else {
+                log.debug("Could not find node for key " + key);
+            }
         }
         return res;
     }
