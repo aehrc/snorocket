@@ -2284,7 +2284,7 @@ public class NormalisedOntology implements Serializable {
             if(n != null) {
                 res.add(n);
             } else {
-                log.warn("Could not find node for key " + key);
+                log.debug("Could not find node for key " + key);
             }
         }
         for(IntIterator it = getAffectedSubsumptions().keyIterator(); 
@@ -2294,7 +2294,7 @@ public class NormalisedOntology implements Serializable {
             if(n != null) {
                 res.add(n);
             } else {
-                log.warn("Could not find node for key " + key);
+                log.debug("Could not find node for key " + key);
             }
         }
         return res;
