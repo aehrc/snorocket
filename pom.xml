@@ -57,7 +57,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>2.8.3</ontology-core.version>
+        <ontology-core.version>2.9.0-SNAPSHOT</ontology-core.version>
         <owl-api.version>[4.0.2,4.1)</owl-api.version>
         <protege.version>5.0.0-beta-17</protege.version>
         <sl4j.version>1.7.10</sl4j.version>
@@ -117,8 +117,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
           <testSource>1.8</testSource>
           <testTarget>1.8</testTarget>
         </configuration>
