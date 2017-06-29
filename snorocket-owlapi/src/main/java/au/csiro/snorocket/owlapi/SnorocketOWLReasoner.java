@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -26,7 +27,6 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
-import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -230,8 +230,7 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      */
     private OWLOntologyChangeListener ontologyChangeListener = new OWLOntologyChangeListener() {
         @Override
-        public void ontologiesChanged(List<? extends OWLOntologyChange> changes)
-                throws OWLException {
+        public void ontologiesChanged(List<? extends OWLOntologyChange> changes) {
             handleRawOntologyChanges(changes);
         }
     };
@@ -243,15 +242,15 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * @return
      */
     private Node<OWLClass> nodeToOwlClassNode(au.csiro.ontology.Node n) {
-        Node<OWLClass> node = new OWLClassNode();
+        if(n == null) return new OWLClassNode();
 
-        if(n == null) return node;
+        final Set<OWLClass> classes = new HashSet<>();
 
-        for(Object eq : n.getEquivalentConcepts()) {
-            node.getEntities().add(getOWLClass(eq));
+        for (Object eq : n.getEquivalentConcepts()) {
+            classes.add(getOWLClass(eq));
         }
 
-        return node;
+        return new OWLClassNode(classes);
     }
 
     /**
@@ -272,10 +271,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         Set<Axiom> canAxioms = new HashSet<Axiom>();
 
         // load in axioms from this and all imported ontologies
-        List<OWLAxiom> axioms = new ArrayList<OWLAxiom>();
-        for (OWLOntology o: ont.getImportsClosure()) {
-            axioms.addAll(o.getAxioms());
-        }
+        final List<OWLAxiom> axioms = ont.importsClosure()
+        		.flatMap(OWLOntology::axioms)
+        		.collect(Collectors.toList());
         OWLImporter oi = new OWLImporter(axioms);
 
         Iterator<Ontology> it = null;

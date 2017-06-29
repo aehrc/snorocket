@@ -5,6 +5,7 @@
 package au.csiro.snorocket.owlapi.util;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -95,7 +96,9 @@ public class DebugUtils {
     }
 
     public static String getLabel(OWLEntity e, OWLOntology ont) {
-        for (OWLAnnotation an : EntitySearcher.getAnnotations(e, ont)) {
+        final Iterator<OWLAnnotation> iterator = EntitySearcher.getAnnotations(e, ont).iterator();
+		while (iterator.hasNext()) {
+			final OWLAnnotation an = iterator.next();
             if (an.getProperty().isLabel()) {
                 OWLAnnotationValue val = an.getValue();
 
