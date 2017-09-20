@@ -59,7 +59,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <ontology-core.version>2.9.0</ontology-core.version>
         <owl-api.version>[5.0.5,5.1)</owl-api.version>
-        <protege.version>5.0.0-beta-17</protege.version>
+        <protege.version>5.2.0</protege.version>
         <sl4j.version>1.7.10</sl4j.version>
         <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
