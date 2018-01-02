@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @param <T>
  */
-public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
+public class MonotonicCollection<T> implements IMonotonicCollection<T> {
     
     /**
      * Serialisation version.
@@ -45,7 +45,7 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
             MonotonicCollection.class);
     
     public T[] data;
-    int count = 0;
+    private int count = 0;
 
     @SuppressWarnings("unchecked")
     public MonotonicCollection(final int size) {
@@ -113,6 +113,10 @@ public final class MonotonicCollection<T> implements IMonotonicCollection<T> {
         }
     }
 
+    protected T getData(int idx) {
+    	return data[idx];
+    }
+    
     public int size() {
         return count;
     }

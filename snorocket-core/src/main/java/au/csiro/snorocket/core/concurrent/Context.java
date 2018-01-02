@@ -177,6 +177,13 @@ public class Context implements Serializable {
     private FeatureMap<MonotonicCollection<NF8>> ontologyNF8;
 
     /**
+     * The set of functional data properties
+     */
+    private IConceptSet functionalFeatures;
+    
+    private FeatureMap<AbstractLiteral> functionalFeatureValues = new FeatureMap<>(2);
+    
+    /**
      * The map of global affected contexts used in incremental classification.
      */
     private Set<Context> affectedContexts;
@@ -197,6 +204,7 @@ public class Context implements Serializable {
         reflexiveRoles = ont.getReflexiveRoles();
         ontologyNF7 = ont.getOntologyNF7();
         ontologyNF8 = ont.getOntologyNF8();
+        functionalFeatures = ont.getFunctionalFeatures();
         roleClosureCache = ont.getRoleClosureCache();
         factory = ont.getFactory();
         affectedContexts = ont.getAffectedContexts();
@@ -418,6 +426,37 @@ public class Context implements Serializable {
 
                     Datatype d = entry.getD();
 
+                    // Handle functional features
+                    int f = d.getFeature();
+                    if (functionalFeatures.contains(f) && Operator.EQUALS.equals(d.getOperator())) {
+                    	AbstractLiteral lit = functionalFeatureValues.get(f);
+                    	if (null == lit) {
+                    		functionalFeatureValues.put(f, d.getLiteral());
+                    	} else if (!lit.equals(d.getLiteral())) {
+//                    		if (1==1) throw new RuntimeException("Functional data property " + f + " has multiple distinct values: " + lit + " and " + d.getLiteral());
+                    		System.err.println("Functional data property " + f + " has multiple distinct values: " + lit + " and " + d.getLiteral());
+                    		// FIXME infer bottom
+                    		final MonotonicCollection<IConjunctionQueueEntry> entries = 
+                                    new MonotonicCollection<IConjunctionQueueEntry>(1);
+                            entries.add(new IConjunctionQueueEntry() {
+                                /**
+                                 * Serialisation version.
+                                 */
+                                private static final long serialVersionUID = 1L;
+
+                                public int getBi() {
+                                    return CoreFactory.TOP_CONCEPT;
+                                }
+
+                                public int getB() {
+                                    return CoreFactory.BOTTOM_CONCEPT;
+                                }
+                            });
+                    		addToConceptQueue(entries);
+                    		continue;
+                    	}
+                    }
+                                        
                     // Get right hand sides from NF8 expressions that
                     // match d on their left hand side
                     MonotonicCollection<NF8> entries = ontologyNF8.get(d.getFeature());

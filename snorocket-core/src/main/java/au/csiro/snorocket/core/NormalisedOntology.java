@@ -47,6 +47,7 @@ import au.csiro.ontology.Node;
 import au.csiro.ontology.model.Axiom;
 import au.csiro.ontology.model.Concept;
 import au.csiro.ontology.model.ConceptInclusion;
+import au.csiro.ontology.model.FunctionalFeature;
 import au.csiro.ontology.model.Literal;
 import au.csiro.ontology.model.NamedFeature;
 import au.csiro.ontology.model.NamedRole;
@@ -179,6 +180,11 @@ public class NormalisedOntology implements Serializable {
     final protected FeatureMap<MonotonicCollection<NF8>> ontologyNF8;
 
     /**
+     * The set of functional data properties
+     */
+    final protected IConceptSet functionalFeatures = new SparseConceptSet();
+    
+    /**
      * The queue of contexts to process.
      */
     private final Queue<Context> todo = new ConcurrentLinkedQueue<Context>();
@@ -261,6 +267,10 @@ public class NormalisedOntology implements Serializable {
         return ontologyNF8;
     }
 
+    public IConceptSet getFunctionalFeatures() {
+    	return functionalFeatures;
+    }
+    
     public Queue<Context> getTodo() {
         return todo;
     }
@@ -541,6 +551,12 @@ public class NormalisedOntology implements Serializable {
                     lhsInt[i] = factory.getRole(lhs[i].getId());
                 }
                 res.add(new RI(lhsInt, factory.getRole(rhs.getId())));
+            } else if (aa instanceof FunctionalFeature) {
+            	FunctionalFeature ff = (FunctionalFeature) aa;
+            	int featureInt = factory.getFeature(((NamedFeature) ff.getFeature()).getId());
+            	functionalFeatures.add(featureInt);
+            } else {
+            	throw new InternalError("Unknown Axiom type discovered: " + aa);
             }
         }
         

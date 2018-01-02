@@ -9,8 +9,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.junit.Test;
 
 import au.csiro.ontology.Factory;
@@ -20,15 +18,17 @@ import au.csiro.ontology.model.Concept;
 import au.csiro.ontology.model.ConceptInclusion;
 import au.csiro.ontology.model.Conjunction;
 import au.csiro.ontology.model.Datatype;
+import au.csiro.ontology.model.DecimalLiteral;
 import au.csiro.ontology.model.Existential;
 import au.csiro.ontology.model.Feature;
-import au.csiro.ontology.model.DecimalLiteral;
+import au.csiro.ontology.model.FunctionalFeature;
 import au.csiro.ontology.model.IntegerLiteral;
 import au.csiro.ontology.model.NamedConcept;
 import au.csiro.ontology.model.NamedFeature;
 import au.csiro.ontology.model.NamedRole;
 import au.csiro.ontology.model.Operator;
 import au.csiro.ontology.model.StringLiteral;
+import junit.framework.Assert;
 
 /**
  * Unit test cases for Snorocket concrete domains functionality.
@@ -708,6 +708,44 @@ public class TestConcreteDomains {
         Node ctNode = o.getEquivalents(((NamedConcept) twoMgCoatedTablet).getId());
         Assert.assertEquals(1, ctNode.getParents().size());
         Assert.assertTrue(ctNode.getParents().iterator().next().getEquivalentConcepts().contains("2MgTablet")); 
+    }
+    
+    @Test
+    public void testFunctionalConcreteDomains() {
+    	IFactory factory = new CoreFactory();
+    	Feature f = Factory.createNamedFeature("f");
+    	
+        Concept fiveMgTablet = Factory.createNamedConcept("5MgTablet");
+        Concept twoMgTablet = Factory.createNamedConcept("2MgTablet");
+        
+    	NamedConcept erroneousTablet = (NamedConcept) Factory.createNamedConcept("5And2MgTablet");
+
+    	Datatype rhs1 = new Datatype(f, Operator.EQUALS, new DecimalLiteral(5.0f));
+    	Datatype rhs2 = new Datatype(f, Operator.EQUALS, new DecimalLiteral(2.0f));
+    	
+        final Set<Axiom> axioms = new HashSet<Axiom>();
+        
+        axioms.add(new FunctionalFeature(f));
+        
+        axioms.add(new ConceptInclusion(fiveMgTablet, rhs1));
+        axioms.add(new ConceptInclusion(rhs1, fiveMgTablet));
+        axioms.add(new ConceptInclusion(twoMgTablet, rhs2));
+        axioms.add(new ConceptInclusion(rhs2, twoMgTablet));
+        
+        axioms.add(new ConceptInclusion(erroneousTablet, fiveMgTablet));
+        axioms.add(new ConceptInclusion(erroneousTablet, twoMgTablet));
+
+        // Classify
+        NormalisedOntology o = new NormalisedOntology(factory, axioms);
+        o.classify();
+        
+        // Build taxonomy
+        o.buildTaxonomy();
+
+        // Test results
+        Node equivalents = o.getEquivalents(erroneousTablet.getId());
+        assertTrue(equivalents.getEquivalentConcepts().contains(NamedConcept.BOTTOM));
+        
     }
 
 }
