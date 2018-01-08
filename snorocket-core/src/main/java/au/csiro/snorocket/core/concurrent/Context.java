@@ -3,6 +3,7 @@ package au.csiro.snorocket.core.concurrent;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,12 +40,12 @@ import au.csiro.snorocket.core.util.SparseConceptSet;
 
 /**
  * Represents a context where derivations associated to one concept are executed.
- * 
+ *
  * @author Alejandro Metke
- * 
+ *
  */
 public class Context implements Serializable {
-    
+
     /**
      * Serialisation version.
      */
@@ -71,7 +72,7 @@ public class Context implements Serializable {
     private final IQueue<IRoleQueueEntry> roleQueue = new QueueImpl<IRoleQueueEntry>(IRoleQueueEntry.class);
 
     /**
-     * Queue (List) of FeatureQueueEntries indicating work to be done for this concept. Queue entries of the form 
+     * Queue (List) of FeatureQueueEntries indicating work to be done for this concept. Queue entries of the form
      * A [ f.(o, v).
      */
     private final IQueue<IFeatureQueueEntry> featureQueue = new QueueImpl<IFeatureQueueEntry>(IFeatureQueueEntry.class);
@@ -128,21 +129,21 @@ public class Context implements Serializable {
 
     /**
      * The set of NF1 terms in the ontology.
-     * 
+     *
      * These terms are of the form A n Ai [ B and are indexed by A.
      */
     private IConceptMap<MonotonicCollection<IConjunctionQueueEntry>> ontologyNF1;
 
     /**
      * The set of NF2 terms in the ontology.
-     * 
+     *
      * These terms are of the form A [ r.B and are indexed by A.
      */
     private IConceptMap<MonotonicCollection<NF2>> ontologyNF2;
 
     /**
      * The set of NF3 terms in the ontology.
-     * 
+     *
      * These terms are of the form r.A [ b and indexed by A.
      */
     private IConceptMap<ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>>> ontologyNF3;
@@ -164,14 +165,14 @@ public class Context implements Serializable {
 
     /**
      * The set of NF7 terms in the ontology.
-     * 
+     *
      * These terms are of the form A [ f.(o, v) and are indexed by A.
      */
     private IConceptMap<MonotonicCollection<NF7>> ontologyNF7;
 
     /**
      * The set of NF8 terms in the ontology.
-     * 
+     *
      * These terms are of the form f.(o, v) [ A. These are indexed by f.
      */
     private FeatureMap<MonotonicCollection<NF8>> ontologyNF8;
@@ -180,9 +181,12 @@ public class Context implements Serializable {
      * The set of functional data properties
      */
     private IConceptSet functionalFeatures;
-    
-    private FeatureMap<AbstractLiteral> functionalFeatureValues = new FeatureMap<>(2);
-    
+
+    /**
+     * The set of datatypes asserted for a given (functional) feature
+     */
+    private FeatureMap<Set<Datatype>> functionalFeatureValues = new FeatureMap<>(2);
+
     /**
      * The map of global affected contexts used in incremental classification.
      */
@@ -190,7 +194,7 @@ public class Context implements Serializable {
 
     /**
      * Initialises the shared variables.
-     * 
+     *
      * @param ont
      */
     private void init(NormalisedOntology ont) {
@@ -212,7 +216,7 @@ public class Context implements Serializable {
 
     /**
      * Constructor.
-     * 
+     *
      * @param concept
      */
     public Context(int concept, NormalisedOntology ont) {
@@ -257,7 +261,7 @@ public class Context implements Serializable {
 
     /**
      * Adds queue entries for this concept based on the new axioms added in an incremental classification.
-     * 
+     *
      * @param conceptEntries
      * @param roleEntries
      * @param featureEntries
@@ -276,7 +280,7 @@ public class Context implements Serializable {
 
     /**
      * Returns this concept's subsumptions.
-     * 
+     *
      * @return
      */
     public IConceptSet getS() {
@@ -285,7 +289,7 @@ public class Context implements Serializable {
 
     /**
      * Returns the data structure used to hold the concepts and roles that point to this concept.
-     * 
+     *
      * @return
      */
     public CR getPred() {
@@ -294,7 +298,7 @@ public class Context implements Serializable {
 
     /**
      * Returns the data structure used to hold the concepts and roles that this concept points at.
-     * 
+     *
      * @return
      */
     public CR getSucc() {
@@ -302,9 +306,9 @@ public class Context implements Serializable {
     }
 
     /**
-     * Activates the context. Returns true if the context was inactive and was activated by this method call or false 
+     * Activates the context. Returns true if the context was inactive and was activated by this method call or false
      * otherwise.
-     * 
+     *
      * @return boolean
      */
     public boolean activate() {
@@ -312,7 +316,7 @@ public class Context implements Serializable {
     }
 
     /**
-     * Deactivates the context. Returns true if the context was active and was deactivated by this method call or false 
+     * Deactivates the context. Returns true if the context was active and was deactivated by this method call or false
      * otherwise.
      */
     public void deactivate() {
@@ -326,7 +330,7 @@ public class Context implements Serializable {
 
     /**
      * Adds an entry to this context's concept queue.
-     * 
+     *
      * @param entry
      */
     public void addConceptQueueEntry(IConjunctionQueueEntry entry) {
@@ -340,7 +344,7 @@ public class Context implements Serializable {
 
     /**
      * Adds an entry to this context's role queue.
-     * 
+     *
      * @param entry
      */
     public void addRoleQueueEntry(IRoleQueueEntry entry) {
@@ -349,7 +353,7 @@ public class Context implements Serializable {
 
     /**
      * Adds and entry to this context's feature queue.
-     * 
+     *
      * @param entry
      */
     public void addFeatureQueueEntry(IFeatureQueueEntry entry) {
@@ -358,7 +362,7 @@ public class Context implements Serializable {
 
     /**
      * Triggers the processing of an edge based on events that happened in another {@link Context}.
-     * 
+     *
      * @param role
      * @param src
      */
@@ -369,10 +373,12 @@ public class Context implements Serializable {
              */
             private static final long serialVersionUID = 1L;
 
+            @Override
             public int getR() {
                 return role;
             }
 
+            @Override
             public int getB() {
                 return src;
             }
@@ -400,7 +406,7 @@ public class Context implements Serializable {
 
         do {
             done = true;
-            
+
             // Process concept queue
             if (!conceptQueue.isEmpty()) {
                 do {
@@ -427,36 +433,8 @@ public class Context implements Serializable {
                     Datatype d = entry.getD();
 
                     // Handle functional features
-                    int f = d.getFeature();
-                    if (functionalFeatures.contains(f) && Operator.EQUALS.equals(d.getOperator())) {
-                    	AbstractLiteral lit = functionalFeatureValues.get(f);
-                    	if (null == lit) {
-                    		functionalFeatureValues.put(f, d.getLiteral());
-                    	} else if (!lit.equals(d.getLiteral())) {
-//                    		if (1==1) throw new RuntimeException("Functional data property " + f + " has multiple distinct values: " + lit + " and " + d.getLiteral());
-                    		System.err.println("Functional data property " + f + " has multiple distinct values: " + lit + " and " + d.getLiteral());
-                    		// FIXME infer bottom
-                    		final MonotonicCollection<IConjunctionQueueEntry> entries = 
-                                    new MonotonicCollection<IConjunctionQueueEntry>(1);
-                            entries.add(new IConjunctionQueueEntry() {
-                                /**
-                                 * Serialisation version.
-                                 */
-                                private static final long serialVersionUID = 1L;
+                    checkFunctionalFeatures(d);
 
-                                public int getBi() {
-                                    return CoreFactory.TOP_CONCEPT;
-                                }
-
-                                public int getB() {
-                                    return CoreFactory.BOTTOM_CONCEPT;
-                                }
-                            });
-                    		addToConceptQueue(entries);
-                    		continue;
-                    	}
-                    }
-                                        
                     // Get right hand sides from NF8 expressions that
                     // match d on their left hand side
                     MonotonicCollection<NF8> entries = ontologyNF8.get(d.getFeature());
@@ -465,7 +443,7 @@ public class Context implements Serializable {
                         continue;
 
                     // Evaluate to determine the ones that match
-                    MonotonicCollection<IConjunctionQueueEntry> res = 
+                    MonotonicCollection<IConjunctionQueueEntry> res =
                             new MonotonicCollection<IConjunctionQueueEntry>(2);
                     for (final NF8 e : entries) {
                         Datatype d2 = e.lhsD;
@@ -479,10 +457,12 @@ public class Context implements Serializable {
                                  */
                                 private static final long serialVersionUID = 1L;
 
+                                @Override
                                 public int getBi() {
                                     return CoreFactory.TOP_CONCEPT;
                                 }
 
+                                @Override
                                 public int getB() {
                                     return e.rhsB;
                                 }
@@ -511,6 +491,44 @@ public class Context implements Serializable {
             }
 
         } while (!done);
+    }
+
+    private void checkFunctionalFeatures(Datatype d) {
+        int f = d.getFeature();
+        if (functionalFeatures.contains(f)) {
+            Set<Datatype> datatypes = functionalFeatureValues.get(f);
+            if (null == datatypes) {
+                datatypes = new HashSet<>();
+                functionalFeatureValues.put(f, datatypes);
+            } else {
+                for (Datatype dt: datatypes) {
+                    // Check if d and dt are incompatible
+                    if (!datatypeMatches(d, dt) && !datatypeMatches(dt, d)) {
+                        System.err.println("Functional data property " + f + " has multiple distinct value constraints: " + dt + " and " + d);       // FIXME delete
+                        final MonotonicCollection<IConjunctionQueueEntry> entries =
+                                new MonotonicCollection<IConjunctionQueueEntry>(1);
+                        entries.add(new IConjunctionQueueEntry() {
+                            /**
+                             * Serialisation version.
+                             */
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public int getBi() {
+                                return CoreFactory.TOP_CONCEPT;
+                            }
+
+                            @Override
+                            public int getB() {
+                                return CoreFactory.BOTTOM_CONCEPT;
+                            }
+                        });
+                        addToConceptQueue(entries);
+                    }
+                }
+            }
+            datatypes.add(d);
+        }
     }
 
     private void processNewSubsumption(final int b) {
@@ -553,7 +571,7 @@ public class Context implements Serializable {
                 }
             }
         }
-        
+
         final MonotonicCollection<NF7> nf7Entries = ontologyNF7.get(b);
         if (null != nf7Entries && nf7Entries.size() > 0) {
             featureQueue.addAll(nf7Entries);
@@ -561,9 +579,9 @@ public class Context implements Serializable {
     }
 
     /**
-     * Evaluates the equivalence of two {@link Datatype}s. This method assumes that the literals both have the same 
+     * Evaluates the equivalence of two {@link Datatype}s. This method assumes that the literals both have the same
      * matching literal types.
-     * 
+     *
      * @param d1
      *            Data type from an NF7 entry.
      * @param d2
@@ -575,7 +593,7 @@ public class Context implements Serializable {
 
         AbstractLiteral lhsLit = d1.getLiteral();
         AbstractLiteral rhsLit = d2.getLiteral();
-        
+
         Operator lhsOp = d1.getOperator();
         Operator rhsOp = d2.getOperator();
 
@@ -684,11 +702,11 @@ public class Context implements Serializable {
 
         return d1.getLiteral().equals(d2.getLiteral());
     }
-    
+
     /**
-     * Return 0 if both literals are equals. Returns an int > 0 if l1 is greater than l2 and an int < 0 if l1 is less 
+     * Return 0 if both literals are equals. Returns an int > 0 if l1 is greater than l2 and an int < 0 if l1 is less
      * than l2.
-     * 
+     *
      * @param l1
      * @param l2
      * @return
@@ -699,7 +717,7 @@ public class Context implements Serializable {
 
     /**
      * Process new subsumption: a [ role.b
-     * 
+     *
      * @param a
      * @param role
      * @param b
@@ -768,7 +786,7 @@ public class Context implements Serializable {
                 // predecessors of an external context.
                 final IConceptSet bUPrimes = contextIndex.get(b).getPred().lookupConcept(u);
 
-                for (final IntIterator itr = aTPrimes.iterator(); 
+                for (final IntIterator itr = aTPrimes.iterator();
                         itr.hasNext();) {
                     final int aa = itr.next();
 
@@ -802,7 +820,7 @@ public class Context implements Serializable {
                 final IConceptSet bTPrimes = contextIndex.get(b).getSucc().lookupConcept(t);
                 final IConceptSet aUPrimes = succ.lookupConcept(u);
 
-                for (final IntIterator itr = bTPrimes.iterator(); 
+                for (final IntIterator itr = bTPrimes.iterator();
                         itr.hasNext();) {
                     final int bb = itr.next();
 
@@ -836,7 +854,7 @@ public class Context implements Serializable {
     }
 
     /**
-     * Starts tracking changes in the context's subsumptions. It is used in incremental classification to detect which 
+     * Starts tracking changes in the context's subsumptions. It is used in incremental classification to detect which
      * contexts have been affected by the new axioms.
      */
     public void startTracking() {
@@ -896,16 +914,19 @@ public class Context implements Serializable {
 
                     Datatype d = entry.getD();
 
+                    // Handle functional features
+                    checkFunctionalFeatures(d);
+
                     // Get right hand sides from NF8 expressions that
                     // match d on their left hand side
-                    MonotonicCollection<NF8> entries = 
+                    MonotonicCollection<NF8> entries =
                             ontologyNF8.get(d.getFeature());
 
                     if (entries == null)
                         continue;
 
                     // Evaluate to determine the ones that match
-                    MonotonicCollection<IConjunctionQueueEntry> res = 
+                    MonotonicCollection<IConjunctionQueueEntry> res =
                             new MonotonicCollection<IConjunctionQueueEntry>(2);
                     for (final NF8 e : entries) {
                         Datatype d2 = e.lhsD;
@@ -919,10 +940,12 @@ public class Context implements Serializable {
                                  */
                                 private static final long serialVersionUID = 1L;
 
+                                @Override
                                 public int getBi() {
                                     return CoreFactory.TOP_CONCEPT;
                                 }
 
+                                @Override
                                 public int getB() {
                                     return e.rhsB;
                                 }
@@ -996,7 +1019,7 @@ public class Context implements Serializable {
                 }
             }
         }
-        
+
         final MonotonicCollection<NF7> nf7Entries = ontologyNF7.get(b);
         if (null != nf7Entries && nf7Entries.size() > 0) {
             featureQueue.addAll(nf7Entries);
@@ -1067,10 +1090,10 @@ public class Context implements Serializable {
 
                 // Again in this case there is a dependency with the
                 // predecessors of an external context.
-                final IConceptSet bUPrimes = 
+                final IConceptSet bUPrimes =
                         contextIndex.get(b).getPred().lookupConcept(u);
 
-                for (final IntIterator itr = aTPrimes.iterator(); 
+                for (final IntIterator itr = aTPrimes.iterator();
                         itr.hasNext();) {
                     final int aa = itr.next();
 
@@ -1107,7 +1130,7 @@ public class Context implements Serializable {
                         .lookupConcept(t);
                 final IConceptSet aUPrimes = succ.lookupConcept(u);
 
-                for (final IntIterator itr = bTPrimes.iterator(); 
+                for (final IntIterator itr = bTPrimes.iterator();
                         itr.hasNext();) {
                     final int bb = itr.next();
 

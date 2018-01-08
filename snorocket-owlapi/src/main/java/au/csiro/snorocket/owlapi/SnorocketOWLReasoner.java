@@ -625,11 +625,6 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      * e.g., when the ontology asserts that an individual belongs to an
      * unsatisfiable concept.
      *
-     * Snorocket does not currently support individuals so this method always
-     * returns true. TODO: if there is a syntactic issue such as a datatype
-     * being declared with a literal value of a different type than the one
-     * declared in a restriction, should this method return false?
-     *
      *
      * Determines if the set of reasoner axioms is consistent. Note that this
      * method will NOT throw an
@@ -651,7 +646,8 @@ public class SnorocketOWLReasoner implements OWLReasoner {
     @Override
     public boolean isConsistent() throws ReasonerInterruptedException,
             TimeOutException {
-        return true;
+        au.csiro.ontology.Node bottom = getTaxonomy().getBottomNode();
+        return bottom.getEquivalentConcepts().isEmpty();
     }
 
     /**
