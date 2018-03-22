@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -548,9 +549,9 @@ public class Context implements Serializable {
         //
         final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = ontologyNF3.get(b);
         if (null != map) {
-            final Set<Integer> keySet = map.keySet();
-            for (int r : keySet) {
-                final Collection<IConjunctionQueueEntry> entries = map.get(r);
+            for (Entry<Integer, Collection<IConjunctionQueueEntry>> entrySet : map.entrySet()) {
+                int r = entrySet.getKey();
+                final Collection<IConjunctionQueueEntry> entries = entrySet.getValue();
 
                 if (null != entries) {
                     final IConceptSet aPrimes = pred.lookupConcept(r);
@@ -994,9 +995,9 @@ public class Context implements Serializable {
         final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> map = ontologyNF3
                 .get(b);
         if (null != map) {
-            final Set<Integer> keySet = map.keySet();
-            for (int r : keySet) {
-                final Collection<IConjunctionQueueEntry> entries = map.get(r);
+            for (Entry<Integer, Collection<IConjunctionQueueEntry>> entrySet: map.entrySet()) {
+                int r = entrySet.getKey();
+                final Collection<IConjunctionQueueEntry> entries = entrySet.getValue();
 
                 if (null != entries) {
                     final IConceptSet aPrimes = pred.lookupConcept(r);

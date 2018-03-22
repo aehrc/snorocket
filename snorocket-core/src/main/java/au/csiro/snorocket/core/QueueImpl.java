@@ -24,6 +24,7 @@ package au.csiro.snorocket.core;
 import java.io.Serializable;
 
 import au.csiro.snorocket.core.util.MonotonicCollection;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * A LIFO queue. Used to be a LIFO set to avoid duplicate entries but,
@@ -61,6 +62,7 @@ public final class QueueImpl<QueueEntry> implements IQueue<QueueEntry>, Serializ
      * 
      * @param typeToken
      */
+    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @SuppressWarnings("unchecked")
     public QueueImpl(Class<QueueEntry> typeToken) {
         items = (QueueEntry[]) EMPTY;

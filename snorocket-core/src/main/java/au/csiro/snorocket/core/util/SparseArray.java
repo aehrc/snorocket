@@ -37,25 +37,25 @@ public class SparseArray<T> implements Serializable {
     int counter = 0;
     T[][] groups;
 
-    public void Xfinalize() {
-        int unused = 0;
-        int total = 0;
-        for (int i = 0; i < groups.length; i++) {
-            total++;
-            if (null == groups[i]) {
-                unused++;
-            } else {
-                for (int j = 0; j < groups[i].length; j++) {
-                    total++;
-                    if (null == groups[i][j]) {
-                        unused++;
-                    }
-                }
-            }
-        }
-        System.err.println("SparseArray: " + total + ", " + unused + ", "
-                + 100.0 * unused / total);
-    }
+//    public void finalize() {
+//        int unused = 0;
+//        int total = 0;
+//        for (int i = 0; i < groups.length; i++) {
+//            total++;
+//            if (null == groups[i]) {
+//                unused++;
+//            } else {
+//                for (int j = 0; j < groups[i].length; j++) {
+//                    total++;
+//                    if (null == groups[i][j]) {
+//                        unused++;
+//                    }
+//                }
+//            }
+//        }
+//        System.err.println("SparseArray: " + total + ", " + unused + ", "
+//                + 100.0 * unused / total);
+//    }
 
     @SuppressWarnings("unchecked")
     SparseArray(final int size) {

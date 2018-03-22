@@ -14,8 +14,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import au.csiro.ontology.Factory;
-import au.csiro.ontology.Ontology;
 import au.csiro.ontology.Node;
+import au.csiro.ontology.Ontology;
 import au.csiro.ontology.model.Axiom;
 import au.csiro.ontology.model.Concept;
 import au.csiro.snorocket.core.SnorocketReasoner;
@@ -43,7 +43,7 @@ public class Demo {
         
         // 2. Load SCT to UUID map
         System.out.println("Loading uuid description map");
-        Map<String, String> sctToUuidMap = new HashMap<String, String>();
+//        Map<String, String> sctToUuidMap = new HashMap<String, String>();
         Map<String, String> uuidToDescMap = new HashMap<String, String>();
         BufferedReader reader = null;
         try {
@@ -60,7 +60,7 @@ public class Demo {
                 	desc = parts[3];
                 }
                 if(parts[1].equals("NA")) continue;
-                sctToUuidMap.put(parts[1], parts[2]);
+//                sctToUuidMap.put(parts[1], parts[2]);
                 uuidToDescMap.put(parts[2], desc);
             }      
         } catch (IOException e) {

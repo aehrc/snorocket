@@ -2,13 +2,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
-    <version>2.9.0</version>
+    <version>2.9.1-SNAPSHOT</version>
 
     <packaging>pom</packaging>
-   <name>Snorocket</name>
-   <description>The Snorocket classifier.</description>
+    <name>Snorocket</name>
+    <description>The Snorocket classifier.</description>
 
-   <url>https://github.com/aehrc/snorocket</url>
+    <url>https://github.com/aehrc/snorocket</url>
    
     <licenses>
         <license>
@@ -16,7 +16,7 @@
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
             <distribution>repo</distribution>
         </license>
-   </licenses>
+    </licenses>
    
     <scm>
         <url>git@github.com:aehrc/snorocket.git</url>
@@ -63,14 +63,14 @@
         <sl4j.version>1.7.10</sl4j.version>
         <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
-    
+
     <modules>
         <module>snorocket-core</module>
         <module>snorocket-owlapi</module>
         <module>snorocket-protege</module>
          <module>snorocket-examples</module>
     </modules>
-    
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -90,8 +90,14 @@
           <version>${sl4j.version}</version>
           <scope>test</scope>
         </dependency>
+        <dependency>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>annotations</artifactId>
+          <version>3.0.1</version>
+          <scope>provided</scope>
+        </dependency>
     </dependencies>
-    
+
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
@@ -102,53 +108,73 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-    
+
     <build>
-    <extensions>
-      <extension>
-        <groupId>org.apache.maven.wagon</groupId>
-        <artifactId>wagon-ssh</artifactId>
-        <version>2.2</version>
-      </extension>
-    </extensions>
-    <plugins>
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.6.7</version>
-        <extensions>true</extensions>
-        <configuration>
-          <serverId>ossrh</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-          <autoReleaseAfterClose>true</autoReleaseAfterClose>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-          <testSource>1.8</testSource>
-          <testTarget>1.8</testTarget>
-        </configuration>
-      </plugin>
-      <plugin>
-          <groupId>external.atlassian.jgitflow</groupId>
-          <artifactId>jgitflow-maven-plugin</artifactId>
-          <version>1.0-m1</version>
+      <extensions>
+        <extension>
+          <groupId>org.apache.maven.wagon</groupId>
+          <artifactId>wagon-ssh</artifactId>
+          <version>2.2</version>
+        </extension>
+      </extensions>
+      <plugins>
+        <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>1.6.7</version>
+          <extensions>true</extensions>
           <configuration>
-            <autoVersionSubmodules>true</autoVersionSubmodules>
-            <pushReleases>true</pushReleases>
+            <serverId>ossrh</serverId>
+            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+            <autoReleaseAfterClose>true</autoReleaseAfterClose>
           </configuration>
-      </plugin>
-    </plugins>
-  </build>
-  
-  <profiles>
-    <profile>
-      <id>release-sign-artifacts</id>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.0</version>
+          <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+            <testSource>1.8</testSource>
+            <testTarget>1.8</testTarget>
+          </configuration>
+        </plugin>
+        <plugin>
+            <groupId>external.atlassian.jgitflow</groupId>
+            <artifactId>jgitflow-maven-plugin</artifactId>
+            <version>1.0-m1</version>
+            <configuration>
+              <autoVersionSubmodules>true</autoVersionSubmodules>
+              <pushReleases>true</pushReleases>
+            </configuration>
+        </plugin>
+      </plugins>
+    </build>
+
+    <reporting>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>findbugs-maven-plugin</artifactId>
+          <version>3.0.5</version>
+          <configuration>
+            <onlyAnalyze>au.csiro.*</onlyAnalyze>
+          </configuration>
+          <reportSets>
+            <reportSet>
+              <reports>
+                <report>findbugs</report>
+              </reports>
+            </reportSet>
+          </reportSets>
+        </plugin>
+      </plugins>
+    </reporting>
+
+    <profiles>
+      <profile>
+        <id>release-sign-artifacts</id>
         <activation>
           <property>
             <name>performRelease</name>

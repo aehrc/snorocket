@@ -6,10 +6,12 @@ package au.csiro.snorocket.core.benchmark;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
@@ -18,8 +20,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import au.csiro.ontology.Ontology;
-import au.csiro.ontology.model.Axiom;
 import au.csiro.ontology.importer.rf1.RF1Importer;
+import au.csiro.ontology.model.Axiom;
 import au.csiro.ontology.util.NullProgressMonitor;
 import au.csiro.snorocket.core.CoreFactory;
 import au.csiro.snorocket.core.IFactory;
@@ -74,7 +76,7 @@ public class BenchmarkIncremental {
         }
         
         if(ont == null) {
-            System.out.println("Could not find version " + version + " in input files");
+            throw new RuntimeException("Could not find version " + version + " in input files");
         }
         System.out.println("Loading axioms");
         no.loadAxioms(new HashSet<Axiom>(ont.getStatedAxioms()));
@@ -110,6 +112,9 @@ public class BenchmarkIncremental {
             }
         }
         
+        if(ont == null) {
+            throw new RuntimeException("Could not find version " + version + " in input files");
+        }
         res.setAxiomTransformationTimeMs(System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
         System.out.println("Running classification");
@@ -193,7 +198,7 @@ public class BenchmarkIncremental {
             try {
                 File ou = new File(outputFile).getAbsoluteFile();
                 System.out.println("Writing to file "+ou);
-                bw = new BufferedWriter(new FileWriter(ou));
+                bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(ou), StandardCharsets.UTF_8));
                 bw.write(sb.toString());
                 bw.flush();
             } catch (Exception e) {

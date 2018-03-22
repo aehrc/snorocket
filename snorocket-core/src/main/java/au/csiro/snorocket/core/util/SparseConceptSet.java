@@ -21,6 +21,8 @@
 
 package au.csiro.snorocket.core.util;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Implementation of the IConceptSet API that does not support clear() or
  * remove()/removeAll(). Set entries are stored in sorted order to allow for
@@ -56,6 +58,7 @@ final public class SparseConceptSet implements IConceptSet {
         this(10);
     }
 
+    @SuppressFBWarnings("IM_AVERAGE_COMPUTATION_COULD_OVERFLOW")
     public synchronized void add(final int concept) {
         int low = 0;
         int high = size;
@@ -110,7 +113,8 @@ final public class SparseConceptSet implements IConceptSet {
         throw new UnsupportedOperationException();
     }
 
-    public boolean contains(final int concept) {
+    @SuppressFBWarnings("IM_AVERAGE_COMPUTATION_COULD_OVERFLOW")
+    public synchronized boolean contains(final int concept) {
         int low = 0;
         int high = size;
         while ((high - low) > 16) {
@@ -159,7 +163,7 @@ final public class SparseConceptSet implements IConceptSet {
         throw new UnsupportedOperationException();
     }
 
-    public String toString() {
+    public synchronized String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         for (int i = 0; i < size; i++) {
@@ -185,7 +189,7 @@ final public class SparseConceptSet implements IConceptSet {
         items = newItems;
     }
 
-    public int[] toArray() {
+    public synchronized int[] toArray() {
         int[] res = new int[size];
         for (int i = 0; i < size; i++) {
             res[i] = items[i];

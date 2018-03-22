@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -220,7 +221,7 @@ public class NormalisedOntology implements Serializable {
         private static final long serialVersionUID = 1L;
 
         public int compare(Context o1, Context o2) {
-            return ((Integer) o1.getConcept()).compareTo(o2.getConcept());
+            return Integer.compare(o1.getConcept(), o2.getConcept());
         }
     }
     
@@ -738,9 +739,9 @@ public class NormalisedOntology implements Serializable {
             return sb.toString();
         } else if(o instanceof Concept) {
             Object obj = factory.lookupConceptId(((Concept)o).hashCode());
-            if(obj == au.csiro.ontology.model.NamedConcept.TOP) {
+            if(au.csiro.ontology.model.NamedConcept.TOP.equals(obj)) {
                 return "TOP";
-            } else if(obj == au.csiro.ontology.model.NamedConcept.BOTTOM) {
+            } else if(au.csiro.ontology.model.NamedConcept.BOTTOM.equals(obj)) {
                 return "BOTTOM";
             } else if(obj instanceof AbstractConcept) {
                 return "<"+printInternalObject(obj)+">";
@@ -1143,9 +1144,9 @@ public class NormalisedOntology implements Serializable {
             final ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> entries = deltaNF3
                     .get(x);
 
-            final Set<Integer> keySet = entries.keySet();
-            for (int r : keySet) {
-                for (final IConjunctionQueueEntry entry : entries.get(r)) {
+            for (Entry<Integer, Collection<IConjunctionQueueEntry>> entrySet : entries.entrySet()) {
+                int r = entrySet.getKey();
+                for (final IConjunctionQueueEntry entry : entrySet.getValue()) {
                     for (final IntIterator aItr = subsumptions.keyIterator(); aItr
                             .hasNext();) {
                         final int a = aItr.next();
@@ -1636,9 +1637,9 @@ public class NormalisedOntology implements Serializable {
             int a = it.next();
             ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> mc = 
                     ontologyNF3.get(a);
-            Set<Integer> keys = mc.keySet();
-            for (int i : keys) {
-                Collection<IConjunctionQueueEntry> cc = mc.get(i);
+            for (Entry<Integer, Collection<IConjunctionQueueEntry>> entry : mc.entrySet()) {
+                int i = entry.getKey();
+                Collection<IConjunctionQueueEntry> cc = entry.getValue();
                 for(Iterator<IConjunctionQueueEntry> it2 = cc.iterator(); 
                         it2.hasNext(); ) {
                     IConjunctionQueueEntry nf3 = it2.next();
@@ -1834,9 +1835,10 @@ public class NormalisedOntology implements Serializable {
         IConceptSet processed = new FastConceptHashSet();
         Set<Node> nodeSet = new HashSet<Node>();
         
-        for(int key : equiv.keySet()) {
+        for (Entry<Integer, IConceptSet> entry : equiv.entrySet()) {
+            int key = entry.getKey();
             if(processed.contains(key)) continue;
-            IConceptSet equivs = equiv.get(key);
+            IConceptSet equivs = entry.getValue();
             processed.addAll(equivs);
             
             Node n = new Node();
@@ -1904,11 +1906,12 @@ public class NormalisedOntology implements Serializable {
         start = System.currentTimeMillis();
         
         // Connect top
-        for (String key : conceptNodeIndex.keySet()) {
-            if (key.equals(au.csiro.ontology.model.NamedConcept.TOP) || 
-                    key.equals(au.csiro.ontology.model.NamedConcept.BOTTOM))
+        for (Entry<String, Node> entry : conceptNodeIndex.entrySet()) {
+            String key = entry.getKey();
+            if (au.csiro.ontology.model.NamedConcept.TOP.equals(key) || 
+                    au.csiro.ontology.model.NamedConcept.BOTTOM.equals(key))
                 continue;
-            Node node = conceptNodeIndex.get(key);
+            Node node = entry.getValue();
             if (node.getParents().isEmpty()) {
                 node.getParents().add(top);
                 top.getChildren().add(node);
@@ -2467,27 +2470,6 @@ public class NormalisedOntology implements Serializable {
         return conceptNodeIndex.get(cid);
     }
     
-    public class TopBottomNodes {
-        private Node top;
-        private Node bottom;
-
-        public Node getTop() {
-            return top;
-        }
-
-        public void setTop(Node top) {
-            this.top = top;
-        }
-
-        public Node getBottom() {
-            return bottom;
-        }
-
-        public void setBottom(Node bottom) {
-            this.bottom = bottom;
-        }
-    }
-    
     private void printNormalisedAxioms() {
         for(IntIterator it = ontologyNF1.keyIterator(); it.hasNext(); ) {
             int key = it.next();
@@ -2528,11 +2510,12 @@ public class NormalisedOntology implements Serializable {
         for(IntIterator it = ontologyNF3.keyIterator(); it.hasNext(); ) {
             int aId = it.next();
             ConcurrentMap<Integer, Collection<IConjunctionQueueEntry>> entries = ontologyNF3.get(aId);
-            for(Integer rId : entries.keySet()) {
+            for(Entry<Integer, Collection<IConjunctionQueueEntry>> entrySet : entries.entrySet()) {
+                Integer rId = entrySet.getKey();
                 
                 // These terms are of the form r.A [ b and indexed by A (and then by r)
                 
-                for(IConjunctionQueueEntry entry : entries.get(rId)) {
+                for(IConjunctionQueueEntry entry : entrySet.getValue()) {
                     int bId = entry.getB();
                     Object r = factory.lookupRoleId(rId.intValue());
                     String rs = (r instanceof String) ? (String) r :  "[" + r.toString() + "]";
