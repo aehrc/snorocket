@@ -303,7 +303,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             final int key = itr.next();
             final String id = factory.lookupConceptId(key).toString();
 
-            if (factory.isVirtualConcept(key) || NamedConcept.BOTTOM == id) {
+            if (factory.isVirtualConcept(key) || NamedConcept.BOTTOM.equals(id)) {
                 continue;
             }
 

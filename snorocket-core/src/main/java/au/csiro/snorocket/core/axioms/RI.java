@@ -24,6 +24,7 @@ package au.csiro.snorocket.core.axioms;
 import java.util.Arrays;
 
 import au.csiro.snorocket.core.IFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * 
@@ -46,6 +47,7 @@ public class RI extends Inclusion {
     final private int rhs;
     final private int hashCode;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public RI(final int[] lhs, final int rhs) {
         assert null != lhs;
         assert -1 < rhs;
@@ -58,6 +60,7 @@ public class RI extends Inclusion {
         this(new int[] { lhs }, rhs);
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public int[] getLhs() {
         return lhs;
     }

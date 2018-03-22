@@ -6,9 +6,11 @@ package au.csiro.snorocket.core.benchmark;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
@@ -17,8 +19,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import au.csiro.ontology.Ontology;
-import au.csiro.ontology.model.Axiom;
 import au.csiro.ontology.importer.rf1.RF1Importer;
+import au.csiro.ontology.model.Axiom;
 import au.csiro.ontology.util.NullProgressMonitor;
 import au.csiro.snorocket.core.CoreFactory;
 import au.csiro.snorocket.core.IFactory;
@@ -77,8 +79,7 @@ public class Benchmark {
         // We can do this because we know there is only one ontology (RF1 does
         // not support multiple versions)
         if(ont == null) {
-            System.out.println("Could not find version "+version+
-                    " in input files");
+            throw new RuntimeException("Could not find version "+version+" in input files");
         }
         res.setAxiomTransformationTimeMs(System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
@@ -158,8 +159,7 @@ public class Benchmark {
             
             BufferedWriter bw = null;
             try {
-                bw = new BufferedWriter(new FileWriter(
-                        new File(outputFile).getAbsoluteFile()));
+                bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputFile).getAbsoluteFile()), StandardCharsets.UTF_8));
                 bw.write(sb.toString());
             } catch (Exception e) {
                 e.printStackTrace();

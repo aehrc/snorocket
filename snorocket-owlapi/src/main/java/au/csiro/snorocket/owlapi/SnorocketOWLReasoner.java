@@ -6,6 +6,7 @@ package au.csiro.snorocket.owlapi;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -154,9 +155,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
      */
     private OWLClass getOWLClass(Object id) {
         // Special cases top and bottom
-        if(id == NamedConcept.TOP) {
+        if(NamedConcept.TOP.equals(id)) {
             return owlFactory.getOWLThing();
-        } else if(id == NamedConcept.BOTTOM) {
+        } else if(NamedConcept.BOTTOM.equals(id)) {
             return owlFactory.getOWLNothing();
         } else {
             String iri = (String)id;
@@ -201,9 +202,9 @@ public class SnorocketOWLReasoner implements OWLReasoner {
 
         if(id instanceof String) {
             n = getTaxonomy().getNode((String)id);
-        } else if(id == NamedConcept.TOP) {
+        } else if(NamedConcept.TOP.equals(id)) {
             n = getTaxonomy().getTopNode();
-        } else if(id == NamedConcept.BOTTOM) {
+        } else if(NamedConcept.BOTTOM.equals(id)) {
             n = getTaxonomy().getBottomNode();
         } else {
             throw new RuntimeException("Unexpected id "+id);
@@ -384,8 +385,8 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         if (null == REASONER_VERSION) {
             // load properties from plugin.properties
             Properties p = new Properties();
-            try {
-                p.load(getClass().getResourceAsStream("/plugin.properties"));
+            try (InputStream is = getClass().getResourceAsStream("/plugin.properties")) {
+                p.load(is);
                 String[] versions = p.getProperty("plugin.version").split("[-.]");         // X.Y.Z
                 int major = Integer.parseInt(versions[0]);
                 int minor = Integer.parseInt(versions[1]);

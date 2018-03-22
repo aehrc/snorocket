@@ -26,6 +26,8 @@ import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 public class Conjunction extends AbstractConcept {
 
     /**
@@ -57,6 +59,7 @@ public class Conjunction extends AbstractConcept {
         hashCode = sorted.hashCode();
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public AbstractConcept[] getConcepts() {
         return concepts;
     }
