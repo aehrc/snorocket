@@ -10,6 +10,7 @@ import java.util.List;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -94,26 +95,25 @@ public class DebugUtils {
     }
 
     public static String getLabel(OWLEntity e, OWLOntology ont) {
-    	return EntitySearcher.getAnnotations(e, ont)
-    		.filter(an -> an.getProperty().isLabel())
-    		.findFirst()
-    		.map(an -> {
-    			final OWLAnnotationValue val = an.getValue();
+        for (OWLAnnotation an : EntitySearcher.getAnnotations(e, ont)) {
+            if (an.getProperty().isLabel()) {
+                final OWLAnnotationValue val = an.getValue();
 
-    			if (val instanceof IRI) {
-    				return ((IRI) val).toString();
-    			} else if (val instanceof OWLLiteral) {
-    				OWLLiteral lit = (OWLLiteral) val;
-    				return lit.getLiteral();
-    			} else if (val instanceof OWLAnonymousIndividual) {
-    				OWLAnonymousIndividual ind = (OWLAnonymousIndividual) val;
-    				return ind.toStringID();
-    			} else {
-    				throw new RuntimeException("Unexpected class "
-    						+ val.getClass());
-    			}
-    		})
-    		.orElse(e.toStringID());
+                if (val instanceof IRI) {
+                        return ((IRI) val).toString();
+                } else if (val instanceof OWLLiteral) {
+                        OWLLiteral lit = (OWLLiteral) val;
+                        return lit.getLiteral();
+                } else if (val instanceof OWLAnonymousIndividual) {
+                        OWLAnonymousIndividual ind = (OWLAnonymousIndividual) val;
+                        return ind.toStringID();
+                } else {
+                        throw new RuntimeException("Unexpected class "
+                                        + val.getClass());
+                }
+            }
+        }
+        return e.toStringID();
     }
 
     /**

@@ -272,9 +272,10 @@ public class SnorocketOWLReasoner implements OWLReasoner {
         Set<Axiom> canAxioms = new HashSet<Axiom>();
 
         // load in axioms from this and all imported ontologies
-        final List<OWLAxiom> axioms = ont.importsClosure()
-        		.flatMap(OWLOntology::axioms)
-        		.collect(Collectors.toList());
+        final List<OWLAxiom> axioms = new ArrayList<OWLAxiom>();
+        for (OWLOntology o: ont.getImportsClosure()) {
+            axioms.addAll(o.getAxioms());
+        }
         OWLImporter oi = new OWLImporter(axioms);
 
         Iterator<Ontology> it = null;
