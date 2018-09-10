@@ -40,6 +40,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,6 +119,14 @@ public class NormalisedOntology implements Serializable {
      * Logger.
      */
     private final static Logger log = LoggerFactory.getLogger(NormalisedOntology.class);
+    
+    private final static ThreadGroup GROUP = new ThreadGroup("Snorocket");
+    private final static ThreadFactory THREAD_FACTORY = new ThreadFactory() {
+		@Override
+		public Thread newThread(Runnable runnable) {
+			return new Thread(GROUP, runnable);
+		}
+	};
 
     final protected IFactory factory;
 
@@ -964,7 +974,7 @@ public class NormalisedOntology implements Serializable {
         
         if(log.isInfoEnabled())
             log.info("Running saturation");
-        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads, THREAD_FACTORY);
         for (int j = 0; j < numThreads; j++) {
             Runnable worker = new Worker(todo);
             executor.execute(worker);
@@ -973,7 +983,7 @@ public class NormalisedOntology implements Serializable {
         executor.shutdown();
         while (!executor.isTerminated()) {
             try {
-                Thread.sleep(100);
+                executor.awaitTermination(100, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -1429,7 +1439,7 @@ public class NormalisedOntology implements Serializable {
         
         if(log.isInfoEnabled())
             log.info("Running saturation");
-        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads, THREAD_FACTORY);
         for (int j = 0; j < numThreads; j++) {
             Runnable worker = new Worker(todo);
             executor.execute(worker);
@@ -1438,7 +1448,7 @@ public class NormalisedOntology implements Serializable {
         executor.shutdown();
         while (!executor.isTerminated()) {
             try {
-                Thread.sleep(100);
+                executor.awaitTermination(100, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -1794,7 +1804,7 @@ public class NormalisedOntology implements Serializable {
         final ConcurrentMap<Integer, IConceptSet> direc = 
                 new ConcurrentHashMap<Integer, IConceptSet>();
         
-        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads, THREAD_FACTORY);
         for (int j = 0; j < numThreads; j++) {
             Runnable worker = new TaxonomyWorker1(contextIndex, 
                     equiv, direc, factory, todo);
@@ -1804,7 +1814,7 @@ public class NormalisedOntology implements Serializable {
         executor.shutdown();
         while (!executor.isTerminated()) {
             try {
-                Thread.sleep(100);
+                executor.awaitTermination(100, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -1872,7 +1882,7 @@ public class NormalisedOntology implements Serializable {
         
         // Step 3 - Connects nodes
         Queue<Node> todo2 = new ConcurrentLinkedQueue<Node>(nodeSet);
-        executor = Executors.newFixedThreadPool(numThreads);
+        executor = Executors.newFixedThreadPool(numThreads, THREAD_FACTORY);
         for (int j = 0; j < numThreads; j++) {
             Runnable worker = new TaxonomyWorker2(factory, 
                     conceptNodeIndex, direc, todo2, nodeSet);
@@ -1882,7 +1892,7 @@ public class NormalisedOntology implements Serializable {
         executor.shutdown();
         while (!executor.isTerminated()) {
             try {
-                Thread.sleep(100);
+                executor.awaitTermination(100, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
