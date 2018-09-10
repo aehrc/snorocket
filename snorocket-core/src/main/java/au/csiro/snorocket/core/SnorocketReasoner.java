@@ -182,7 +182,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
             return new NamedConcept((String) obj);
         } else if(obj instanceof au.csiro.snorocket.core.model.Conjunction) {
             au.csiro.snorocket.core.model.Conjunction conj = (au.csiro.snorocket.core.model.Conjunction) obj;
-            List<Concept> conjs = new ArrayList<Concept>();
+            List<Concept> conjs = new ArrayList<>();
             for(AbstractConcept ac : conj.getConcepts()) {
                 conjs.add(transformToModel(ac));
             }
@@ -276,8 +276,8 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
      * the presence of GCIs this is not well defined (as far as I know -
      * Michael).
      * <p>
-     * Instead, we will return stated form axioms for Sufficient conditions (
-     * i.e. for INamedConcept on the RHS), and SNOMED CT DNF-based axioms for
+     * Instead, we will return stated form axioms for Sufficient conditions
+     * (i.e. for INamedConcept on the RHS), and SNOMED CT DNF-based axioms for
      * Necessary conditions. The former is just a filter over the stated axioms,
      * the latter requires looking at the Taxonomy and inferred relationships.
      * <p>
@@ -287,7 +287,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
      * @return
      */
     public Collection<Axiom> getInferredAxioms() {
-        final Collection<Axiom> inferred = new HashSet<Axiom>();
+        final Collection<Axiom> inferred = new HashSet<>();
 
         if(!isClassified) classify();
 
@@ -320,7 +320,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
 
     protected Concept getNecessary(IConceptMap<Context> contextIndex, Map<String, Node> taxonomy, int key) {
         final Object id = factory.lookupConceptId(key);
-        final List<Concept> result = new ArrayList<Concept>();
+        final List<Concept> result = new ArrayList<>();
 
         final Node node = taxonomy.get(id);
         if (node != null) {
@@ -359,7 +359,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         final Context ctx = contextIndex.get(key);
         CR succ = ctx.getSucc();
 
-        for(int roleId : succ.getRoles()) {
+        for (int roleId : succ.getRoles()) {
             NamedRole role = new NamedRole(factory.lookupRoleId(roleId).toString());
             IConceptSet values = getLeaves(succ.lookupConcept(roleId));
             for (IntIterator itr2 = values.iterator(); itr2.hasNext(); ) {
@@ -402,14 +402,14 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
 
     /**
      * Identifies any equivalent concepts and retains only one of them.
-     * 
+     *
      * @param concepts
      * @return
      */
     private IConceptSet filterEquivalents(final IConceptSet concepts) {
         int[] cArray = concepts.toArray();
         boolean[] toExclude = new boolean[cArray.length];
-        
+
         for(int i = 0; i < cArray.length; i++) {
             if(toExclude[i]) continue;
             final IConceptSet iAncestors = IConceptSet.FACTORY.createConceptSet(getAncestors(no, cArray[i]));
@@ -423,17 +423,17 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
                 }
             }
         }
-        
+
         IConceptSet res = IConceptSet.FACTORY.createConceptSet();
         for(int i = 0; i < cArray.length; i++) {
             if(!toExclude[i]) {
                 res.add(cArray[i]);
             }
         }
-        
+
         return res;
     }
-    
+
     /**
      * Given a set of concepts, computes the subset such that no member of the subset is subsumed by another member.
      *
@@ -446,7 +446,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         // Deal with any equivalent concepts. If there are equivalent concepts in the set then we only keep one of them.
         // Otherwise, both will get eliminated from the final set.
         final IConceptSet filtered = filterEquivalents(concepts);
-        
+
         final IConceptSet leafBs = IConceptSet.FACTORY.createConceptSet(filtered);
         final IConceptSet set = IConceptSet.FACTORY.createConceptSet(leafBs);
 
@@ -459,7 +459,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         }
         return leafBs;
     }
-    
+
     /**
      * Prints a concept given its internal id. Useful for debugging.
      *
@@ -526,7 +526,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         final private IFactory factory;
         final private Map<Integer, RoleSet> rc;
 
-        final private Set<Existential> items = new HashSet<Existential>();
+        final private Set<Existential> items = new HashSet<>();
 
         private Builder(NormalisedOntology no) {
             this.no = no;
@@ -535,7 +535,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
         }
 
         static Concept build(NormalisedOntology no, Concept... concepts) {
-            final List<Concept> list = new ArrayList<Concept>();
+            final List<Concept> list = new ArrayList<>();
             final Builder b = new Builder(no);
 
             for (final Concept member: concepts) {
@@ -623,7 +623,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
          * </ol>
          */
         private void build(NamedRole role, Concept concept) {
-            final List<Existential> remove = new ArrayList<Existential>();
+            final List<Existential> remove = new ArrayList<>();
             boolean subsumed = false;
 
             if (log.isTraceEnabled()) log.trace("check for subsumption: " + role + "." + concept);
@@ -730,7 +730,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
 
     @Override
     public void loadAxioms(Iterator<Axiom> axioms) {
-        Set<Axiom> axiomSet = new HashSet<Axiom>();
+        Set<Axiom> axiomSet = new HashSet<>();
         while(axioms.hasNext()) {
             Axiom axiom = axioms.next();
             if(axiom == null) continue;
@@ -748,7 +748,7 @@ final public class SnorocketReasoner implements IReasoner, Serializable {
 
     @Override
     public void loadAxioms(Ontology ont) {
-        loadAxioms(new HashSet<Axiom>(ont.getStatedAxioms()));
+        loadAxioms(new HashSet<>(ont.getStatedAxioms()));
     }
 
     @Override
