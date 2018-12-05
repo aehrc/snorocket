@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
-    <version>3.1.1</version>
+    <version>3.1.2</version>
 
     <packaging>pom</packaging>
     <name>Snorocket</name>
@@ -57,10 +57,10 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>3.1.1</ontology-core.version>
-        <owl-api.version>[4.3.1,4.4)</owl-api.version>
+        <ontology-core.version>3.1.2</ontology-core.version>
+        <owl-api.version>[4.3.1,4.6)</owl-api.version>
         <protege.version>5.2.0</protege.version>
-        <sl4j.version>1.7.10</sl4j.version>
+        <sl4j.version>1.7.25</sl4j.version>
         <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
 
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.0</version>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
