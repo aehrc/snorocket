@@ -57,7 +57,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>3.1.2-SNAPSHOT</ontology-core.version>
+        <ontology-core.version>3.1.2</ontology-core.version>
         <owl-api.version>[4.3.1,4.6)</owl-api.version>
         <protege.version>5.2.0</protege.version>
         <sl4j.version>1.7.25</sl4j.version>
