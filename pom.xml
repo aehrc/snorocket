@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.csiro</groupId>
     <artifactId>snorocket-parent</artifactId>
-    <version>3.1.2</version>
+    <version>3.2.0</version>
 
     <packaging>pom</packaging>
     <name>Snorocket</name>
@@ -57,7 +57,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ontology-core.version>3.1.2</ontology-core.version>
+        <ontology-core.version>3.2.0</ontology-core.version>
         <owl-api.version>[4.3.1,4.6)</owl-api.version>
         <protege.version>5.2.0</protege.version>
         <sl4j.version>1.7.25</sl4j.version>
@@ -143,7 +143,14 @@
         <plugin>
             <groupId>external.atlassian.jgitflow</groupId>
             <artifactId>jgitflow-maven-plugin</artifactId>
-            <version>1.0-m1</version>
+            <version>1.0-m5.1</version>
+            <dependencies>
+              <dependency>
+                <groupId>com.jcraft</groupId>
+                <artifactId>jsch</artifactId>
+                <version>0.1.54</version>
+              </dependency>
+            </dependencies>
             <configuration>
               <autoVersionSubmodules>true</autoVersionSubmodules>
               <pushReleases>true</pushReleases>
